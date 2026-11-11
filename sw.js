@@ -1,6 +1,6 @@
 // Offline support: serve the app shell from cache and refresh it in the background.
 // Bump CACHE whenever app files change so installed copies update.
-const CACHE = 'xmas-v5';
+const CACHE = 'xmas-v6';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
