@@ -195,6 +195,7 @@ body.sheet-open .dock { transform: translateY(140%); }
 :root { --tag-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40' preserveAspectRatio='none'%3E%3Cpath fill-rule='evenodd' d='M16 1h40a3 3 0 0 1 3 3v32a3 3 0 0 1-3 3H16a3 3 0 0 1-2.2-1L1.8 22.2a3.3 3.3 0 0 1 0-4.4L13.8 2a3 3 0 0 1 2.2-1ZM13 20a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z'/%3E%3C/svg%3E");
   --tag-mask-wide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' preserveAspectRatio='none'%3E%3Cpath fill-rule='evenodd' d='M16 1h60a3 3 0 0 1 3 3v32a3 3 0 0 1-3 3H16a3 3 0 0 1-2.2-1L1.8 22.2a3.3 3.3 0 0 1 0-4.4L13.8 2a3 3 0 0 1 2.2-1ZM14 20a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z'/%3E%3C/svg%3E"); }
 .tag.emoji { font-family: inherit; font-size: 16px; }
+@media (prefers-color-scheme: dark) { .tag { background: color-mix(in srgb, var(--c) 86%, #fff); } }
 .tag.lg { width: 112px; height: 74px; font-size: 38px; padding-left: 20px; }
 .tag.lg.emoji { font-size: 38px; }
 .tag.xl { width: 136px; height: 90px; font-size: 46px; padding-left: 24px; }
@@ -483,15 +484,21 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 .surprise h3 { margin: 0 0 8px; font-family: var(--serif); font-weight: 400; font-size: 24px; color: var(--ink); }
 .surprise p { margin: 0; color: var(--text2); font-size: 15px; line-height: 1.45; max-width: 30ch; }
 .whoami {
-  position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; padding: calc(var(--safe-t) + 24px) 24px calc(var(--safe-b) + 24px);
+  position: fixed; inset: 0; z-index: 150; display: flex; flex-direction: column; padding: calc(var(--safe-t) + 32px) 20px calc(var(--safe-b) + 24px);
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   background: radial-gradient(130% 80% at 20% 0%, var(--fir-2), var(--fir) 70%); color: var(--on-fir);
   opacity: 0; transition: opacity .4s var(--ease); overflow-y: auto;
 }
 .whoami.show { opacity: 1; }
-.whoami-inner { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.whoami-inner { width: 100%; max-width: 420px; margin: auto; /* centers when short, scrolls from the top when tall */ display: flex; flex-direction: column; align-items: center; text-align: center; }
 .whoami h1 { margin: 0 0 10px; font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1.05; color: #fff; text-wrap: balance; }
 .whoami p { margin: 0 0 26px; color: var(--on-fir2); font-size: 16px; line-height: 1.45; max-width: 30ch; }
-.whoami-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-bottom: 18px; }
+.whoami-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-bottom: 18px; width: 100%; }
+.whoami-tags.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.whoami-tags.grid .shelf-tag { width: 100%; }
+.whoami .tag { background: color-mix(in srgb, var(--c) 78%, #fff); }
+.whoami-tags.grid .shelf-tag .tag { width: 100%; height: 78px; padding-left: 46px; }
+.whoami-tags.grid .shelf-tag .tag .nm { font-size: 18px; }
 .whoami-tags .shelf-tag { animation: settle .6s var(--ease) both; }
 .whoami .btn.quiet { color: var(--brass-hi); }
 
@@ -1953,7 +1960,7 @@ const Identity = {
       <div class="whoami-inner">
         <h1 id="whoami-h">Who’s using this device?</h1>
         <p>Gifts that other people are buying for you will stay hidden here.</p>
-        <div class="whoami-tags">
+        <div class="whoami-tags ${people.length > 3 ? 'grid' : ''}">
           ${people.map((p, i) => `<button class="shelf-tag" data-me="${esc(p.id)}" style="animation-delay:${.08 + i * .05}s">
             <span class="tag" style="--c:${p.color}"><span class="nm">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${esc(p.name)}</span>${isMe(p.id) ? '<span class="sb">This device</span>' : p.relation ? `<span class="sb">${esc(p.relation)}</span>` : ''}</span>
           </button>`).join('')}
@@ -2006,7 +2013,8 @@ function shareSheet() {
       <p class="fnote" style="margin-top:0">
         1. Make sure everyone sharing is on your People list.<br>
         2. Open this app on their phone and go to Settings, then Set up sync.<br>
-        3. Paste the same GitHub token you used here. The app asks who they are before it shows anything.
+        3. Paste the same GitHub token you used here. The app asks who they are before it shows anything.<br><br>
+        Hiding keeps surprises off each other’s screens. It isn’t encryption, so anyone with the token could still read the raw data on GitHub.
         ${Sync.enabled() ? '' : '<br><br>Sync isn’t on yet. Set it up after this so the other phone can get the list.'}
       </p>`,
     onSave(d) {
