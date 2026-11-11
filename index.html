@@ -404,6 +404,8 @@ button.status:active { transform: scale(.92); }
 .swipe-actions { position: absolute; top: 0; right: 0; bottom: 0; display: flex; }
 .swipe-actions button { width: 88px; background: var(--cranberry); color: #fff; font-size: 15px; font-weight: 600; }
 .swipe-content { position: relative; z-index: 1; touch-action: pan-y; }
+/* only paint the delete button while a row is being swiped, so it can't bleed through row seams */
+html:not(.desk) .swipe:not(.swiping) .swipe-actions { visibility: hidden; }
 .swipe-content.snap { transition: transform .42s var(--ease); }
 
 /* ---------- Tasks ---------- */
@@ -588,12 +590,145 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 .toast-act:active { transform: scale(.94); }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
+/* =========================================================
+   Desktop (mouse/trackpad + wide window): sidebar app layout,
+   hover affordances, centered dialogs, quicker motion.
+   ========================================================= */
+#sidebar { display: none; }
+.dk { display: none; }
+html.desk .dk { display: inline-flex; }
+html.desk { --side-w: 264px; --nav-h: 52px; }
+html.desk body { font-size: 15px; letter-spacing: -.2px; }
+html.desk .dock, html.desk #fab { display: none; }
+html.desk #app { left: var(--side-w); border-left: .5px solid var(--hair); }
+html.desk body.sheet-open #app { transform: none; border-radius: 0; }
+html.desk .scroll { padding: calc(var(--nav-h) + 4px) 0 56px; }
+html.desk .content { max-width: 760px; padding: 0 12px; }
+html.desk .large-title { font-size: 34px; margin-top: 0; }
+html.desk .tab, html.desk .tab.active { transition-duration: .1s; }
+/* page pushes: a quick fade-slide rather than a phone-style full-width slide */
+html.desk .page.anim { transition: transform .22s var(--ease), opacity .18s ease; }
+html.desk .page.offright { transform: translateX(28px); opacity: 0; box-shadow: none; }
+html.desk .page.under { transform: none; opacity: 0; pointer-events: none; }
+html.desk .page.edge-shadow { box-shadow: none; }
+html.desk .nav-btn:active { transform: scale(.94); }
+html.desk [data-action="open-settings"].nav-btn { display: none; } /* Settings lives in the sidebar */
+
+/* desktop apps don't use a hand cursor for in-app controls */
+html.desk button, html.desk .tap, html.desk [data-row], html.desk label { cursor: default; }
+html.desk a { cursor: pointer; }
+html.desk button.row:hover, html.desk .row.tap:hover, html.desk [data-row]:hover { background: var(--press); transition: background .08s; }
+html.desk .row { min-height: 46px; padding-top: 9px; padding-bottom: 9px; }
+html.desk .chip:hover:not(.on) { box-shadow: inset 0 0 0 1px var(--text3); }
+html.desk .nav-btn:hover { background: var(--g-fill-strong); }
+html.desk .link:hover { text-decoration: underline; text-underline-offset: 3px; }
+html.desk button.status:hover { filter: brightness(1.05); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent); }
+html.desk .shelf-tag:hover { transform: translateY(-2px) rotate(-1deg); }
+html.desk .shelf { flex-wrap: wrap; overflow: visible; }
+/* keyboard focus on rows */
+html.desk [data-row]:focus { outline: none; }
+html.desk [data-row]:focus-visible { background: color-mix(in srgb, var(--cranberry) 9%, var(--bg)); box-shadow: inset 3px 0 0 var(--cranberry); }
+
+/* hover delete instead of swipe */
+html.desk .swipe .row { padding-right: 56px; }
+html.desk .swipe-actions { top: 50%; bottom: auto; right: 14px; transform: translateY(-50%); z-index: 2; opacity: 0; transition: opacity .12s; pointer-events: none; }
+html.desk .swipe:hover .swipe-actions, html.desk .swipe:focus-within .swipe-actions { opacity: 1; pointer-events: auto; }
+html.desk .swipe-actions button {
+  width: 30px; height: 30px; border-radius: 15px; font-size: 0; background: transparent; color: var(--text2);
+  -webkit-mask: none; position: relative;
+}
+html.desk .swipe-actions button::before {
+  content: ""; position: absolute; inset: 6px; background: currentColor;
+  -webkit-mask: var(--trash-icon) center / contain no-repeat; mask: var(--trash-icon) center / contain no-repeat;
+}
+html.desk .swipe-actions button:hover { background: color-mix(in srgb, var(--cranberry) 14%, transparent); color: var(--cranberry); }
+:root { --trash-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 5.5h13M8 5.5V3.8c0-.4.4-.8.8-.8h2.4c.4 0 .8.4.8.8v1.7M5.2 5.5l.8 10.7c0 .7.6 1.3 1.3 1.3h5.4c.7 0 1.3-.6 1.3-1.3l.8-10.7'/%3E%3C/svg%3E"); }
+
+/* sidebar */
+html.desk #sidebar {
+  display: flex; flex-direction: column; position: fixed; z-index: 60; left: 0; top: 0; bottom: 0; width: var(--side-w);
+  padding: 18px 12px 12px; background: var(--sunken); overflow: hidden;
+}
+.sb-head { padding: 6px 10px 18px; }
+.sb-count { font-family: var(--serif); font-size: 26px; line-height: 1.05; color: var(--ink); }
+.sb-count small { display: block; margin-top: 4px; font-family: -apple-system, system-ui, sans-serif; font-size: 13px; color: var(--text2); letter-spacing: -.08px; }
+.sb-new {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 38px; padding: 0 12px; margin-bottom: 16px; border-radius: 19px;
+  color: #fff; font-weight: 600; font-size: 15px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cranberry) 84%, #fff), var(--cranberry) 60%);
+  box-shadow: inset 0 0 0 .5px rgba(255,255,255,.3), inset 0 1px 1px rgba(255,255,255,.45), 0 6px 14px -8px color-mix(in srgb, var(--cranberry) 80%, transparent);
+  transition: transform .2s var(--spring), filter .15s;
+}
+.sb-new:hover { filter: brightness(1.06); }
+.sb-new:active { transform: scale(.97); }
+.sb-new svg { width: 16px; height: 16px; }
+.sb-new kbd { margin-left: auto; background: rgba(255,255,255,.2); color: #fff; box-shadow: none; }
+.sb-nav { display: flex; flex-direction: column; gap: 2px; }
+.sb-item {
+  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 10px; width: 100%;
+  color: var(--text); font-size: 15px; font-weight: 500; text-align: left; transition: background .08s;
+}
+.sb-item:hover { background: var(--press); }
+.sb-item.on { background: color-mix(in srgb, var(--cranberry) 13%, transparent); color: var(--cranberry); font-weight: 600; }
+.sb-item svg { width: 19px; height: 19px; flex: none; }
+.sb-item .ct { margin-left: auto; color: var(--text2); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.sb-item.on .ct { color: inherit; opacity: .75; }
+.sb-item kbd { display: none; }
+#sidebar:hover .sb-item kbd { display: inline-flex; }
+#sidebar:hover .sb-item .ct { display: none; }
+.sb-label { padding: 22px 10px 6px; font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: .1px; display: flex; justify-content: space-between; align-items: center; }
+.sb-label button { color: var(--text2); width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; }
+.sb-label button:hover { background: var(--press); color: var(--ink); }
+.sb-label button svg { width: 14px; height: 14px; }
+.sb-people { flex: 1; overflow-y: auto; margin: 0 -12px; padding: 0 12px; }
+.sb-people::-webkit-scrollbar { display: none; }
+.sb-person .tag { --h: 20px; }
+.sb-person .left { font-size: 12px; margin-left: auto; }
+.sb-foot { display: flex; gap: 2px; padding-top: 10px; box-shadow: 0 -.5px 0 var(--hair); }
+.sb-foot .sb-item { width: auto; flex: 1; font-size: 14px; }
+.sb-foot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+kbd {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px;
+  font: 600 11.5px/1 -apple-system, system-ui, sans-serif; letter-spacing: 0; color: var(--text2);
+  background: var(--field); box-shadow: inset 0 0 0 .5px var(--hair), 0 1px 0 var(--hair);
+}
+
+/* sheets become centered dialogs */
+html.desk .sheet {
+  top: 50%; bottom: auto; left: 50%; right: auto; width: min(560px, calc(100vw - 48px)); max-height: min(780px, calc(100vh - 64px)); margin: 0;
+  border-radius: 26px; opacity: 0; transform: translate(-50%, -47%) scale(.97);
+  transition: transform .2s var(--ease), opacity .14s ease;
+  box-shadow: 0 0 0 .5px var(--hair), 0 30px 70px -20px rgba(0,0,0,.45);
+}
+html.desk .sheet.show { opacity: 1; transform: translate(-50%, -50%); }
+html.desk .sheet-head { height: 58px; padding-top: 4px; cursor: default; }
+html.desk .sheet-head::before { display: none; }
+html.desk .sheet-body { padding-bottom: 8px; }
+html.desk .sheet-bar { position: static; justify-content: flex-end; padding: 12px 18px 16px; transform: none; background: none; -webkit-mask: none; mask: none; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 -.5px 0 var(--hair); }
+html.desk .bar-btn { height: 38px; border-radius: 19px; font-size: 15px; padding: 0 18px; flex: none; display: inline-flex; align-items: center; gap: 8px; }
+html.desk .bar-btn.primary { min-width: 110px; justify-content: center; }
+html.desk .bar-btn kbd { height: 18px; min-width: 18px; font-size: 11px; background: rgba(255,255,255,.2); color: inherit; box-shadow: none; }
+html.desk .bar-btn.ghost kbd { background: var(--sunken); color: var(--text2); }
+html.desk .backdrop { transition-duration: .15s; }
+/* menus become centered alerts */
+html.desk .action-sheet { top: 50%; bottom: auto; width: 340px; left: 50%; right: auto; margin: 0; opacity: 0; transform: translate(-50%, -46%) scale(.96); transition: transform .18s var(--ease), opacity .12s; }
+html.desk .action-sheet.show { opacity: 1; transform: translate(-50%, -50%); }
+html.desk .action-group button { height: 42px; font-size: 15px; border-radius: 21px; }
+html.desk .toast { top: auto; bottom: 24px; left: calc(50% + var(--side-w) / 2); transform: translate(-50%, 160%); }
+html.desk .toast.show { transform: translate(-50%, 0); }
+
+/* shortcut help */
+.keys { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: center; padding: 14px 18px; font-size: 15px; }
+.keys kbd + kbd { margin-left: 4px; }
+.keys .k { display: flex; justify-content: flex-end; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
 }
 </style>
 </head>
 <body>
+<aside id="sidebar" aria-label="Sections"></aside>
 <div id="app"><main id="tabs"></main></div>
 <div class="dock" id="dock">
   <nav class="capsule" id="capsule"><span class="capsule-thumb"></span></nav>
@@ -648,6 +783,7 @@ const Icon = {
   trash: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5h13M8 5.5V3.8c0-.4.4-.8.8-.8h2.4c.4 0 .8.4.8.8v1.7M5.2 5.5l.8 10.7c0 .7.6 1.3 1.3 1.3h5.4c.7 0 1.3-.6 1.3-1.3l.8-10.7"/></svg>',
   bag: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 6.5h12l-.8 10H4.8Z"/><path d="M7.2 8.5V5.8a2.8 2.8 0 0 1 5.6 0v2.7" stroke-linecap="round"/></svg>',
   scissors: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="5.5" cy="14.5" r="2.5"/><circle cx="14.5" cy="14.5" r="2.5"/><path d="M7.3 12.7 15 3M12.7 12.7 5 3"/></svg>',
+  key: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12.5" r="3.5"/><path d="m9.5 10 7-7M14 5.5l2 2M12 7.5l1.5 1.5"/></svg>',
   ok: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 10.5 3.5 3.5 7.5-8"/></svg>',
   warn: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4.5M10 13.6v.1"/></svg>',
 };
@@ -944,7 +1080,7 @@ const Pages = {
               <div class="swipe ${ui.justAdded === p.id ? 'enter' : ''}">
                 <div class="swipe-actions"><button data-action="delete-person" data-id="${esc(p.id)}">Delete</button></div>
                 <div class="swipe-content">
-                  <button class="row" data-action="open-person" data-id="${esc(p.id)}">
+                  <button class="row" data-action="open-person" data-id="${esc(p.id)}" data-row="person">
                     ${tag(p)}
                     <div class="row-main">
                       <div class="row-title">${esc(p.name)}</div>
@@ -957,7 +1093,7 @@ const Pages = {
               </div>`;
             }).join('')}
           </div>
-          <p class="note">${budget ? `${money(spent)} spent of ${money(budget)} across ${plural(shoppablePeople().length, 'person', 'people')}.` : `${plural(state.people.length, 'person', 'people')}.`} Swipe left on a person to delete.</p>
+          <p class="note">${budget ? `${money(spent)} spent of ${money(budget)} across ${plural(shoppablePeople().length, 'person', 'people')}.` : `${plural(state.people.length, 'person', 'people')}.`} ${Desk.on() ? 'Hover a person to delete, or select one and press ⌫.' : 'Swipe left on a person to delete.'}</p>
         </div>`;
     },
   },
@@ -1070,6 +1206,7 @@ const Pages = {
             </div>
             ${connected ? `
               <button class="row" data-action="sync-now"><div class="row-icon" style="background:var(--fir)">${Icon.sync}</div><div class="row-main">Sync now</div></button>
+              <button class="row" data-action="passphrase"><div class="row-icon" style="background:var(--brass)">${Icon.key}</div><div class="row-main"><div class="row-title">Passphrase for new devices</div><div class="row-sub">${c.passSet ? `Set ${timeAgo(c.passSet)}` : c.keyGistId ? 'Set' : 'Not set'}</div></div>${Icon.chev}</button>
               <button class="row" data-action="sync-disconnect"><div class="row-icon" style="background:var(--cranberry)">${Icon.unlink}</div><div class="row-main">Turn off sync on this device</div></button>
             ` : `
               <button class="row" data-action="sync-connect"><div class="row-icon" style="background:var(--fir)">${Icon.sync}</div><div class="row-main">Set up sync</div>${Icon.chev}</button>
@@ -1142,7 +1279,7 @@ function taskRow(t) {
     <div class="swipe ${ui.justAdded === t.id ? 'enter' : ''}">
       <div class="swipe-actions"><button data-action="delete-task" data-id="${esc(t.id)}">Delete</button></div>
       <div class="swipe-content">
-        <div class="row ${t.done ? 'done' : ''}" data-task="${esc(t.id)}">
+        <div class="row ${t.done ? 'done' : ''}" data-task="${esc(t.id)}" data-row="task" data-id="${esc(t.id)}" tabindex="0">
           <button class="check" data-action="toggle-task" data-id="${esc(t.id)}" aria-label="${t.done ? 'Mark as not done' : 'Mark as done'}">${Icon.check}</button>
           <div class="row-main" data-action="edit-task" data-id="${esc(t.id)}" style="cursor:pointer">
             <div class="row-title task-title">${esc(t.title)}</div>
@@ -1161,7 +1298,7 @@ function giftRow(g, showPerson = false) {
     <div class="swipe ${ui.justAdded === g.id ? 'enter' : ''}">
       <div class="swipe-actions"><button data-action="delete-gift" data-id="${esc(g.id)}">Delete</button></div>
       <div class="swipe-content">
-        <div class="row tap" data-action="edit-gift" data-id="${esc(g.id)}">
+        <div class="row tap" data-action="edit-gift" data-id="${esc(g.id)}" data-row="gift" tabindex="0" role="button" aria-label="${esc(g.title)}">
           <div class="row-main">
             <div class="row-title">${esc(g.title)}</div>
             ${sub ? `<div class="row-sub">${esc(sub)}</div>` : ''}
@@ -1294,6 +1431,7 @@ const Nav = {
 function updateFab() {
   const r = Nav.top()?._route;
   $('#fab').classList.toggle('hidden', !r || r.name === 'settings' || (r.name === 'person' && isMe(r.id)));
+  if (typeof Desk !== 'undefined') Desk.render();
 }
 
 function createPage(route, stack) {
@@ -1337,7 +1475,11 @@ function updatePage(el) {
   $('.nav-title', el).textContent = title;
   $('.nav-left', el).innerHTML = depth > 0 ? `<button class="nav-btn back glass" data-action="back" aria-label="Back to ${esc(prevTitle)}">${Icon.back}</button>` : '';
   $('.nav-right', el).innerHTML = def.actions ? def.actions(r) : '';
+  // Keep keyboard selection across re-renders (the row is rebuilt, so refocus its replacement)
+  const f = document.activeElement?.closest?.('[data-row]');
+  const fKey = f && el.contains(f) ? `[data-row="${f.dataset.row}"][data-id="${CSS.escape(f.dataset.id || '')}"]` : null;
   $('.content', el).innerHTML = (def.largeTitle === false ? '' : `<h1 class="large-title">${esc(title)}</h1>`) + def.render(r);
+  if (fKey) $(fKey, el)?.focus({ preventScroll: true });
   el._dirty = false;
 }
 
@@ -1348,6 +1490,7 @@ function renderAll() {
   const visible = Nav.top();
   Object.values(Nav.stacks).flat().forEach(p => { if (p === visible) updatePage(p); else p._dirty = true; });
   ui.justAdded = null;
+  Desk.render();
 }
 
 /* Edge swipe to go back */
@@ -1394,11 +1537,15 @@ function renderAll() {
 const Swipe = (() => {
   let s = null, open = null, suppressClick = false;
   const W = 88;
-  const close = (c = open) => { if (!c) return; c.classList.add('snap'); c.style.transform = ''; if (c === open) open = null; };
+  const close = (c = open) => {
+    if (!c) return; c.classList.add('snap'); c.style.transform = ''; if (c === open) open = null;
+    // hide the delete button again once the row has slid shut
+    setTimeout(() => { if (c !== open && !c.style.transform) c.parentElement?.classList.remove('swiping'); }, 450);
+  };
   document.addEventListener('pointerdown', e => {
     const c = e.target.closest('.swipe-content');
     if (open && c !== open && !e.target.closest('.swipe-actions')) { close(); suppressClick = true; }
-    if (!c || e.clientX < 24) return;
+    if (!c || e.clientX < 24 || (e.pointerType === 'mouse' && Desk.on())) return; // desktop layout has a hover delete button
     s = { c, x: e.clientX, y: e.clientY, base: c === open ? -W : 0, active: false };
   });
   document.addEventListener('pointermove', e => {
@@ -1407,7 +1554,7 @@ const Swipe = (() => {
     if (!s.active) {
       if (Math.abs(dy) > 8) { s = null; return; }
       if (Math.abs(dx) < 10) return;
-      s.active = true; s.c.classList.remove('snap');
+      s.active = true; s.c.classList.remove('snap'); s.c.parentElement.classList.add('swiping');
     }
     let x = Math.min(0, s.base + dx);
     if (x < -W) x = -W - (Math.abs(x) - W) * .3;
@@ -1444,8 +1591,8 @@ function openSheet({ title, body, saveLabel = 'Save', onSave, onOpen, required =
       <div class="sheet-head"><h3>${esc(title)}</h3></div>
       <form class="sheet-body" autocomplete="off" novalidate>${body}<button type="submit" hidden></button></form>
       <div class="sheet-bar">
-        <button class="bar-btn ghost" data-sheet="cancel">Cancel</button>
-        <button class="bar-btn primary" data-sheet="save">${esc(saveLabel)}</button>
+        <button class="bar-btn ghost" data-sheet="cancel">Cancel<kbd class="dk">esc</kbd></button>
+        <button class="bar-btn primary" data-sheet="save">${esc(saveLabel)}<kbd class="dk">${MOD}↩</kbd></button>
       </div>`;
     document.body.append(back, sh);
     const form = $('form', sh), saveBtn = $('[data-sheet=save]', sh);
@@ -1454,11 +1601,13 @@ function openSheet({ title, body, saveLabel = 'Save', onSave, onOpen, required =
 
     let closed = false;
     const close = async result => {
-      if (closed) return; closed = true;
+      if (closed) return; closed = true; sh._closing = true;
       document.activeElement?.blur?.();
       back.classList.remove('show'); sh.classList.remove('show');
       document.body.classList.remove('sheet-open');
-      await sleep(480); back.remove(); sh.remove();
+      // hand keyboard focus back to where it was (if that element still exists)
+      if (Desk.on() && sh._opener?.isConnected && sh._opener !== document.body) sh._opener.focus({ preventScroll: true });
+      await sleep(Desk.on() ? 220 : 480); back.remove(); sh.remove();
       resolve(result);
     };
     const save = () => {
@@ -1486,6 +1635,11 @@ function openSheet({ title, body, saveLabel = 'Save', onSave, onOpen, required =
     };
     head.addEventListener('pointerup', up); head.addEventListener('pointercancel', up);
 
+    // Move focus into the dialog so the keyboard acts on it, not the list behind it
+    const opener = document.activeElement;
+    sh.tabIndex = -1;
+    if (!sh.contains(document.activeElement)) sh.focus({ preventScroll: true });
+    sh._opener = opener;
     requestAnimationFrame(() => requestAnimationFrame(() => {
       back.classList.add('show'); sh.classList.add('show'); document.body.classList.add('sheet-open');
     }));
@@ -1505,6 +1659,7 @@ function actionSheet({ message, actions }) {
     document.body.append(back, el);
     document.body.classList.add('menu-open');
     const close = async v => {
+      if (el._closing) return; el._closing = true;
       back.classList.remove('show'); el.classList.remove('show');
       document.body.classList.remove('menu-open');
       await sleep(420); back.remove(); el.remove(); resolve(v);
@@ -1529,11 +1684,15 @@ function toast(text, kind = 'ok', action) {
 function undoable(message, fn) {
   const snap = sanitize(JSON.parse(JSON.stringify(state)));
   commit(fn);
-  toast(message, 'undo', { label: 'Undo', run: () => {
+  const restore = () => {
+    lastUndo = null;
     commit(s => KINDS.forEach(k => { s[k] = snap[k].map(r => ({ ...r })); }));
     toast('Restored');
-  } });
+  };
+  lastUndo = { run: restore, until: Date.now() + 60000 }; // also reachable with ⌘Z / Ctrl+Z
+  toast(message, 'undo', { label: 'Undo', run: restore });
 }
+let lastUndo = null;
 
 /* ---------- Forms ---------- */
 function stepper(value, kind) {
@@ -1833,7 +1992,8 @@ const Actions = {
     commit(s => KINDS.forEach(k => s[k] = []));
     toast('All data erased');
   },
-  'sync-connect': () => syncSheet(),
+  'sync-connect': () => joinSheet(),
+  'passphrase': () => passphraseSheet(),
   'sharing-on': () => shareSheet(),
   'pick-me': () => Identity.show(true),
   'sharing-off': async () => {
@@ -1987,7 +2147,199 @@ addEventListener('online', () => Sync.syncNow());
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { Sync.syncNow(); refreshIfNewDay(); } });
 setInterval(() => { if (document.visibilityState === 'visible') Sync.syncNow(); }, 60000);
 
-function syncSheet() {
+/* =========================================================
+   Passphrase join: a new device unlocks the sync token with a passphrase.
+   The token + data-Gist id are encrypted on an already-synced device
+   (PBKDF2-SHA256, 600k rounds -> AES-256-GCM) and stored in a *public*
+   Gist, which a new device can read without any credentials.
+   ========================================================= */
+const KEY_FILE = 'christmas-planner-key.json';
+const KEY_DESC = 'Christmas Planner sign-in (encrypted, needs a passphrase)';
+const PASS_ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'; // no look-alikes (i, l, o, 0, 1)
+const PassJoin = {
+  ITER: 600000,
+  normalize: p => String(p || '').toLowerCase().replace(/[\s\-_.]/g, ''),
+  generate() {
+    // 20 characters from a 31-letter alphabet: about 99 bits, shown as 5 groups of 4
+    const out = [];
+    const buf = new Uint8Array(1);
+    while (out.length < 20) {
+      crypto.getRandomValues(buf);
+      if (buf[0] < 248) out.push(PASS_ALPHABET[buf[0] % 31]); // rejection sampling keeps it uniform
+    }
+    return out.join('').match(/.{4}/g).join('-');
+  },
+  b64: buf => btoa(String.fromCharCode(...new Uint8Array(buf))),
+  unb64: s => Uint8Array.from(atob(s), c => c.charCodeAt(0)),
+  async key(pass, salt, iter, usage) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(this.normalize(pass)), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, [usage]);
+  },
+  async seal(obj, pass) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const k = await this.key(pass, salt, this.ITER, 'encrypt');
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, new TextEncoder().encode(JSON.stringify(obj)));
+    return { v: 1, kdf: 'PBKDF2-SHA256', iter: this.ITER, salt: this.b64(salt), iv: this.b64(iv), ct: this.b64(ct) };
+  },
+  async unseal(blob, pass) {
+    if (!blob || blob.v !== 1 || !blob.salt || !blob.iv || !blob.ct) throw new Error('The saved sign-in is damaged. Set the passphrase again on your other device.');
+    const iter = Math.min(Math.max(Number(blob.iter) || this.ITER, 100000), 5000000);
+    const k = await this.key(pass, this.unb64(blob.salt), iter, 'decrypt');
+    let pt;
+    try { pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.unb64(blob.iv) }, k, this.unb64(blob.ct)); }
+    catch { throw new Error('That passphrase didn’t work. Check it and try again.'); }
+    return JSON.parse(new TextDecoder().decode(pt));
+  },
+  // GitHub Pages lives at <user>.github.io, so the account is known without asking.
+  pagesUser() {
+    const h = location.hostname.toLowerCase();
+    return h.endsWith('.github.io') ? h.slice(0, -'.github.io'.length) : '';
+  },
+  async publicApi(path) {
+    const res = await fetch('https://api.github.com' + path, { cache: 'no-store', headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } });
+    if (res.status === 404) throw new Error('That GitHub account wasn’t found.');
+    if (res.status === 403 || res.status === 429) throw new Error('GitHub is limiting requests from this network. Try again in a few minutes.');
+    if (!res.ok) throw new Error(`GitHub returned error ${res.status}. Try again in a minute.`);
+    return res.json();
+  },
+  async findKeyGist(user) {
+    for (let page = 1; page <= 3; page++) {
+      const list = await this.publicApi(`/users/${encodeURIComponent(user)}/gists?per_page=100&page=${page}`);
+      const g = list.find(x => x.files && x.files[KEY_FILE]);
+      if (g) return g.id;
+      if (list.length < 100) break;
+    }
+    return null;
+  },
+  // On a synced device: encrypt this device's sync details and publish them.
+  async save(pass) {
+    const blob = await this.seal({ token: Sync.cfg.token, gistId: Sync.cfg.gistId }, pass);
+    const body = { description: KEY_DESC, files: { [KEY_FILE]: { content: JSON.stringify(blob) } } };
+    let id = Sync.cfg.keyGistId;
+    if (!id) {
+      const mine = await Sync.api('/gists?per_page=100');
+      id = mine.find(g => g.files && g.files[KEY_FILE])?.id;
+    }
+    if (id) await Sync.api(`/gists/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(body) });
+    else id = (await Sync.api('/gists', { method: 'POST', body: JSON.stringify({ ...body, public: true }) })).id;
+    Sync.cfg.keyGistId = id; Sync.cfg.passSet = Date.now(); Sync.saveCfg();
+  },
+  async remove() {
+    let id = Sync.cfg.keyGistId;
+    if (!id) { const mine = await Sync.api('/gists?per_page=100'); id = mine.find(g => g.files && g.files[KEY_FILE])?.id; }
+    if (id) {
+      const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(id)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${Sync.cfg.token}`, Accept: 'application/vnd.github+json' } });
+      if (!res.ok && res.status !== 404) throw new Error(`GitHub returned error ${res.status}. Try again in a minute.`);
+    }
+    delete Sync.cfg.keyGistId; delete Sync.cfg.passSet; Sync.saveCfg();
+  },
+  // On a new device: find the published sign-in, unlock it, then connect.
+  async join(user, pass) {
+    if (!/^[a-z0-9-]{1,39}$/i.test(user)) throw new Error('Enter the GitHub username the list belongs to.');
+    const id = await this.findKeyGist(user);
+    if (!id) throw new Error('No passphrase has been set up yet. On a device that already syncs, go to Settings and choose Passphrase for new devices.');
+    const g = await this.publicApi(`/gists/${encodeURIComponent(id)}`);
+    const blob = JSON.parse(g.files?.[KEY_FILE]?.content || 'null');
+    const secret = await this.unseal(blob, pass);
+    if (typeof secret.token !== 'string' || !/^[a-f0-9]{1,64}$/i.test(String(secret.gistId))) throw new Error('The saved sign-in is damaged. Set the passphrase again on your other device.');
+    Sync.cfg = { token: secret.token, gistId: secret.gistId, keyGistId: id };
+    Sync.saveCfg();
+    await Sync.reconcile();
+    Sync.cfg.lastSync = Date.now(); Sync.saveCfg();
+  },
+};
+
+function joinSheet() {
+  const user = PassJoin.pagesUser();
+  return openSheet({
+    title: 'Set up sync',
+    saveLabel: 'Join',
+    required: user ? ['pass'] : ['pass', 'user'],
+    body: `
+      <p class="fnote" style="margin:0 0 20px;font-size:15px;color:var(--text)">Already using the app on another device? Enter the passphrase you set there, and this device will get the same list.</p>
+      ${user ? '' : `
+      <div class="flabel">GitHub username</div>
+      <div class="fgroup"><div class="row"><input class="field" name="user" placeholder="username" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="GitHub username"></div></div>`}
+      <div class="flabel">Passphrase</div>
+      <div class="fgroup"><div class="row"><input class="field num" name="pass" type="password" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="current-password" aria-label="Passphrase"></div></div>
+      <p class="fnote">Find it in Settings on your other device, under Passphrase for new devices. Capital letters and dashes don’t matter.</p>
+      <div class="fgroup"><button type="button" class="row" data-token-instead style="width:100%;color:var(--cranberry);font-weight:500">Use a GitHub token instead</button></div>
+      <p class="fnote">Setting up your first device? Use a GitHub token, then set a passphrase so other devices can join.</p>`,
+    onOpen(sh, close) {
+      $('[data-token-instead]', sh).addEventListener('click', async () => { close(null); await sleep(500); tokenSheet(); });
+    },
+    onSave(d, form) {
+      const sh = form.closest('.sheet'), btn = $('[data-sheet=save]', sh);
+      btn.disabled = true; btn.textContent = 'Unlocking…';
+      PassJoin.join(user || d.user.trim(), d.pass).then(() => {
+        sh._close(null); renderAll();
+        toast('Sync is on. List loaded.');
+      }).catch(err => {
+        if (!Sync.cfg.lastSync) { Sync.cfg = {}; Sync.saveCfg(); }
+        btn.disabled = false; btn.textContent = 'Join';
+        toast(err.message || 'Couldn’t join', 'warn');
+      });
+      return false;
+    },
+  });
+}
+
+function passphraseSheet() {
+  const suggestion = PassJoin.generate();
+  const isSet = !!(Sync.cfg.passSet || Sync.cfg.keyGistId);
+  return openSheet({
+    title: 'Passphrase for new devices',
+    saveLabel: isSet ? 'Replace passphrase' : 'Save passphrase',
+    required: ['pass'],
+    body: `
+      <p class="fnote" style="margin:0 0 20px;font-size:15px;color:var(--text)">Set a passphrase once. On any new device, open Settings, choose Set up sync and type it. No token or phone needed.</p>
+      <div class="flabel">Passphrase</div>
+      <div class="fgroup">
+        <div class="row"><input class="field num big" name="pass" value="${suggestion}" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Passphrase" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:20px;letter-spacing:.5px"></div>
+        <button type="button" class="row" data-regen style="width:100%;color:var(--cranberry);font-weight:500">Suggest a different one</button>
+      </div>
+      <p class="fnote" data-strength>Write it down or save it in your passwords app. You won’t be able to see it again here.</p>
+      <p class="fnote">
+        How it works: your sync sign-in is encrypted with this passphrase and saved as a public Gist in your GitHub account, so new devices can find it.
+        It can’t be read without the passphrase, but anyone can download the encrypted copy, so use the suggested one or something just as long and random.<br><br>
+        If you ever replace your GitHub token, set the passphrase again.
+      </p>
+      ${isSet ? `<div class="fgroup"><button type="button" class="row danger" data-pass-remove style="width:100%">Remove passphrase</button></div>` : ''}`,
+    onOpen(sh, close) {
+      const input = $('[name=pass]', sh), note = $('[data-strength]', sh), btn = $('[data-sheet=save]', sh);
+      const check = () => {
+        const n = PassJoin.normalize(input.value).length;
+        const weak = n < 16;
+        note.textContent = weak ? 'Use at least 16 letters and numbers (dashes and spaces don’t count).' : 'Write it down or save it in your passwords app. You won’t be able to see it again here.';
+        note.style.color = weak ? 'var(--cranberry)' : '';
+        if (weak) btn.disabled = true;
+      };
+      input.addEventListener('input', check);
+      $('[data-regen]', sh).addEventListener('click', () => { input.value = PassJoin.generate(); input.dispatchEvent(new Event('input', { bubbles: true })); });
+      $('[data-pass-remove]', sh)?.addEventListener('click', async () => {
+        if (!await confirmDestructive('New devices won’t be able to join with the passphrase anymore. Devices already syncing keep working.', 'Remove passphrase')) return;
+        try { await PassJoin.remove(); close(null); renderAll(); toast('Passphrase removed'); }
+        catch (err) { toast(err.message || 'Couldn’t remove it', 'warn'); }
+      });
+    },
+    onSave(d, form) {
+      if (PassJoin.normalize(d.pass).length < 16) return false;
+      const sh = form.closest('.sheet'), btn = $('[data-sheet=save]', sh);
+      btn.disabled = true; btn.textContent = 'Encrypting…';
+      PassJoin.save(d.pass).then(() => {
+        sh._close(null); renderAll();
+        toast('Passphrase saved');
+      }).catch(err => {
+        btn.disabled = false; btn.textContent = isSet ? 'Replace passphrase' : 'Save passphrase';
+        toast(err.message || 'Couldn’t save it', 'warn');
+      });
+      return false;
+    },
+  });
+}
+
+function tokenSheet() {
   return openSheet({
     title: 'Set up sync',
     saveLabel: 'Connect',
@@ -2121,9 +2473,143 @@ function shareSheet() {
 /* =========================================================
    Boot
    ========================================================= */
+/* =========================================================
+   Desktop: sidebar + keyboard shortcuts
+   ========================================================= */
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const MOD = IS_MAC ? '⌘' : 'Ctrl';
+const Desk = {
+  mq: matchMedia('(hover: hover) and (pointer: fine) and (min-width: 720px)'),
+  on() { return this.mq.matches; },
+  apply() { document.documentElement.classList.toggle('desk', this.on()); this.render(); },
+  render() {
+    if (!this.on()) return;
+    const el = $('#sidebar'); if (!el) return;
+    const { days } = christmas();
+    const r = Nav.top()?._route || {};
+    const vg = visibleGifts();
+    const counts = { home: '', people: state.people.length || '', gifts: vg.length || '', todo: state.tasks.filter(t => !t.done).length || '' };
+    const syncC = !Sync.enabled() ? 'var(--s-idea)' : Sync.state === 'error' ? 'var(--cranberry)' : 'var(--pine)';
+    el.innerHTML = `
+      <div class="sb-head"><div class="sb-count">${days === 0 ? 'Merry Christmas' : `${cap(words(days))} ${days === 1 ? 'day' : 'days'}`}<small>${days === 0 ? 'Enjoy the day' : 'until Christmas'}</small></div></div>
+      <button class="sb-new" data-action="key-new-gift" title="New gift (N)">${Icon.plus}New gift<kbd>N</kbd></button>
+      <nav class="sb-nav">
+        ${TABS.map((t, i) => `<button class="sb-item ${Nav.current === t.id && r.name !== 'settings' ? 'on' : ''}" data-action="tab" data-tab="${t.id}" title="${t.label} (${i + 1})">${Icon[t.icon]}${t.label}<span class="ct">${counts[t.id]}</span><kbd>${i + 1}</kbd></button>`).join('')}
+      </nav>
+      <div class="sb-label"><span>People</span><button data-action="add-person" title="New person (P)" aria-label="New person">${Icon.plus}</button></div>
+      <div class="sb-people">
+        ${sortedPeople().map(p => {
+          const on = r.name === 'person' && r.id === p.id;
+          return `<button class="sb-item sb-person ${on ? 'on' : ''}" data-action="open-person" data-id="${esc(p.id)}">${tag(p)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span>${isMe(p.id) ? '' : leftLabel(spentFor(p.id), num(p.budget)).replace(/ left| over/, '')}</button>`;
+        }).join('') || '<p class="note" style="padding:4px 10px">Press P to add someone.</p>'}
+      </div>
+      <div class="sb-foot">
+        <button class="sb-item ${r.name === 'settings' ? 'on' : ''}" data-action="open-settings" title="Settings (,)"><span class="dot" style="--c:${syncC}"></span>Settings</button>
+        <button class="sb-item" data-action="key-help" title="Keyboard shortcuts (?)" style="flex:none;width:auto" aria-label="Keyboard shortcuts"><kbd style="display:inline-flex">?</kbd></button>
+      </div>`;
+  },
+  rows() { return $$('[data-row]', Nav.top()).filter(r => r.offsetParent); },
+  move(dir) {
+    const rows = this.rows(); if (!rows.length) return;
+    const i = rows.indexOf(document.activeElement);
+    const next = rows[i < 0 ? (dir > 0 ? 0 : rows.length - 1) : Math.max(0, Math.min(rows.length - 1, i + dir))];
+    next.focus({ preventScroll: true });
+    next.scrollIntoView({ block: 'nearest' });
+  },
+  rowAction(el, kind) {
+    const type = el.dataset.row;
+    if (kind === 'delete') {
+      const map = { gift: 'delete-gift', task: 'delete-task', person: 'delete-person' };
+      const rows = this.rows(), i = rows.indexOf(el);
+      Actions[map[type]]?.(el);
+      // keep keyboard focus in the list after the row disappears
+      setTimeout(() => { const rs = this.rows(); rs[Math.min(i, rs.length - 1)]?.focus({ preventScroll: true }); }, 30);
+    } else if (kind === 'space') {
+      if (type === 'gift') $('[data-action=cycle]', el)?.click();
+      else if (type === 'task') $('[data-action=toggle-task]', el)?.click();
+      else el.click();
+    }
+  },
+  async goSearch() {
+    if (Nav.current !== 'gifts') Nav.switchTab('gifts');
+    else if (Nav.stacks.gifts.length > 1) Nav.popToRoot();
+    await sleep(30);
+    $('#giftSearch')?.focus();
+  },
+  help() {
+    const row = (label, ...keys) => `<span>${label}</span><span class="k">${keys.map(k => `<kbd>${k}</kbd>`).join('')}</span>`;
+    openSheet({
+      title: 'Keyboard shortcuts', saveLabel: 'Done', required: [],
+      body: `<div class="fgroup"><div class="keys">
+        ${row('New gift', 'N')}${row('New person', 'P')}${row('New task', 'T')}
+        ${row('Search gifts', '/')}${row('Overview, People, Gifts, To-Do', '1', '2', '3', '4')}${row('Settings', ',')}
+      </div></div>
+      <div class="fgroup"><div class="keys">
+        ${row('Move between rows', '↑', '↓')}${row('Open the selected row', '↩')}
+        ${row('Next status, or check off a task', 'Space')}${row('Delete the selected row', '⌫')}
+        ${row('Undo delete', MOD, 'Z')}${row('Go back', 'Esc')}
+      </div></div>
+      <div class="fgroup"><div class="keys">${row('Save a form', MOD, '↩')}${row('Close a form', 'Esc')}</div></div>`,
+      onSave() {},
+    });
+  },
+};
+Desk.mq.addEventListener('change', () => Desk.apply());
+Actions['key-new-gift'] = () => giftSheet();
+Actions['key-help'] = () => Desk.help();
+
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  const typing = t.closest?.('input, textarea, select, [contenteditable="true"]');
+  const mod = e.metaKey || e.ctrlKey;
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  // any dialog that is open or opening (not one that is animating closed)
+  const sheet = $$('.sheet').find(s => !s._closing), menu = $$('.action-sheet').find(m => !m._closing);
+
+  if (menu) { // confirmation menus: Esc cancels, Enter confirms
+    if (key === 'Escape') { e.preventDefault(); $('.cancel', menu)?.click(); }
+    else if (key === 'Enter') { e.preventDefault(); $('button.destructive', menu)?.click(); }
+    return;
+  }
+  if (sheet) {
+    if (key === 'Enter' && mod) { e.preventDefault(); $('[data-sheet=save]', sheet)?.click(); }
+    else if (key === 'Escape') { e.preventDefault(); sheet._close?.(null); } // works wherever focus is
+    return;
+  }
+  if ($('.whoami')) return;
+
+  if (key === 'Escape') {
+    if (typing) { t.blur(); return; }
+    if (Nav.stacks[Nav.current].length > 1) { e.preventDefault(); Nav.pop(); }
+    return;
+  }
+  if (mod && key === 'z' && !typing && !e.shiftKey && lastUndo && Date.now() < lastUndo.until) { e.preventDefault(); lastUndo.run(); return; }
+  if (mod && key === 'k') { e.preventDefault(); Desk.goSearch(); return; }
+  if (typing || mod || e.altKey) return;
+
+  const row = t.closest?.('[data-row]');
+  switch (key) {
+    case 'n': e.preventDefault(); giftSheet(); break;
+    case 'p': e.preventDefault(); personSheet(); break;
+    case 't': e.preventDefault(); taskSheet(); break;
+    case '/': e.preventDefault(); Desk.goSearch(); break;
+    case ',': e.preventDefault(); if (Nav.top()?._route.name !== 'settings') Nav.push({ name: 'settings' }); break;
+    case '?': e.preventDefault(); Desk.help(); break;
+    case '1': case '2': case '3': case '4': e.preventDefault(); Nav.switchTab(TABS[+key - 1].id); break;
+    case 'ArrowDown': case 'j': e.preventDefault(); Desk.move(1); break;
+    case 'ArrowUp': case 'k': e.preventDefault(); Desk.move(-1); break;
+    case 'Backspace': case 'Delete': if (row) { e.preventDefault(); Desk.rowAction(row, 'delete'); } break;
+    case ' ': if (row) { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
+    case 'x': if (row?.dataset.row === 'task') { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
+    case 'Enter': if (row && row.tagName !== 'BUTTON') { e.preventDefault(); row.click(); } break;
+  }
+});
+
 // iOS only shows :active press states promptly when a touch listener exists
 document.addEventListener('touchstart', () => {}, { passive: true });
+document.documentElement.classList.toggle('desk', Desk.on());
 Nav.init();
+Desk.apply();
 Identity.check();
 if (Sync.enabled()) Sync.syncNow();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http') && location.hostname !== 'localhost') {
