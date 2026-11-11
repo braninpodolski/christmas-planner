@@ -1,0 +1,1625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Christmas</title>
+<meta name="description" content="Personal Christmas planning and gift tracking">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Christmas">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root {
+  --bg: #F2F2F7;
+  --card: #FFFFFF;
+  --card-hi: #E5E5EA;
+  --label: #000000;
+  --label2: rgba(60,60,67,.6);
+  --label3: rgba(60,60,67,.3);
+  --sep: rgba(60,60,67,.29);
+  --fill: rgba(120,120,128,.12);
+  --fill2: rgba(120,120,128,.2);
+  --bar: rgba(249,249,249,.78);
+  --thumb: #FFFFFF;
+  --accent: #D62839;
+  --red: #FF3B30;
+  --green: #34C759;
+  --pine: #1F7A4D;
+  --blue: #007AFF;
+  --orange: #FF9500;
+  --purple: #AF52DE;
+  --gray: #8E8E93;
+  --gold: #E0A526;
+  --ease: cubic-bezier(.32,.72,0,1);
+  --spring: cubic-bezier(.34,1.36,.64,1);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --nav-h: 44px;
+  --tab-h: 50px;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --card: #1C1C1E;
+    --card-hi: #2C2C2E;
+    --label: #FFFFFF;
+    --label2: rgba(235,235,245,.6);
+    --label3: rgba(235,235,245,.3);
+    --sep: rgba(84,84,88,.65);
+    --fill: rgba(118,118,128,.24);
+    --fill2: rgba(118,118,128,.32);
+    --bar: rgba(22,22,24,.78);
+    --thumb: #636366;
+    --accent: #FF4757;
+    --red: #FF453A;
+    --green: #30D158;
+    --pine: #34C77B;
+    --blue: #0A84FF;
+    --orange: #FF9F0A;
+    --purple: #BF5AF2;
+    --gray: #98989D;
+    --gold: #FFC940;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; overscroll-behavior: none; }
+body {
+  font: 17px/1.29 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  letter-spacing: -.41px;
+  color: var(--label);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none; user-select: none;
+  -webkit-text-size-adjust: 100%;
+}
+input, textarea, select, button { font: inherit; color: inherit; letter-spacing: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+svg { display: block; }
+
+/* ---------- App shell ---------- */
+#app {
+  position: fixed; inset: 0; background: var(--bg);
+  transition: transform .5s var(--ease), border-radius .5s var(--ease), filter .5s var(--ease);
+  transform-origin: 50% 0; overflow: hidden;
+}
+body.sheet-open #app {
+  transform: translateY(calc(var(--safe-t) + 4px)) scale(.92);
+  border-radius: 14px;
+  filter: brightness(.85);
+}
+@media (prefers-color-scheme: dark) { body.sheet-open #app { filter: brightness(.6); } }
+.tab { position: absolute; inset: 0; visibility: hidden; opacity: 0; transition: opacity .18s ease, visibility 0s .18s; }
+.tab.active { visibility: visible; opacity: 1; transition: opacity .18s ease; }
+
+.page {
+  position: absolute; inset: 0; background: var(--bg);
+  will-change: transform;
+}
+.page.under { transform: translateX(-30%); }
+.page.under::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.08); pointer-events: none; }
+.page.anim { transition: transform .5s var(--ease); }
+.page.offright { transform: translateX(100%); box-shadow: -2px 0 20px rgba(0,0,0,.15); }
+.page.edge-shadow { box-shadow: -2px 0 20px rgba(0,0,0,.15); }
+
+.scroll {
+  position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  padding: calc(var(--safe-t) + var(--nav-h)) 0 calc(var(--safe-b) + var(--tab-h) + 32px);
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ---------- Nav bar ---------- */
+.navbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  height: calc(var(--safe-t) + var(--nav-h)); padding-top: var(--safe-t);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  transition: background .2s, box-shadow .2s;
+}
+.navbar.scrolled {
+  background: var(--bar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 .5px 0 var(--sep);
+}
+.nav-title { font-weight: 600; opacity: 0; transform: translateY(4px); transition: opacity .2s, transform .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw; }
+.navbar.collapsed .nav-title { opacity: 1; transform: none; }
+.nav-left { justify-self: start; padding-left: 8px; display: flex; }
+.nav-right { justify-self: end; padding-right: 16px; display: flex; gap: 20px; align-items: center; }
+.nav-btn { color: var(--accent); display: flex; align-items: center; gap: 2px; height: 44px; transition: opacity .15s; }
+.nav-btn:active { opacity: .4; }
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-btn.back svg { width: 13px; height: 21px; margin-right: 4px; }
+.nav-btn.back { padding-right: 8px; max-width: 40vw; }
+.nav-btn.back span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.large-title { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: .37px; margin: 2px 16px 10px; }
+.subtitle { color: var(--label2); font-size: 15px; margin: -6px 16px 18px; letter-spacing: -.24px; }
+
+/* ---------- Tab bar ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  height: calc(var(--tab-h) + var(--safe-b)); padding-bottom: var(--safe-b);
+  display: flex; background: var(--bar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 -.5px 0 var(--sep);
+}
+.tabbar button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--gray); font-size: 10px; font-weight: 500; letter-spacing: .1px;
+}
+.tabbar button svg { width: 26px; height: 26px; transition: transform .35s var(--spring); }
+.tabbar button.active { color: var(--accent); }
+.tabbar button:active svg { transform: scale(.86); }
+
+/* ---------- Lists ---------- */
+.section { margin: 0 16px 28px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 16px 7px; color: var(--label2); font-size: 13px; text-transform: uppercase; letter-spacing: -.08px; }
+.section-head button { color: var(--accent); text-transform: none; font-size: 15px; letter-spacing: -.24px; }
+.section-head.big { text-transform: none; color: var(--label); font-size: 20px; font-weight: 700; letter-spacing: .38px; padding: 0 4px 8px; }
+.section-foot { padding: 7px 16px 0; color: var(--label2); font-size: 13px; letter-spacing: -.08px; line-height: 1.38; -webkit-user-select: text; user-select: text; }
+.section-foot a { color: var(--accent); }
+.list { background: var(--card); border-radius: 12px; overflow: hidden; }
+.row {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  min-height: 44px; padding: 10px 16px; background: var(--card);
+  transition: background .25s;
+}
+button.row, .row.tappable { width: 100%; text-align: left; cursor: pointer; }
+button.row:active, .row.tappable:active { background: var(--card-hi); transition: none; }
+.list > :not(:last-child) .row::after,
+.list > .row:not(:last-child)::after {
+  content: ""; position: absolute; left: var(--inset, 16px); right: 0; bottom: 0;
+  height: .5px; background: var(--sep); transform: scaleY(.99);
+}
+.row-main { flex: 1; min-width: 0; }
+.row-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-sub { color: var(--label2); font-size: 15px; letter-spacing: -.24px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-value { color: var(--label2); white-space: nowrap; }
+.chev { width: 8px; height: 14px; color: var(--label3); flex: none; }
+.row.destructive { color: var(--red); justify-content: center; }
+.row.accent { color: var(--accent); }
+.row-icon { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: #fff; flex: none; }
+.row-icon svg { width: 18px; height: 18px; }
+
+.avatar {
+  --c: var(--accent);
+  width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 75%, white), var(--c));
+  color: #fff; font-weight: 600; font-size: 16px; letter-spacing: 0;
+}
+.avatar.emoji { font-size: 22px; }
+.avatar.lg { width: 84px; height: 84px; font-size: 32px; }
+.avatar.lg.emoji { font-size: 44px; }
+
+.empty { text-align: center; padding: 48px 32px; color: var(--label2); }
+.empty .glyph { font-size: 52px; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
+.empty h3 { color: var(--label); font-size: 20px; font-weight: 600; margin: 0 0 6px; letter-spacing: .38px; }
+.empty p { margin: 0 0 18px; font-size: 15px; letter-spacing: -.24px; }
+@keyframes float { 50% { transform: translateY(-6px); } }
+.btn-filled {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--accent); color: #fff; font-weight: 600; padding: 13px 22px; border-radius: 14px;
+  transition: transform .2s var(--spring), opacity .2s;
+}
+.btn-filled:active { transform: scale(.96); opacity: .85; }
+.btn-tinted { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); font-weight: 600; padding: 7px 14px; border-radius: 99px; font-size: 15px; }
+.btn-tinted:active { opacity: .6; }
+
+/* ---------- Pills & progress ---------- */
+.pill {
+  --c: var(--gray);
+  flex: none; font-size: 13px; font-weight: 600; letter-spacing: -.08px; padding: 4px 10px; border-radius: 99px;
+  color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent);
+  transition: transform .3s var(--spring), background .25s, color .25s;
+}
+button.pill:active { transform: scale(.9); }
+.pill.pop { animation: pop .4s var(--spring); }
+@keyframes pop { 40% { transform: scale(1.18); } }
+.s-idea { --c: var(--gray); } .s-bought { --c: var(--blue); } .s-wrapped { --c: var(--purple); } .s-given { --c: var(--pine); }
+
+.bar { height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; margin-top: 7px; }
+.bar > i { display: block; height: 100%; border-radius: 3px; background: var(--pine); transform-origin: left; transition: width .7s var(--ease); }
+.bar.over > i { background: var(--red); }
+
+/* ---------- Overview cards ---------- */
+.hero {
+  margin: 0 16px 20px; border-radius: 20px; padding: 20px; color: #fff; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #C8102E 0%, #8E0E22 55%, #5A0A18 100%);
+  box-shadow: 0 10px 30px -12px rgba(200,16,46,.6);
+}
+.hero .snow { position: absolute; inset: 0; pointer-events: none; }
+.hero .snow i { position: absolute; top: -10px; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.75); animation: fall linear infinite; }
+@keyframes fall { to { transform: translate3d(var(--dx, 10px), 190px, 0); opacity: 0; } }
+.hero-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; opacity: .8; }
+.hero-num { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: -1.5px; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.hero-sub { font-size: 17px; opacity: .9; }
+.hero-tree { position: absolute; right: 14px; bottom: 10px; font-size: 70px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 28px; }
+.tile { background: var(--card); border-radius: 16px; padding: 14px; min-height: 96px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; transition: transform .25s var(--spring); }
+button.tile:active { transform: scale(.97); }
+.tile-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.tile-icon { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; }
+.tile-icon svg { width: 17px; height: 17px; }
+.tile-num { font-size: 28px; font-weight: 700; letter-spacing: .36px; font-variant-numeric: tabular-nums; }
+.tile-label { color: var(--label2); font-size: 15px; font-weight: 600; letter-spacing: -.24px; }
+.tile.wide { grid-column: span 2; min-height: 0; }
+
+.ring-row { display: flex; align-items: center; gap: 18px; }
+.ring { width: 76px; height: 76px; flex: none; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 9; stroke-linecap: round; }
+.ring .track { stroke: var(--fill); }
+.ring .val { stroke: var(--pine); transition: stroke-dashoffset 1s var(--ease); }
+.ring.over .val { stroke: var(--red); }
+.money-big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .3px; }
+.money-sub { color: var(--label2); font-size: 15px; letter-spacing: -.24px; }
+
+.stack-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--fill); gap: 2px; margin: 12px 0 12px; }
+.stack-bar i { display: block; height: 100%; transition: flex-grow .7s var(--ease); }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; font-size: 15px; letter-spacing: -.24px; }
+.legend span { display: flex; align-items: center; gap: 7px; color: var(--label2); }
+.legend b { color: var(--label); font-weight: 600; margin-left: auto; font-variant-numeric: tabular-nums; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+
+/* ---------- Person header ---------- */
+.person-head { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 4px 16px 22px; }
+.person-head h2 { font-size: 28px; font-weight: 700; margin: 12px 0 2px; letter-spacing: .36px; }
+.person-head .row-sub { white-space: normal; }
+.person-stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--card); border-radius: 12px; margin: 0 16px 28px; padding: 12px 0; }
+.person-stats div { text-align: center; }
+.person-stats div + div { box-shadow: -.5px 0 0 var(--sep); }
+.person-stats b { display: block; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.person-stats span { font-size: 12px; color: var(--label2); text-transform: uppercase; letter-spacing: 0; }
+.notes { white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+
+/* ---------- Search & segmented ---------- */
+.search { margin: 0 16px 12px; position: relative; }
+.search svg { position: absolute; left: 9px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--label2); }
+.search input { width: 100%; height: 36px; border: 0; border-radius: 10px; background: var(--fill); padding: 0 12px 0 32px; outline: none; font-size: 17px; }
+.search input::placeholder { color: var(--label2); }
+
+.seg { --n: 2; --i: 0; position: relative; display: grid; grid-template-columns: repeat(var(--n), 1fr); background: var(--fill); border-radius: 9px; padding: 2px; }
+.seg .seg-thumb {
+  position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--n));
+  background: var(--thumb); border-radius: 7px; box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04);
+  transform: translateX(calc(100% * var(--i))); transition: transform .35s var(--ease);
+}
+.seg button, .seg label { position: relative; z-index: 1; text-align: center; font-size: 13px; font-weight: 500; padding: 6px 2px; letter-spacing: -.08px; cursor: pointer; transition: font-weight .2s; white-space: nowrap; }
+.seg .on { font-weight: 600; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg-wrap { margin: 0 16px 20px; }
+
+/* ---------- Swipe rows ---------- */
+.swipe { position: relative; overflow: hidden; }
+.swipe-actions { position: absolute; top: 0; right: 0; bottom: 0; display: flex; }
+.swipe-actions button { width: 84px; background: var(--red); color: #fff; font-size: 15px; font-weight: 500; }
+.swipe-content { position: relative; z-index: 1; touch-action: pan-y; }
+.swipe-content.snap { transition: transform .4s var(--ease); }
+
+/* ---------- Tasks ---------- */
+.check {
+  width: 24px; height: 24px; border-radius: 50%; flex: none; border: 1.5px solid var(--label3);
+  display: grid; place-items: center; transition: background .25s, border-color .25s, transform .35s var(--spring);
+}
+.check svg { width: 13px; height: 13px; color: #fff; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset .3s ease .05s; }
+.done .check { background: var(--accent); border-color: var(--accent); }
+.done .check svg { stroke-dashoffset: 0; }
+.check:active { transform: scale(.85); }
+.task-title { transition: color .3s; }
+.done .task-title { color: var(--label2); }
+.due { font-size: 15px; color: var(--label2); letter-spacing: -.24px; }
+.due.late { color: var(--red); }
+
+/* ---------- Enter animation ---------- */
+.enter { animation: enter .5s var(--ease) both; }
+@keyframes enter { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.leave { animation: leave .35s var(--ease) both; }
+@keyframes leave { to { opacity: 0; transform: translateX(-30px); height: 0; min-height: 0; padding-top: 0; padding-bottom: 0; } }
+
+/* ---------- Sheets ---------- */
+.backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.3); opacity: 0; transition: opacity .45s var(--ease); }
+.backdrop.show { opacity: 1; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
+  top: calc(var(--safe-t) + 14px);
+  background: var(--bg); border-radius: 14px 14px 0 0; overflow: hidden;
+  transform: translateY(105%); transition: transform .5s var(--ease);
+  display: flex; flex-direction: column; box-shadow: 0 -4px 30px rgba(0,0,0,.15);
+  max-width: 680px; margin: 0 auto;
+}
+@media (prefers-color-scheme: dark) { .sheet { background: #1C1C1E; } .sheet .list, .sheet .row { background: #2C2C2E; } .sheet .search input, .sheet .seg { background: rgba(118,118,128,.24); } }
+.sheet.show { transform: none; }
+.sheet.dragging { transition: none; }
+.sheet-head { flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 56px; padding: 0 16px; position: relative; touch-action: none; }
+.sheet-head::before { content: ""; position: absolute; top: 6px; left: 50%; width: 36px; height: 5px; margin-left: -18px; border-radius: 3px; background: var(--label3); }
+.sheet-head h3 { margin: 0; font-size: 17px; font-weight: 600; }
+.sheet-head .nav-btn:last-child { justify-self: end; font-weight: 600; }
+.sheet-head .nav-btn:disabled { color: var(--label3); }
+.sheet-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 0 calc(var(--safe-b) + 32px); overscroll-behavior: contain; }
+
+.field { width: 100%; border: 0; outline: none; background: transparent; padding: 0; min-height: 24px; }
+.field::placeholder { color: var(--label3); }
+textarea.field { resize: none; min-height: 88px; line-height: 1.35; }
+.row label.lbl { flex: none; min-width: 84px; }
+.row .field.right { text-align: right; }
+.row select.field { -webkit-appearance: none; appearance: none; text-align: right; text-align-last: right; color: var(--label2); cursor: pointer; }
+.row input[type=date].field { text-align: right; color: var(--label2); min-height: 24px; display: flex; justify-content: flex-end; }
+.row input[type=date]::-webkit-date-and-time-value { text-align: right; }
+
+.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; padding: 12px; }
+.emoji-grid label { aspect-ratio: 1; display: grid; place-items: center; font-size: 24px; border-radius: 50%; cursor: pointer; transition: background .2s, transform .3s var(--spring); }
+.emoji-grid input { display: none; }
+.emoji-grid input:checked + span { background: var(--fill2); box-shadow: 0 0 0 2px var(--accent); }
+.emoji-grid span { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; transition: box-shadow .2s, background .2s; font-size: 22px; }
+.emoji-grid span.txt { font-size: 15px; font-weight: 600; color: var(--label2); }
+.color-row { display: flex; justify-content: space-between; padding: 14px 16px; gap: 8px; }
+.color-row label { cursor: pointer; }
+.color-row input { display: none; }
+.color-row span { display: block; width: 30px; height: 30px; border-radius: 50%; background: var(--c); transition: transform .3s var(--spring), box-shadow .2s; }
+.color-row input:checked + span { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--c); transform: scale(.9); }
+
+/* ---------- Action sheet & toast ---------- */
+.action-sheet { position: fixed; left: 8px; right: 8px; bottom: calc(var(--safe-b) + 8px); z-index: 201; max-width: 520px; margin: 0 auto; transform: translateY(120%); transition: transform .45s var(--ease); }
+.action-sheet.show { transform: none; }
+.action-group { background: var(--bar); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); border-radius: 14px; overflow: hidden; margin-top: 8px; }
+.action-group .msg { padding: 14px 16px; text-align: center; color: var(--label2); font-size: 13px; letter-spacing: -.08px; box-shadow: 0 .5px 0 var(--sep); }
+.action-group button { display: block; width: 100%; height: 57px; font-size: 20px; letter-spacing: .38px; color: var(--blue); }
+.action-group button + button { box-shadow: 0 -.5px 0 var(--sep); }
+.action-group button.destructive { color: var(--red); }
+.action-group button.cancel { font-weight: 600; background: var(--card); }
+.action-group button:active { background: var(--fill); }
+.backdrop.top { z-index: 200; }
+
+.toast {
+  position: fixed; left: 50%; top: calc(var(--safe-t) + 8px); z-index: 300;
+  transform: translate(-50%, -150%); opacity: 0; transition: transform .5s var(--spring), opacity .3s;
+  background: var(--bar); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 8px 30px rgba(0,0,0,.18); border-radius: 99px; padding: 11px 20px; font-size: 15px; font-weight: 600; letter-spacing: -.24px;
+  display: flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (min-width: 760px) {
+  .scroll > .content { max-width: 720px; margin: 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <main id="tabs"></main>
+</div>
+<nav class="tabbar" id="tabbar"></nav>
+<div class="toast" id="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+/* =========================================================
+   Utilities
+   ========================================================= */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = n => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: (n % 1) ? 2 : 0 }).format(n || 0);
+const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g, '')); return isFinite(n) ? n : 0; };
+const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+const plural = (n, one, many = one + 's') => `${n} ${n === 1 ? one : many}`;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const Icon = {
+  home: '<svg viewBox="0 0 28 28" fill="currentColor"><path d="M14 3.2 2.9 12.6a1 1 0 0 0 1.3 1.5L5.5 13v10.3c0 1 .8 1.7 1.7 1.7h4.5v-6.5c0-.6.4-1 1-1h2.6c.6 0 1 .4 1 1V25h4.5c1 0 1.7-.8 1.7-1.7V13l1.3 1.1a1 1 0 0 0 1.3-1.5Z"/></svg>',
+  gift: '<svg viewBox="0 0 28 28" fill="currentColor"><path d="M4 10.5c0-.8.7-1.5 1.5-1.5h17c.8 0 1.5.7 1.5 1.5V13c0 .6-.4 1-1 1H5a1 1 0 0 1-1-1ZM5.5 15.5h7v9.5h-5.3c-1 0-1.7-.8-1.7-1.7Zm10 0h7v7.8c0 1-.8 1.7-1.7 1.7h-5.3ZM12.5 9h3v4.5h-3Z"/><path d="M14 9c-1-3.2-3-5-5-5-1.5 0-2.5 1-2.5 2.3C6.5 8 8.6 9 14 9Zm0 0c1-3.2 3-5 5-5 1.5 0 2.5 1 2.5 2.3C21.5 8 19.4 9 14 9Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  people: '<svg viewBox="0 0 28 28" fill="currentColor"><circle cx="10.5" cy="9" r="4.5"/><path d="M2 22.3C2 18.4 5.8 16 10.5 16s8.5 2.4 8.5 6.3c0 1-.7 1.7-1.7 1.7H3.7C2.7 24 2 23.3 2 22.3Z"/><circle cx="19.5" cy="9.5" r="3.6" opacity=".55"/><path d="M20.5 15.6c3.3.3 5.5 2.2 5.5 5 0 .8-.6 1.4-1.4 1.4h-4c-.2-2.6-1.4-4.6-3.6-5.9 1-.4 2.2-.6 3.5-.5Z" opacity=".55"/></svg>',
+  list: '<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 7.5h12M12 14h12M12 20.5h12"/><circle cx="6" cy="7.5" r="1.9" fill="currentColor" stroke="none"/><circle cx="6" cy="14" r="1.9" fill="currentColor" stroke="none"/><circle cx="6" cy="20.5" r="1.9" fill="currentColor" stroke="none"/></svg>',
+  gear: '<svg viewBox="0 0 28 28" fill="currentColor"><path fill-rule="evenodd" d="M12.3 2.5h3.4l.6 3a8.6 8.6 0 0 1 2.4 1.4l2.9-1 1.7 2.9-2.3 2a8.7 8.7 0 0 1 0 2.8l2.3 2-1.7 2.9-2.9-1c-.7.6-1.5 1-2.4 1.4l-.6 3h-3.4l-.6-3a8.6 8.6 0 0 1-2.4-1.4l-2.9 1-1.7-2.9 2.3-2a8.7 8.7 0 0 1 0-2.8l-2.3-2 1.7-2.9 2.9 1c.7-.6 1.5-1 2.4-1.4ZM14 17.6a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2Z" transform="translate(0 0)"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>',
+  back: '<svg viewBox="0 0 13 21" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2 2.5 10.5 11 19"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg>',
+  check: '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 7.5 3 3 6-7"/></svg>',
+  search: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="5.2"/><path d="m11 11 3.5 3.5"/></svg>',
+  cloud: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 16a4 4 0 0 1-.6-8A5.5 5.5 0 0 1 15.4 7.4 4.3 4.3 0 0 1 15 16Z"/></svg>',
+  sync: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6.5 6.5 0 0 0-11.7-2.2M4 12a6.5 6.5 0 0 0 11.7 2.2"/><path d="M3.5 2.5v3.8h3.8M16.5 17.5v-3.8h-3.8"/></svg>',
+  down: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13"/></svg>',
+  up: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13V3M5.5 7.5 10 3l4.5 4.5M3.5 16.5h13"/></svg>',
+  trash: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5.5h13M8 5.5V3.8c0-.4.4-.8.8-.8h2.4c.4 0 .8.4.8.8v1.7M5.2 5.5l.8 10.7c0 .7.6 1.3 1.3 1.3h5.4c.7 0 1.3-.6 1.3-1.3l.8-10.7"/></svg>',
+  wallet: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5V6h.5A1.5 1.5 0 0 1 18 7.5v8a1.5 1.5 0 0 1-1.5 1.5h-11A2.5 2.5 0 0 1 3 14.5Zm11 6.2a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z"/></svg>',
+  edit: '<svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="9.5" stroke-width="1.6"/><circle cx="6.8" cy="11" r=".6" fill="currentColor"/><circle cx="11" cy="11" r=".6" fill="currentColor"/><circle cx="15.2" cy="11" r=".6" fill="currentColor"/></svg>',
+};
+
+/* =========================================================
+   State
+   ========================================================= */
+const KEY = 'xmas-planner-v1';
+const STATUSES = [
+  { id: 'idea', label: 'Idea' },
+  { id: 'bought', label: 'Bought' },
+  { id: 'wrapped', label: 'Wrapped' },
+  { id: 'given', label: 'Given' },
+];
+const STATUS_COLOR = { idea: 'var(--gray)', bought: 'var(--blue)', wrapped: 'var(--purple)', given: 'var(--pine)' };
+const CATEGORIES = ['Shopping', 'Decorating', 'Food', 'Cards', 'Events', 'Other'];
+const CAT_COLOR = { Shopping: 'var(--accent)', Decorating: 'var(--pine)', Food: 'var(--orange)', Cards: 'var(--blue)', Events: 'var(--purple)', Other: 'var(--gray)' };
+const COLORS = ['#D62839', '#E8772E', '#E0A526', '#2F9E5B', '#1C8C8C', '#2F6FDB', '#7A4FD6', '#C2418E'];
+const EMOJIS = ['', '🎅', '🤶', '🧑‍🎄', '👶', '👧', '👦', '👩', '👨', '👵', '👴', '🐶', '🐱', '⭐️', '❄️', '🦌', '⛄️', '🎄', '🍪', '🔔', '💝', '🧸', '🎁', '🕯️'];
+
+const blank = () => ({ version: 1, updatedAt: 0, people: [], gifts: [], tasks: [] });
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.people)) return { ...blank(), ...s };
+  } catch {}
+  return blank();
+}
+let state = load();
+function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
+
+const ui = { giftFilter: 'all', giftQuery: '', justAdded: null };
+
+function commit(fn, { render = true } = {}) {
+  fn(state);
+  state.updatedAt = Date.now();
+  saveLocal();
+  Sync.schedule();
+  if (render) renderAll();
+}
+
+const person = id => state.people.find(p => p.id === id);
+const giftsFor = id => state.gifts.filter(g => g.personId === id);
+const isSpent = g => g.status !== 'idea';
+const spentFor = id => giftsFor(id).filter(isSpent).reduce((a, g) => a + num(g.price), 0);
+const sortedPeople = () => [...state.people].sort((a, b) => a.name.localeCompare(b.name));
+
+function christmas() {
+  const now = new Date();
+  let y = now.getFullYear();
+  let xmas = new Date(y, 11, 25);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (today > xmas) xmas = new Date(++y, 11, 25);
+  const days = Math.round((xmas - today) / 86400000);
+  return { days, year: y };
+}
+
+function avatar(p, cls = '') {
+  if (!p) return `<div class="avatar ${cls}" style="--c:var(--gray)">?</div>`;
+  const initials = p.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  return p.emoji
+    ? `<div class="avatar emoji ${cls}" style="--c:${p.color}">${p.emoji}</div>`
+    : `<div class="avatar ${cls}" style="--c:${p.color}">${esc(initials)}</div>`;
+}
+const pill = (g, tappable = true) => {
+  const s = STATUSES.find(s => s.id === g.status) || STATUSES[0];
+  return tappable
+    ? `<button class="pill s-${s.id}" data-action="cycle" data-id="${g.id}" aria-label="Status: ${s.label}. Tap to advance">${s.label}</button>`
+    : `<span class="pill s-${s.id}">${s.label}</span>`;
+};
+
+/* =========================================================
+   Pages
+   ========================================================= */
+const TABS = [
+  { id: 'home', label: 'Overview', icon: 'home', root: 'home' },
+  { id: 'people', label: 'People', icon: 'people', root: 'people' },
+  { id: 'gifts', label: 'Gifts', icon: 'gift', root: 'gifts' },
+  { id: 'todo', label: 'To-Do', icon: 'list', root: 'todo' },
+  { id: 'settings', label: 'Settings', icon: 'gear', root: 'settings' },
+];
+
+const Pages = {
+  home: {
+    title: () => 'Christmas',
+    render() {
+      const { days, year } = christmas();
+      const budget = state.people.reduce((a, p) => a + num(p.budget), 0);
+      const spent = state.gifts.filter(isSpent).reduce((a, g) => a + num(g.price), 0);
+      const counts = Object.fromEntries(STATUSES.map(s => [s.id, state.gifts.filter(g => g.status === s.id).length]));
+      const total = state.gifts.length;
+      const pct = budget ? Math.min(spent / budget, 1) : 0;
+      const C = 2 * Math.PI * 33;
+      const needs = sortedPeople().filter(p => !giftsFor(p.id).some(isSpent));
+      const openTasks = state.tasks.filter(t => !t.done).sort(byDue);
+      const flakes = Array.from({ length: 14 }, (_, i) =>
+        `<i style="left:${(i * 37) % 100}%;animation-duration:${5 + (i * 1.7) % 5}s;animation-delay:-${(i * 1.3) % 6}s;--dx:${(i % 2 ? 1 : -1) * (6 + i % 5 * 4)}px;width:${3 + i % 3 * 2}px;height:${3 + i % 3 * 2}px"></i>`).join('');
+      const dayLabel = days === 0 ? 'Merry Christmas!' : days === 1 ? 'day to go' : 'days to go';
+
+      return `
+        <div class="hero">
+          <div class="snow">${flakes}</div>
+          <div class="hero-label">Christmas ${year}</div>
+          <div class="hero-num">${days === 0 ? '🎉' : days}</div>
+          <div class="hero-sub">${dayLabel}</div>
+          <div class="hero-tree">🎄</div>
+        </div>
+
+        <div class="grid2">
+          <button class="tile" data-action="tab" data-tab="people">
+            <div class="tile-top"><div class="tile-icon" style="background:var(--accent)">${Icon.people}</div><div class="tile-num">${state.people.length}</div></div>
+            <div class="tile-label">People</div>
+          </button>
+          <button class="tile" data-action="tab" data-tab="gifts">
+            <div class="tile-top"><div class="tile-icon" style="background:var(--pine)">${Icon.gift}</div><div class="tile-num">${total}</div></div>
+            <div class="tile-label">Gifts</div>
+          </button>
+          <div class="tile wide">
+            <div class="ring-row">
+              <svg class="ring ${spent > budget && budget ? 'over' : ''}" viewBox="0 0 76 76">
+                <circle class="track" cx="38" cy="38" r="33"/>
+                <circle class="val" cx="38" cy="38" r="33" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/>
+              </svg>
+              <div>
+                <div class="tile-label" style="margin-bottom:2px">Budget</div>
+                <div class="money-big">${money(spent)}</div>
+                <div class="money-sub">${budget ? `of ${money(budget)} · ${spent > budget ? `${money(spent - budget)} over` : `${money(budget - spent)} left`}` : 'Set budgets on each person'}</div>
+              </div>
+            </div>
+          </div>
+          <div class="tile wide">
+            <div class="tile-label">Gift Progress</div>
+            <div class="stack-bar">${total ? STATUSES.map(s => `<i style="flex-grow:${counts[s.id]};background:${STATUS_COLOR[s.id]}"></i>`).join('') : ''}</div>
+            <div class="legend">${STATUSES.map(s => `<span><i class="dot" style="--c:${STATUS_COLOR[s.id]}"></i>${s.label}<b>${counts[s.id]}</b></span>`).join('')}</div>
+          </div>
+        </div>
+
+        ${needs.length ? `
+        <div class="section">
+          <div class="section-head"><span>Still Need a Gift</span></div>
+          <div class="list" style="--inset:68px">
+            ${needs.slice(0, 6).map(p => `
+              <button class="row" data-action="open-person" data-id="${p.id}">
+                ${avatar(p)}
+                <div class="row-main"><div class="row-title">${esc(p.name)}</div>
+                <div class="row-sub">${giftsFor(p.id).length ? `${giftsFor(p.id).length} idea${giftsFor(p.id).length > 1 ? 's' : ''}` : 'No ideas yet'}</div></div>
+                ${Icon.chev}
+              </button>`).join('')}
+          </div>
+        </div>` : ''}
+
+        <div class="section">
+          <div class="section-head"><span>Up Next</span><button data-action="tab" data-tab="todo">See All</button></div>
+          ${openTasks.length ? `<div class="list" style="--inset:52px">${openTasks.slice(0, 4).map(taskRow).join('')}</div>`
+          : `<div class="list"><button class="row accent" data-action="${state.tasks.length ? 'add-task' : 'starter-tasks'}">${state.tasks.length ? 'All done! Add another task' : 'Add a starter checklist'}</button></div>`}
+        </div>
+
+        ${!state.people.length ? `
+        <div class="empty">
+          <div class="glyph">🎁</div>
+          <h3>Let’s get started</h3>
+          <p>Add the people you’re shopping for, then track ideas, purchases and wrapping.</p>
+          <button class="btn-filled" data-action="add-person">Add a Person</button>
+        </div>` : ''}
+      `;
+    },
+  },
+
+  people: {
+    title: () => 'People',
+    actions: () => `<button class="nav-btn" data-action="add-person" aria-label="Add person">${Icon.plus}</button>`,
+    render() {
+      if (!state.people.length) return `
+        <div class="empty">
+          <div class="glyph">🎅</div>
+          <h3>No People Yet</h3>
+          <p>Add everyone on your list. You can set a budget for each person.</p>
+          <button class="btn-filled" data-action="add-person">Add a Person</button>
+        </div>`;
+      const budget = state.people.reduce((a, p) => a + num(p.budget), 0);
+      return `
+        <div class="section">
+          <div class="list" style="--inset:68px">
+            ${sortedPeople().map(p => {
+              const gs = giftsFor(p.id), spent = spentFor(p.id), b = num(p.budget);
+              const done = gs.length && gs.every(g => g.status === 'given' || g.status === 'wrapped');
+              return `
+              <div class="swipe ${ui.justAdded === p.id ? 'enter' : ''}">
+                <div class="swipe-actions"><button data-action="delete-person" data-id="${p.id}">Delete</button></div>
+                <div class="swipe-content">
+                  <button class="row" data-action="open-person" data-id="${p.id}">
+                    ${avatar(p)}
+                    <div class="row-main">
+                      <div class="row-title">${esc(p.name)} ${done ? '✅' : ''}</div>
+                      <div class="row-sub">${gs.length} gift${gs.length === 1 ? '' : 's'} · ${money(spent)}${b ? ` of ${money(b)}` : ''}</div>
+                      ${b ? `<div class="bar ${spent > b ? 'over' : ''}"><i style="width:${Math.min(spent / b, 1) * 100}%"></i></div>` : ''}
+                    </div>
+                    ${Icon.chev}
+                  </button>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div class="section-foot">${state.people.length} ${state.people.length === 1 ? 'person' : 'people'}${budget ? ` · ${money(budget)} total budget` : ''}. Swipe left to delete.</div>
+        </div>`;
+    },
+  },
+
+  person: {
+    title: r => person(r.id)?.name || '',
+    actions: r => `<button class="nav-btn" data-action="edit-person" data-id="${r.id}">Edit</button>`,
+    largeTitle: false,
+    render(r) {
+      const p = person(r.id);
+      if (!p) { setTimeout(() => Nav.pop(), 0); return ''; }
+      const gs = giftsFor(p.id).sort((a, b) => STATUSES.findIndex(s => s.id === a.status) - STATUSES.findIndex(s => s.id === b.status));
+      const spent = spentFor(p.id), b = num(p.budget);
+      return `
+        <div class="person-head">
+          ${avatar(p, 'lg')}
+          <h2>${esc(p.name)}</h2>
+          ${p.relation ? `<div class="row-sub">${esc(p.relation)}</div>` : ''}
+        </div>
+        <div class="person-stats">
+          <div><b>${money(spent)}</b><span>Spent</span></div>
+          <div><b>${b ? money(b) : '—'}</b><span>Budget</span></div>
+          <div><b style="color:${b && spent > b ? 'var(--red)' : 'inherit'}">${b ? money(Math.abs(b - spent)) : '—'}</b><span>${b && spent > b ? 'Over' : 'Left'}</span></div>
+        </div>
+        <div class="section">
+          <div class="section-head"><span>Gifts</span><button data-action="add-gift" data-person="${p.id}">Add</button></div>
+          <div class="list">
+            ${gs.map(g => giftRow(g, false)).join('')}
+            <button class="row accent" data-action="add-gift" data-person="${p.id}">${gs.length ? 'Add Gift or Idea' : 'Add First Gift Idea'}</button>
+          </div>
+          ${gs.length ? `<div class="section-foot">Tap a status to move it along: Idea → Bought → Wrapped → Given.</div>` : ''}
+        </div>
+        ${p.notes ? `
+        <div class="section">
+          <div class="section-head"><span>Notes</span></div>
+          <div class="list"><div class="row notes">${esc(p.notes)}</div></div>
+        </div>` : ''}
+        ${p.sizes ? `
+        <div class="section">
+          <div class="section-head"><span>Sizes & Preferences</span></div>
+          <div class="list"><div class="row notes">${esc(p.sizes)}</div></div>
+        </div>` : ''}`;
+    },
+  },
+
+  gifts: {
+    title: () => 'Gifts',
+    actions: () => state.people.length ? `<button class="nav-btn" data-action="add-gift" aria-label="Add gift">${Icon.plus}</button>` : '',
+    render() {
+      if (!state.gifts.length) return `
+        <div class="empty">
+          <div class="glyph">🎁</div>
+          <h3>No Gifts Yet</h3>
+          <p>${state.people.length ? 'Start jotting down gift ideas. You can mark them bought, wrapped and given.' : 'Add a person first, then start adding gift ideas for them.'}</p>
+          <button class="btn-filled" data-action="${state.people.length ? 'add-gift' : 'add-person'}">${state.people.length ? 'Add a Gift' : 'Add a Person'}</button>
+        </div>`;
+      const opts = [{ id: 'all', label: 'All' }, ...STATUSES];
+      const i = opts.findIndex(o => o.id === ui.giftFilter);
+      return `
+        <div class="search">${Icon.search}<input type="search" id="giftSearch" placeholder="Search" value="${esc(ui.giftQuery)}" autocomplete="off"></div>
+        <div class="seg-wrap"><div class="seg" style="--n:${opts.length};--i:${i}">
+          <span class="seg-thumb"></span>
+          ${opts.map(o => `<button class="${o.id === ui.giftFilter ? 'on' : ''}" data-action="gift-filter" data-f="${o.id}">${o.label}</button>`).join('')}
+        </div></div>
+        <div id="giftResults">${giftResults()}</div>`;
+    },
+  },
+
+  todo: {
+    title: () => 'To-Do',
+    actions: () => `<button class="nav-btn" data-action="add-task" aria-label="Add task">${Icon.plus}</button>`,
+    render() {
+      if (!state.tasks.length) return `
+        <div class="empty">
+          <div class="glyph">📝</div>
+          <h3>Nothing Planned Yet</h3>
+          <p>Keep track of cards, decorating, food, parties and everything else.</p>
+          <button class="btn-filled" data-action="starter-tasks">Add Starter Checklist</button>
+          <div style="margin-top:14px"><button class="btn-tinted" data-action="add-task">Add My Own</button></div>
+        </div>`;
+      const open = state.tasks.filter(t => !t.done);
+      const done = state.tasks.filter(t => t.done);
+      const groups = CATEGORIES.map(c => [c, open.filter(t => (t.category || 'Other') === c).sort(byDue)]).filter(([, ts]) => ts.length);
+      return `
+        ${groups.map(([c, ts]) => `
+          <div class="section">
+            <div class="section-head" style="color:${CAT_COLOR[c]};font-weight:600">${c}</div>
+            <div class="list" style="--inset:52px">${ts.map(taskRow).join('')}</div>
+          </div>`).join('')}
+        ${!open.length ? `<div class="empty" style="padding-top:8px"><div class="glyph">🎉</div><h3>All Done!</h3><p>Time for hot cocoa.</p></div>` : ''}
+        ${done.length ? `
+          <div class="section">
+            <div class="section-head"><span>Completed · ${done.length}</span><button data-action="clear-done">Clear</button></div>
+            <div class="list" style="--inset:52px">${done.map(taskRow).join('')}</div>
+          </div>` : ''}`;
+    },
+  },
+
+  settings: {
+    title: () => 'Settings',
+    render() {
+      const c = Sync.cfg;
+      const connected = Sync.enabled();
+      return `
+        <div class="section">
+          <div class="section-head"><span>Sync</span></div>
+          <div class="list" style="--inset:58px">
+            <div class="row">
+              <div class="row-icon" style="background:${connected ? 'var(--blue)' : 'var(--gray)'}">${Icon.cloud}</div>
+              <div class="row-main"><div class="row-title">Sync Across Devices</div>
+              <div class="row-sub" id="syncStatus">${Sync.statusText()}</div></div>
+            </div>
+            ${connected ? `
+              <button class="row accent" data-action="sync-now"><div class="row-icon" style="background:var(--pine)">${Icon.sync}</div>Sync Now</button>
+              <button class="row" data-action="sync-disconnect" style="color:var(--red)"><div class="row-icon" style="background:var(--red)">${Icon.trash}</div>Disconnect This Device</button>
+            ` : `
+              <button class="row accent" data-action="sync-connect"><div class="row-icon" style="background:var(--blue)">${Icon.sync}</div>Set Up Sync…</button>
+            `}
+          </div>
+          <div class="section-foot">${connected
+            ? `Data is stored in a secret GitHub Gist${c.gistId ? ` (<a href="https://gist.github.com/${esc(c.gistId)}" target="_blank" rel="noopener">view</a>)` : ''}. Changes sync automatically.`
+            : 'Uses a secret GitHub Gist as free cloud storage. Set it up once on each device with the same token.'}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span>Data</span></div>
+          <div class="list" style="--inset:58px">
+            <button class="row" data-action="export"><div class="row-icon" style="background:var(--blue)">${Icon.down}</div><div class="row-main">Export Backup</div>${Icon.chev}</button>
+            <button class="row" data-action="import"><div class="row-icon" style="background:var(--orange)">${Icon.up}</div><div class="row-main">Import Backup</div>${Icon.chev}</button>
+          </div>
+          <div class="section-foot">${plural(state.people.length, 'person', 'people')} · ${plural(state.gifts.length, 'gift')} · ${plural(state.tasks.length, 'task')}${state.updatedAt ? ` · Last edited ${timeAgo(state.updatedAt)}` : ''}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span>New Season</span></div>
+          <div class="list">
+            <button class="row accent" data-action="new-season">Start Next Year…</button>
+            <button class="row destructive" data-action="reset">Erase All Data…</button>
+          </div>
+          <div class="section-foot">“Start Next Year” keeps your people and budgets but clears gifts and resets the checklist.</div>
+        </div>
+
+        <div class="section-foot" style="text-align:center;padding-top:8px">Christmas Planner · Made for you 🎄<br>Tip: In Safari, tap Share → Add to Home Screen.</div>`;
+    },
+  },
+};
+
+function byDue(a, b) {
+  if (a.due && b.due) return a.due.localeCompare(b.due);
+  if (a.due) return -1; if (b.due) return 1;
+  return (a.created || 0) - (b.created || 0);
+}
+function fmtDue(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00');
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((dt - today) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+function timeAgo(t) {
+  const s = Math.round((Date.now() - t) / 1000);
+  if (s < 45) return 'just now';
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} hr ago`;
+  return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function taskRow(t) {
+  const late = !t.done && t.due && new Date(t.due + 'T23:59') < new Date();
+  return `
+    <div class="swipe ${ui.justAdded === t.id ? 'enter' : ''}">
+      <div class="swipe-actions"><button data-action="delete-task" data-id="${t.id}">Delete</button></div>
+      <div class="swipe-content">
+        <div class="row ${t.done ? 'done' : ''}" data-task="${t.id}">
+          <button class="check" data-action="toggle-task" data-id="${t.id}" aria-label="${t.done ? 'Mark incomplete' : 'Mark complete'}">${Icon.check}</button>
+          <div class="row-main tappable" data-action="edit-task" data-id="${t.id}" style="cursor:pointer">
+            <div class="row-title task-title">${esc(t.title)}</div>
+            ${t.notes ? `<div class="row-sub">${esc(t.notes)}</div>` : ''}
+          </div>
+          ${t.due ? `<span class="due ${late ? 'late' : ''}">${fmtDue(t.due)}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function giftRow(g, showPerson = true) {
+  const p = person(g.personId);
+  const meta = [showPerson && p ? p.name : '', g.store, g.price ? money(num(g.price)) : ''].filter(Boolean).join(' · ');
+  return `
+    <div class="swipe ${ui.justAdded === g.id ? 'enter' : ''}">
+      <div class="swipe-actions"><button data-action="delete-gift" data-id="${g.id}">Delete</button></div>
+      <div class="swipe-content">
+        <div class="row tappable" data-action="edit-gift" data-id="${g.id}" style="${showPerson ? '' : ''}">
+          ${showPerson ? avatar(p) : ''}
+          <div class="row-main">
+            <div class="row-title">${esc(g.title)}</div>
+            ${meta ? `<div class="row-sub">${esc(meta)}</div>` : ''}
+          </div>
+          ${pill(g)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function giftResults() {
+  const q = ui.giftQuery.trim().toLowerCase();
+  let gs = state.gifts.filter(g => ui.giftFilter === 'all' || g.status === ui.giftFilter);
+  if (q) gs = gs.filter(g => [g.title, g.store, g.notes, person(g.personId)?.name].join(' ').toLowerCase().includes(q));
+  if (!gs.length) return `<div class="empty" style="padding-top:24px"><p>${q ? 'No matching gifts' : `No gifts marked “${STATUSES.find(s => s.id === ui.giftFilter)?.label}”`}</p></div>`;
+  const byPerson = {};
+  gs.forEach(g => (byPerson[g.personId] ||= []).push(g));
+  const total = gs.reduce((a, g) => a + num(g.price), 0);
+  return sortedPeople().filter(p => byPerson[p.id]).map(p => `
+    <div class="section">
+      <div class="section-head"><span>${esc(p.name)}</span><button data-action="open-person" data-id="${p.id}">View</button></div>
+      <div class="list">${byPerson[p.id].map(g => giftRow(g, false)).join('')}</div>
+    </div>`).join('') + `<div class="section-foot" style="text-align:center">${gs.length} gift${gs.length === 1 ? '' : 's'} · ${money(total)}</div>`;
+}
+
+/* =========================================================
+   Navigation (per-tab stacks with push/pop + edge swipe)
+   ========================================================= */
+const Nav = {
+  current: 'home',
+  stacks: {},
+  init() {
+    const tabsEl = $('#tabs');
+    TABS.forEach(t => {
+      const el = document.createElement('section');
+      el.className = 'tab'; el.dataset.tab = t.id;
+      tabsEl.appendChild(el);
+      this.stacks[t.id] = [];
+      this.mount(t.id, { name: t.root });
+    });
+    $('#tabbar').innerHTML = TABS.map(t => `<button data-action="tab" data-tab="${t.id}" aria-label="${t.label}">${Icon[t.icon]}<span>${t.label}</span></button>`).join('');
+    const saved = sessionStorage.getItem('xmas-tab');
+    this.switchTab(TABS.some(t => t.id === saved) ? saved : 'home', true);
+  },
+  tabEl(id) { return $(`.tab[data-tab="${id}"]`); },
+  top() { const s = this.stacks[this.current]; return s[s.length - 1]; },
+  mount(tabId, route) {
+    const el = createPage(route, this.stacks[tabId]);
+    this.tabEl(tabId).appendChild(el);
+    this.stacks[tabId].push(el);
+    return el;
+  },
+  switchTab(id, instant) {
+    if (id === this.current && !instant) {
+      // Tap active tab: pop to root, or scroll to top
+      if (this.stacks[id].length > 1) this.popToRoot();
+      else $('.scroll', this.top())?.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    this.current = id;
+    try { sessionStorage.setItem('xmas-tab', id); } catch {}
+    $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+    $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+    updatePage(this.top());
+  },
+  async push(route) {
+    const stack = this.stacks[this.current];
+    const prev = stack[stack.length - 1];
+    const el = this.mount(this.current, route);
+    el.classList.add('offright');
+    await nextFrame();
+    el.classList.add('anim'); prev.classList.add('anim');
+    el.classList.remove('offright'); el.classList.add('edge-shadow');
+    prev.classList.add('under');
+    await sleep(500);
+    el.classList.remove('anim', 'edge-shadow'); prev.classList.remove('anim');
+  },
+  async pop() {
+    const stack = this.stacks[this.current];
+    if (stack.length < 2) return;
+    const el = stack.pop();
+    const prev = stack[stack.length - 1];
+    updatePage(prev);
+    el.classList.add('anim', 'edge-shadow'); prev.classList.add('anim');
+    el.style.transform = ''; prev.style.transform = '';
+    await nextFrame();
+    el.classList.add('offright');
+    prev.classList.remove('under');
+    await sleep(500);
+    el.remove(); prev.classList.remove('anim');
+  },
+  popToRoot() {
+    const stack = this.stacks[this.current];
+    while (stack.length > 2) stack.splice(1, 1)[0].remove();
+    this.pop();
+  },
+};
+
+function createPage(route, stack) {
+  const el = document.createElement('div');
+  el.className = 'page';
+  el._route = route;
+  el._depth = stack.length;
+  el._stack = stack;
+  el.innerHTML = `
+    <header class="navbar"><div class="nav-left"></div><div class="nav-title"></div><div class="nav-right"></div></header>
+    <div class="scroll"><div class="content"></div></div>`;
+  const scroll = $('.scroll', el), bar = $('.navbar', el);
+  scroll.addEventListener('scroll', () => {
+    const y = scroll.scrollTop;
+    const large = Pages[route.name].largeTitle !== false;
+    bar.classList.toggle('scrolled', y > 2);
+    bar.classList.toggle('collapsed', large ? y > 36 : y > 100);
+  }, { passive: true });
+  updatePage(el);
+  return el;
+}
+
+function updatePage(el) {
+  if (!el) return;
+  const r = el._route, def = Pages[r.name];
+  const title = def.title(r);
+  const stack = el._stack || [];
+  const depth = el._depth;
+  const prevTitle = depth > 0 && stack[depth - 1] ? Pages[stack[depth - 1]._route.name].title(stack[depth - 1]._route) : '';
+  $('.nav-title', el).textContent = title;
+  $('.nav-left', el).innerHTML = depth > 0 ? `<button class="nav-btn back" data-action="back">${Icon.back}<span>${esc(prevTitle)}</span></button>` : '';
+  $('.nav-right', el).innerHTML = def.actions ? def.actions(r) : '';
+  const content = $('.content', el);
+  content.innerHTML = (def.largeTitle === false ? '' : `<h1 class="large-title">${esc(title)}</h1>`) + def.render(r);
+  if (def.largeTitle === false) $('.navbar', el).classList.toggle('collapsed', $('.scroll', el).scrollTop > 100);
+}
+
+function renderAll() {
+  Object.values(Nav.stacks).flat().forEach(updatePage);
+  ui.justAdded = null;
+}
+
+/* Edge swipe to go back */
+(() => {
+  let s = null;
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' || e.clientX > 24) return;
+    const stack = Nav.stacks[Nav.current];
+    if (stack.length < 2 || document.body.classList.contains('sheet-open')) return;
+    s = { x: e.clientX, y: e.clientY, el: stack[stack.length - 1], prev: stack[stack.length - 2], active: false, t: performance.now() };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!s) return;
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (!s.active) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { s = null; return; }
+      if (dx < 8) return;
+      s.active = true; s.el.classList.add('edge-shadow');
+    }
+    const w = innerWidth, x = Math.max(0, dx);
+    s.el.style.transform = `translateX(${x}px)`;
+    s.prev.style.transform = `translateX(${-30 + (x / w) * 30}%)`;
+    s.last = { dx, t: performance.now() };
+  });
+  const end = async e => {
+    if (!s) return;
+    const st = s; s = null;
+    if (!st.active) return;
+    const dx = e.clientX - st.x;
+    const v = st.last ? dx / Math.max(1, performance.now() - st.t) : 0;
+    if (dx > innerWidth * .4 || v > .5) {
+      Nav.pop();
+    } else {
+      st.el.classList.add('anim'); st.prev.classList.add('anim');
+      st.el.style.transform = ''; st.prev.style.transform = '';
+      await sleep(500);
+      st.el.classList.remove('anim', 'edge-shadow'); st.prev.classList.remove('anim');
+    }
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+})();
+
+/* Swipe-to-delete rows */
+const Swipe = (() => {
+  let s = null, open = null, suppressClick = false;
+  const W = 84;
+  const close = (c = open) => { if (!c) return; c.classList.add('snap'); c.style.transform = ''; if (c === open) open = null; };
+  document.addEventListener('pointerdown', e => {
+    const c = e.target.closest('.swipe-content');
+    if (open && c !== open && !e.target.closest('.swipe-actions')) { close(); suppressClick = true; }
+    if (!c || e.clientX < 24) return;
+    s = { c, x: e.clientX, y: e.clientY, base: c === open ? -W : 0, active: false };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!s) return;
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (!s.active) {
+      if (Math.abs(dy) > 8) { s = null; return; }
+      if (Math.abs(dx) < 10) return;
+      s.active = true; s.c.classList.remove('snap');
+    }
+    let x = s.base + dx;
+    if (x > 0) x = 0;
+    if (x < -W) x = -W - (Math.abs(x) - W) * .3;
+    s.c.style.transform = `translateX(${x}px)`;
+    s.x2 = x;
+  });
+  const end = () => {
+    if (!s) return;
+    const st = s; s = null;
+    if (!st.active) return;
+    suppressClick = true;
+    st.c.classList.add('snap');
+    if (st.x2 < -W / 2) { st.c.style.transform = `translateX(${-W}px)`; open = st.c; }
+    else close(st.c);
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+  document.addEventListener('click', e => {
+    if (suppressClick) { suppressClick = false; if (!e.target.closest('.swipe-actions')) { e.stopPropagation(); e.preventDefault(); } }
+  }, true);
+  return { closeAll: () => close() };
+})();
+
+/* =========================================================
+   Sheets, action sheets, toasts
+   ========================================================= */
+function openSheet({ title, body, saveLabel = 'Save', onSave, onOpen, required = [] }) {
+  return new Promise(resolve => {
+    Swipe.closeAll();
+    const back = document.createElement('div'); back.className = 'backdrop';
+    const sh = document.createElement('div'); sh.className = 'sheet';
+    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true');
+    sh.innerHTML = `
+      <div class="sheet-head">
+        <button class="nav-btn" data-sheet="cancel">Cancel</button>
+        <h3>${esc(title)}</h3>
+        <button class="nav-btn" data-sheet="save">${esc(saveLabel)}</button>
+      </div>
+      <form class="sheet-body" autocomplete="off" novalidate>${body}<button type="submit" hidden></button></form>`;
+    document.body.append(back, sh);
+    const form = $('form', sh), saveBtn = $('[data-sheet=save]', sh);
+    const validate = () => { saveBtn.disabled = required.some(n => !String(form.elements[n]?.value || '').trim()); };
+    form.addEventListener('input', validate); validate();
+    initSegs(sh);
+
+    let closed = false;
+    const close = async (result) => {
+      if (closed) return; closed = true;
+      document.activeElement?.blur?.();
+      back.classList.remove('show'); sh.classList.remove('show');
+      document.body.classList.remove('sheet-open');
+      await sleep(480); back.remove(); sh.remove();
+      resolve(result);
+    };
+    const save = () => {
+      if (saveBtn.disabled) return;
+      const data = Object.fromEntries(new FormData(form).entries());
+      if (onSave(data, form) !== false) close(data);
+    };
+    $('[data-sheet=cancel]', sh).onclick = () => close(null);
+    saveBtn.onclick = save;
+    form.onsubmit = e => { e.preventDefault(); if (e.target === form) save(); };
+    back.onclick = () => close(null);
+    sh._close = close;
+    onOpen?.(sh, close);
+
+    // drag to dismiss
+    const head = $('.sheet-head', sh);
+    let d = null;
+    head.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; d = { y: e.clientY, t: performance.now() }; sh.classList.add('dragging'); head.setPointerCapture(e.pointerId); });
+    head.addEventListener('pointermove', e => { if (!d) return; const dy = Math.max(0, e.clientY - d.y); sh.style.transform = `translateY(${dy}px)`; d.dy = dy; });
+    const up = () => {
+      if (!d) return; const v = (d.dy || 0) / (performance.now() - d.t);
+      sh.classList.remove('dragging'); sh.style.transform = '';
+      if ((d.dy || 0) > 140 || v > .6) close(null);
+      d = null;
+    };
+    head.addEventListener('pointerup', up); head.addEventListener('pointercancel', up);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      back.classList.add('show'); sh.classList.add('show'); document.body.classList.add('sheet-open');
+    }));
+  });
+}
+
+function actionSheet({ message, actions }) {
+  return new Promise(resolve => {
+    const back = document.createElement('div'); back.className = 'backdrop top';
+    const el = document.createElement('div'); el.className = 'action-sheet';
+    el.innerHTML = `
+      <div class="action-group">
+        ${message ? `<div class="msg">${esc(message)}</div>` : ''}
+        ${actions.map((a, i) => `<button data-i="${i}" class="${a.destructive ? 'destructive' : ''}">${esc(a.label)}</button>`).join('')}
+      </div>
+      <div class="action-group"><button class="cancel" data-i="-1">Cancel</button></div>`;
+    document.body.append(back, el);
+    const close = async v => {
+      back.classList.remove('show'); el.classList.remove('show');
+      await sleep(420); back.remove(); el.remove(); resolve(v);
+    };
+    back.onclick = () => close(-1);
+    el.onclick = e => { const b = e.target.closest('button'); if (b) close(+b.dataset.i); };
+    requestAnimationFrame(() => requestAnimationFrame(() => { back.classList.add('show'); el.classList.add('show'); }));
+  });
+}
+const confirmDestructive = async (message, label) => (await actionSheet({ message, actions: [{ label, destructive: true }] })) === 0;
+
+let toastTimer;
+function toast(text, icon = '') {
+  const t = $('#toast');
+  t.innerHTML = `${icon}<span>${esc(text)}</span>`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function initSegs(root) {
+  $$('.seg[data-radio]', root).forEach(seg => {
+    const update = () => {
+      const inputs = $$('input', seg);
+      const i = inputs.findIndex(x => x.checked);
+      seg.style.setProperty('--i', Math.max(0, i));
+      $$('label', seg).forEach((l, j) => l.classList.toggle('on', j === i));
+    };
+    seg.addEventListener('change', update); update();
+  });
+}
+
+/* ---------- Forms ---------- */
+const segRadio = (name, opts, value) => `
+  <div class="seg" data-radio style="--n:${opts.length}">
+    <span class="seg-thumb"></span>
+    ${opts.map(o => `<label><input type="radio" name="${name}" value="${o.id}" ${o.id === value ? 'checked' : ''}>${o.label}</label>`).join('')}
+  </div>`;
+
+function personSheet(p) {
+  const isNew = !p;
+  p = p || { name: '', budget: '', emoji: '', color: COLORS[state.people.length % COLORS.length], relation: '', notes: '', sizes: '' };
+  return openSheet({
+    title: isNew ? 'New Person' : 'Edit Person',
+    saveLabel: isNew ? 'Add' : 'Done',
+    required: ['name'],
+    body: `
+      <div class="section"><div class="list">
+        <div class="row"><input class="field" name="name" placeholder="Name" value="${esc(p.name)}" enterkeyhint="done" autocapitalize="words"></div>
+        <div class="row"><input class="field" name="relation" placeholder="Relationship (e.g. Sister, Coworker)" value="${esc(p.relation)}" autocapitalize="words"></div>
+      </div></div>
+      <div class="section"><div class="list">
+        <div class="row"><label class="lbl" for="pb">Budget</label><input class="field right" id="pb" name="budget" inputmode="decimal" placeholder="$0" value="${p.budget ? esc(p.budget) : ''}"></div>
+      </div></div>
+      <div class="section">
+        <div class="section-head"><span>Avatar</span></div>
+        <div class="list">
+          <div class="color-row">${COLORS.map(c => `<label><input type="radio" name="color" value="${c}" ${c === p.color ? 'checked' : ''}><span style="--c:${c}"></span></label>`).join('')}</div>
+          <div class="emoji-grid" style="box-shadow:0 -.5px 0 var(--sep)">${EMOJIS.map(e => `<label><input type="radio" name="emoji" value="${e}" ${e === (p.emoji || '') ? 'checked' : ''}><span class="${e ? '' : 'txt'}">${e || 'Aa'}</span></label>`).join('')}</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-head"><span>Sizes & Preferences</span></div>
+        <div class="list"><div class="row"><textarea class="field" name="sizes" rows="2" placeholder="Shirt M, shoe 9, loves dark chocolate…">${esc(p.sizes)}</textarea></div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><span>Notes</span></div>
+        <div class="list"><div class="row"><textarea class="field" name="notes" placeholder="Anything to remember">${esc(p.notes)}</textarea></div></div>
+      </div>
+      ${isNew ? '' : `<div class="section"><div class="list"><button type="button" class="row destructive" data-sheet-delete>Delete Person</button></div></div>`}`,
+    onOpen(sh, close) {
+      if (isNew) setTimeout(() => $('[name=name]', sh).focus({ preventScroll: true }), 450);
+      $('[data-sheet-delete]', sh)?.addEventListener('click', async () => {
+        if (await deletePerson(p.id)) close(null);
+      });
+    },
+    onSave(d) {
+      const data = { name: d.name.trim(), relation: d.relation.trim(), budget: d.budget ? num(d.budget) : '', color: d.color, emoji: d.emoji, notes: d.notes.trim(), sizes: d.sizes.trim() };
+      if (isNew) {
+        const np = { id: uid(), created: Date.now(), ...data };
+        ui.justAdded = np.id;
+        commit(s => s.people.push(np));
+      } else commit(s => Object.assign(s.people.find(x => x.id === p.id), data));
+    },
+  });
+}
+
+function giftSheet(g, presetPerson) {
+  const isNew = !g;
+  if (!state.people.length) return personSheet();
+  g = g || { title: '', personId: presetPerson || (Nav.top()?._route.name === 'person' ? Nav.top()._route.id : ''), price: '', status: 'idea', store: '', url: '', notes: '' };
+  return openSheet({
+    title: isNew ? 'New Gift' : 'Edit Gift',
+    saveLabel: isNew ? 'Add' : 'Done',
+    required: ['title', 'personId'],
+    body: `
+      <div class="section"><div class="list">
+        <div class="row"><input class="field" name="title" placeholder="Gift" value="${esc(g.title)}" enterkeyhint="done" autocapitalize="sentences"></div>
+        <div class="row"><label class="lbl" for="gp">For</label>
+          <select class="field" id="gp" name="personId">
+            <option value="" ${g.personId ? '' : 'selected'} disabled>Choose…</option>
+            ${sortedPeople().map(p => `<option value="${p.id}" ${p.id === g.personId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+          </select>${Icon.chev}</div>
+        <div class="row"><label class="lbl" for="gpr">Price</label><input class="field right" id="gpr" name="price" inputmode="decimal" placeholder="$0" value="${g.price ? esc(g.price) : ''}"></div>
+      </div></div>
+      <div class="section">
+        <div class="section-head"><span>Status</span></div>
+        ${segRadio('status', STATUSES, g.status)}
+      </div>
+      <div class="section"><div class="list">
+        <div class="row"><input class="field" name="store" placeholder="Store" value="${esc(g.store)}" autocapitalize="words"></div>
+        <div class="row"><input class="field" name="url" type="url" inputmode="url" placeholder="Link" value="${esc(g.url)}" autocapitalize="off"></div>
+      </div>
+      ${g.url && /^https?:\/\//i.test(g.url) ? `<div class="section-foot"><a href="${esc(g.url)}" target="_blank" rel="noopener">Open link ↗</a></div>` : ''}
+      </div>
+      <div class="section">
+        <div class="list"><div class="row"><textarea class="field" name="notes" placeholder="Notes (size, color, tracking #…)">${esc(g.notes)}</textarea></div></div>
+      </div>
+      ${isNew ? '' : `<div class="section"><div class="list"><button type="button" class="row destructive" data-sheet-delete>Delete Gift</button></div></div>`}`,
+    onOpen(sh, close) {
+      if (isNew) setTimeout(() => $('[name=title]', sh).focus({ preventScroll: true }), 450);
+      $('[data-sheet-delete]', sh)?.addEventListener('click', async () => {
+        if (await confirmDestructive('This gift will be deleted.', 'Delete Gift')) { commit(s => s.gifts = s.gifts.filter(x => x.id !== g.id)); close(null); }
+      });
+    },
+    onSave(d) {
+      const data = { title: d.title.trim(), personId: d.personId, price: d.price ? num(d.price) : '', status: d.status || 'idea', store: d.store.trim(), url: d.url.trim(), notes: d.notes.trim() };
+      if (isNew) {
+        const ng = { id: uid(), created: Date.now(), ...data };
+        ui.justAdded = ng.id;
+        commit(s => s.gifts.push(ng));
+      } else commit(s => Object.assign(s.gifts.find(x => x.id === g.id), data));
+    },
+  });
+}
+
+function taskSheet(t) {
+  const isNew = !t;
+  t = t || { title: '', category: 'Shopping', due: '', notes: '' };
+  return openSheet({
+    title: isNew ? 'New Task' : 'Edit Task',
+    saveLabel: isNew ? 'Add' : 'Done',
+    required: ['title'],
+    body: `
+      <div class="section"><div class="list">
+        <div class="row"><input class="field" name="title" placeholder="Title" value="${esc(t.title)}" enterkeyhint="done" autocapitalize="sentences"></div>
+        <div class="row"><textarea class="field" name="notes" rows="2" style="min-height:48px" placeholder="Notes">${esc(t.notes)}</textarea></div>
+      </div></div>
+      <div class="section"><div class="list">
+        <div class="row"><label class="lbl" for="tc">List</label>
+          <select class="field" id="tc" name="category">${CATEGORIES.map(c => `<option ${c === t.category ? 'selected' : ''}>${c}</option>`).join('')}</select>${Icon.chev}</div>
+        <div class="row"><label class="lbl" for="td">Due</label><input class="field" id="td" type="date" name="due" value="${esc(t.due)}"></div>
+      </div></div>
+      ${isNew ? '' : `<div class="section"><div class="list"><button type="button" class="row destructive" data-sheet-delete>Delete Task</button></div></div>`}`,
+    onOpen(sh, close) {
+      if (isNew) setTimeout(() => $('[name=title]', sh).focus({ preventScroll: true }), 450);
+      $('[data-sheet-delete]', sh)?.addEventListener('click', () => { commit(s => s.tasks = s.tasks.filter(x => x.id !== t.id)); close(null); });
+    },
+    onSave(d) {
+      const data = { title: d.title.trim(), category: d.category, due: d.due, notes: d.notes.trim() };
+      if (isNew) {
+        const nt = { id: uid(), created: Date.now(), done: false, ...data };
+        ui.justAdded = nt.id;
+        commit(s => s.tasks.push(nt));
+      } else commit(s => Object.assign(s.tasks.find(x => x.id === t.id), data));
+    },
+  });
+}
+
+async function deletePerson(id) {
+  const p = person(id); if (!p) return false;
+  const n = giftsFor(id).length;
+  if (!await confirmDestructive(`Delete ${p.name}${n ? ` and their ${n} gift${n > 1 ? 's' : ''}` : ''}?`, 'Delete Person')) { Swipe.closeAll(); return false; }
+  commit(s => { s.people = s.people.filter(x => x.id !== id); s.gifts = s.gifts.filter(g => g.personId !== id); });
+  return true;
+}
+
+function starterTasks() {
+  const y = christmas().year;
+  const d = (m, day) => `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const list = [
+    ['Finalize gift list & budgets', 'Shopping', d(11, 20)],
+    ['Black Friday / Cyber Monday shopping', 'Shopping', d(11, 30)],
+    ['Order online gifts (shipping cutoff)', 'Shopping', d(12, 12)],
+    ['Buy wrapping paper, tape & tags', 'Shopping', d(12, 1)],
+    ['Wrap all gifts', 'Shopping', d(12, 21)],
+    ['Get the Christmas tree', 'Decorating', d(12, 1)],
+    ['Put up lights', 'Decorating', d(12, 5)],
+    ['Decorate the tree', 'Decorating', d(12, 7)],
+    ['Update card address list', 'Cards', d(11, 28)],
+    ['Take family photo for cards', 'Cards', d(12, 1)],
+    ['Mail Christmas cards', 'Cards', d(12, 12)],
+    ['Plan Christmas dinner menu', 'Food', d(12, 10)],
+    ['Bake cookies', 'Food', d(12, 20)],
+    ['Grocery run for Christmas dinner', 'Food', d(12, 22)],
+    ['Holiday party plans', 'Events', ''],
+    ['Book travel / confirm plans', 'Events', d(12, 1)],
+  ];
+  commit(s => list.forEach(([title, category, due], i) => s.tasks.push({ id: uid(), created: Date.now() + i, done: false, title, category, due, notes: '' })));
+  toast('Checklist added', '📝');
+}
+
+/* =========================================================
+   Actions (event delegation)
+   ========================================================= */
+const Actions = {
+  'tab': el => { if (Nav.current !== el.dataset.tab || el.closest('#tabbar')) Nav.switchTab(el.dataset.tab); },
+  'back': () => Nav.pop(),
+  'open-person': async el => {
+    if (Nav.current !== 'people') {
+      Nav.switchTab('people');
+      const st = Nav.stacks.people;
+      while (st.length > 1) st.pop().remove();
+      st[0].classList.remove('under');
+    }
+    Nav.push({ name: 'person', id: el.dataset.id });
+  },
+  'add-person': () => personSheet(),
+  'edit-person': el => personSheet(person(el.dataset.id)),
+  'delete-person': el => deletePerson(el.dataset.id),
+  'add-gift': el => giftSheet(null, el.dataset.person),
+  'edit-gift': el => giftSheet(state.gifts.find(g => g.id === el.dataset.id)),
+  'delete-gift': el => commit(s => s.gifts = s.gifts.filter(g => g.id !== el.dataset.id)),
+  'cycle': (el, e) => {
+    e.stopPropagation();
+    const g = state.gifts.find(x => x.id === el.dataset.id);
+    const i = STATUSES.findIndex(s => s.id === g.status);
+    const next = STATUSES[(i + 1) % STATUSES.length];
+    commit(() => g.status = next.id, { render: false });
+    // update in place for a snappy, animated feel; full render after a beat
+    $$(`[data-action=cycle][data-id="${g.id}"]`).forEach(p => {
+      p.className = `pill s-${next.id} pop`; p.textContent = next.label;
+    });
+    clearTimeout(Actions._cycleT);
+    Actions._cycleT = setTimeout(renderAllPreserve, 900);
+  },
+  'gift-filter': el => {
+    ui.giftFilter = el.dataset.f;
+    const seg = el.closest('.seg');
+    const btns = $$('button', seg);
+    seg.style.setProperty('--i', btns.indexOf(el));
+    btns.forEach(b => b.classList.toggle('on', b === el));
+    const res = $('#giftResults'); if (res) res.innerHTML = giftResults();
+  },
+  'add-task': () => taskSheet(),
+  'edit-task': el => taskSheet(state.tasks.find(t => t.id === el.dataset.id)),
+  'delete-task': el => commit(s => s.tasks = s.tasks.filter(t => t.id !== el.dataset.id)),
+  'toggle-task': (el, e) => {
+    e.stopPropagation();
+    const t = state.tasks.find(x => x.id === el.dataset.id);
+    commit(() => t.done = !t.done, { render: false });
+    $$(`[data-task="${t.id}"]`).forEach(r => r.classList.toggle('done', t.done));
+    clearTimeout(Actions._taskT);
+    Actions._taskT = setTimeout(renderAllPreserve, 800);
+  },
+  'clear-done': async () => {
+    if (await confirmDestructive('Remove all completed tasks?', 'Clear Completed')) commit(s => s.tasks = s.tasks.filter(t => !t.done));
+  },
+  'starter-tasks': () => starterTasks(),
+  'export': () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `christmas-planner-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  },
+  'import': () => $('#importFile').click(),
+  'new-season': async () => {
+    if (!await confirmDestructive('Clear all gifts and reset the checklist? People and budgets stay. Consider exporting a backup first.', 'Start Next Year')) return;
+    commit(s => { s.gifts = []; s.tasks.forEach(t => t.done = false); });
+    toast('Ready for a new season', '🎄');
+  },
+  'reset': async () => {
+    if (!await confirmDestructive('Erase all people, gifts and tasks? This also erases synced data on other devices.', 'Erase Everything')) return;
+    const ts = Date.now();
+    state = blank(); state.updatedAt = ts; saveLocal(); Sync.schedule(); renderAll();
+    toast('All data erased');
+  },
+  'sync-connect': () => syncSheet(),
+  'sync-now': async () => { await Sync.syncNow(true); },
+  'sync-disconnect': async () => {
+    if (!await confirmDestructive('Stop syncing on this device? Your data stays here and in the Gist.', 'Disconnect')) return;
+    Sync.cfg = {}; Sync.saveCfg(); renderAll();
+  },
+};
+
+function renderAllPreserve() {
+  // Skip re-render if a swipe row is open or user is typing in search
+  if (document.activeElement?.id === 'giftSearch') {
+    Object.values(Nav.stacks).flat().filter(p => p._route.name !== 'gifts').forEach(updatePage);
+    const res = $('#giftResults'); if (res) res.innerHTML = giftResults();
+    return;
+  }
+  renderAll();
+}
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const fn = Actions[el.dataset.action];
+  if (fn) { e.preventDefault(); fn(el, e); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'giftSearch') { ui.giftQuery = e.target.value; $('#giftResults').innerHTML = giftResults(); }
+});
+$('#importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!Array.isArray(data.people) || !Array.isArray(data.gifts)) throw new Error('Not a Christmas Planner backup');
+    if (!await confirmDestructive(`Replace current data with this backup (${data.people.length} people, ${data.gifts.length} gifts)?`, 'Replace Data')) return;
+    state = { ...blank(), ...data, updatedAt: Date.now() };
+    saveLocal(); Sync.schedule(); renderAll();
+    toast('Backup imported', '✅');
+  } catch (err) { toast(err.message || 'Could not read file', '⚠️'); }
+});
+
+/* =========================================================
+   Sync via a secret GitHub Gist
+   ========================================================= */
+const GIST_FILE = 'christmas-planner.json';
+const GIST_DESC = 'Christmas Planner data (synced by app)';
+const Sync = {
+  cfg: (() => { try { return JSON.parse(localStorage.getItem('xmas-sync')) || {}; } catch { return {}; } })(),
+  state: 'idle', // idle | syncing | error
+  error: '',
+  timer: null,
+  dirty: false,
+  saveCfg() { try { localStorage.setItem('xmas-sync', JSON.stringify(this.cfg)); } catch {} },
+  enabled() { return !!(this.cfg.token && this.cfg.gistId); },
+  statusText() {
+    if (!this.enabled()) return 'Off';
+    if (this.state === 'syncing') return 'Syncing…';
+    if (this.state === 'error') return this.error;
+    return this.cfg.lastSync ? `Synced ${timeAgo(this.cfg.lastSync)}` : 'Connected';
+  },
+  setState(s, err = '') {
+    this.state = s; this.error = err;
+    const el = $('#syncStatus'); if (el) el.textContent = this.statusText();
+  },
+  async api(path, opts = {}) {
+    const res = await fetch('https://api.github.com' + path, {
+      cache: 'no-store',
+      ...opts,
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${this.cfg.token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
+      },
+    });
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('Token rejected — set up sync again');
+      if (res.status === 404) throw new Error('Gist not found — check token permissions');
+      if (res.status === 403) throw new Error('GitHub refused — token needs Gist access');
+      throw new Error(`GitHub error ${res.status}`);
+    }
+    return res.json();
+  },
+  async connect(token) {
+    this.cfg = { token: token.trim() };
+    // Find an existing data gist (so a second device picks up the same data)
+    let found = null;
+    for (let page = 1; page <= 5 && !found; page++) {
+      const list = await this.api(`/gists?per_page=100&page=${page}`);
+      found = list.find(g => g.files && g.files[GIST_FILE]);
+      if (list.length < 100) break;
+    }
+    if (found) {
+      this.cfg.gistId = found.id; this.saveCfg();
+      await this.pull({ preferRemote: !state.updatedAt || !(state.people.length || state.gifts.length || state.tasks.length) });
+      return 'found';
+    }
+    const g = await this.api('/gists', { method: 'POST', body: JSON.stringify({ description: GIST_DESC, public: false, files: { [GIST_FILE]: { content: JSON.stringify(state) } } }) });
+    this.cfg.gistId = g.id; this.cfg.lastSync = Date.now(); this.saveCfg();
+    return 'created';
+  },
+  async fetchRemote() {
+    const g = await this.api(`/gists/${this.cfg.gistId}`);
+    const f = g.files[GIST_FILE];
+    if (!f) return null;
+    const text = f.truncated ? await (await fetch(f.raw_url, { cache: 'no-store' })).text() : f.content;
+    try { return JSON.parse(text); } catch { return null; }
+  },
+  async pull({ preferRemote = false } = {}) {
+    const remote = await this.fetchRemote();
+    if (remote && Array.isArray(remote.people) && (preferRemote || (remote.updatedAt || 0) > (state.updatedAt || 0))) {
+      state = { ...blank(), ...remote };
+      saveLocal(); renderAllPreserve();
+      return 'pulled';
+    }
+    if (!remote || (state.updatedAt || 0) > (remote.updatedAt || 0)) { await this.push(); return 'pushed'; }
+    return 'same';
+  },
+  async push() {
+    await this.api(`/gists/${this.cfg.gistId}`, { method: 'PATCH', body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(state) } } }) });
+  },
+  schedule() {
+    if (!this.enabled()) return;
+    this.dirty = true;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.syncNow(), 1500);
+  },
+  async syncNow(manual = false) {
+    if (!this.enabled()) return;
+    if (this.busy) { this.again = true; return; }
+    this.busy = true; this.setState('syncing');
+    try {
+      if (this.dirty) {
+        // Guard against clobbering newer remote edits from another device
+        const remote = await this.fetchRemote();
+        if (remote && (remote.updatedAt || 0) > (state.updatedAt || 0)) { state = { ...blank(), ...remote }; saveLocal(); renderAllPreserve(); }
+        else await this.push();
+        this.dirty = false;
+      } else {
+        await this.pull();
+      }
+      this.cfg.lastSync = Date.now(); this.saveCfg();
+      this.setState('idle');
+      if (manual) toast('Synced', '☁️');
+    } catch (err) {
+      const msg = navigator.onLine === false ? 'Offline — will sync when back online' : (err.message || 'Sync failed');
+      this.setState('error', msg);
+      if (manual) toast(msg, '⚠️');
+    } finally {
+      this.busy = false;
+      if (this.again) { this.again = false; this.syncNow(); }
+    }
+  },
+};
+addEventListener('online', () => Sync.syncNow());
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { Sync.syncNow(); refreshCountdownIfNeeded(); } });
+setInterval(() => { if (document.visibilityState === 'visible') Sync.syncNow(); }, 60000);
+
+function syncSheet() {
+  return openSheet({
+    title: 'Set Up Sync',
+    saveLabel: 'Connect',
+    required: ['token'],
+    body: `
+      <div class="empty" style="padding:8px 24px 20px"><div class="glyph" style="font-size:44px">☁️</div>
+        <p style="margin:0">Your list is saved privately to a secret Gist in your GitHub account, so every device sees the same data.</p></div>
+      <div class="section">
+        <div class="section-head"><span>GitHub Token</span></div>
+        <div class="list"><div class="row"><input class="field" name="token" type="password" placeholder="github_pat_… or ghp_…" autocapitalize="off" autocorrect="off" spellcheck="false"></div></div>
+        <div class="section-foot">
+          1. Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → Fine-grained tokens</a>.<br>
+          2. Set expiration (e.g. 1 year). Under <b>Account permissions</b>, set <b>Gists</b> to <b>Read and write</b>. Nothing else is needed.<br>
+          3. Generate, copy, and paste it here. Use the same token on each device.<br><br>
+          The token stays on this device only. If a data Gist already exists, this device will load it.
+        </div>
+      </div>`,
+    onSave(d, form) {
+      const btn = $('[data-sheet=save]', form.closest('.sheet'));
+      btn.disabled = true; btn.textContent = 'Connecting…';
+      Sync.connect(d.token).then(r => {
+        form.closest('.sheet')._close(null);
+        renderAll();
+        toast(r === 'found' ? 'Connected — data loaded' : 'Sync is on', '☁️');
+      }).catch(err => {
+        Sync.cfg = {}; Sync.saveCfg();
+        btn.disabled = false; btn.textContent = 'Connect';
+        toast(err.message || 'Could not connect', '⚠️');
+      });
+      return false;
+    },
+  });
+}
+
+/* Keep the countdown fresh past midnight */
+let lastDay = new Date().toDateString();
+function refreshCountdownIfNeeded() {
+  const d = new Date().toDateString();
+  if (d !== lastDay) { lastDay = d; renderAllPreserve(); }
+}
+setInterval(refreshCountdownIfNeeded, 60000);
+
+/* Cross-tab sync on the same device */
+addEventListener('storage', e => { if (e.key === KEY) { state = load(); renderAllPreserve(); } });
+
+/* =========================================================
+   Boot
+   ========================================================= */
+Nav.init();
+if (Sync.enabled()) Sync.syncNow();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
