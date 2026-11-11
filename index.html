@@ -2296,27 +2296,24 @@ function passphraseSheet() {
       <p class="fnote" style="margin:0 0 20px;font-size:15px;color:var(--text)">Set a passphrase once. On any new device, open Settings, choose Set up sync and type it. No token or phone needed.</p>
       <div class="flabel">Passphrase</div>
       <div class="fgroup">
-        <div class="row"><input class="field num big" name="pass" value="${suggestion}" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Passphrase" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:20px;letter-spacing:.5px"></div>
-        <button type="button" class="row" data-regen style="width:100%;color:var(--cranberry);font-weight:500">Suggest a different one</button>
+        <div class="row"><input class="field num big" name="pass" value="${suggestion}" readonly autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Passphrase" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:20px;letter-spacing:.5px"></div>
+        <button type="button" class="row" data-copy style="width:100%;color:var(--cranberry);font-weight:500">Copy passphrase</button>
+        <button type="button" class="row" data-regen style="width:100%;color:var(--cranberry);font-weight:500">Make a different one</button>
       </div>
-      <p class="fnote" data-strength>Write it down or save it in your passwords app. You won’t be able to see it again here.</p>
+      <p class="fnote">Write it down or save it in your passwords app. You won’t be able to see it again here.</p>
       <p class="fnote">
         How it works: your sync sign-in is encrypted with this passphrase and saved as a public Gist in your GitHub account, so new devices can find it.
-        It can’t be read without the passphrase, but anyone can download the encrypted copy, so use the suggested one or something just as long and random.<br><br>
+        Anyone can download the encrypted copy, which is why the app always makes a long random passphrase rather than letting you pick one. Guessing it isn’t practical.<br><br>
         If you ever replace your GitHub token, set the passphrase again.
       </p>
       ${isSet ? `<div class="fgroup"><button type="button" class="row danger" data-pass-remove style="width:100%">Remove passphrase</button></div>` : ''}`,
     onOpen(sh, close) {
-      const input = $('[name=pass]', sh), note = $('[data-strength]', sh), btn = $('[data-sheet=save]', sh);
-      const check = () => {
-        const n = PassJoin.normalize(input.value).length;
-        const weak = n < 16;
-        note.textContent = weak ? 'Use at least 16 letters and numbers (dashes and spaces don’t count).' : 'Write it down or save it in your passwords app. You won’t be able to see it again here.';
-        note.style.color = weak ? 'var(--cranberry)' : '';
-        if (weak) btn.disabled = true;
-      };
-      input.addEventListener('input', check);
+      const input = $('[name=pass]', sh);
       $('[data-regen]', sh).addEventListener('click', () => { input.value = PassJoin.generate(); input.dispatchEvent(new Event('input', { bubbles: true })); });
+      $('[data-copy]', sh).addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(input.value); toast('Passphrase copied'); }
+        catch { input.select(); toast('Select the passphrase and copy it', 'warn'); }
+      });
       $('[data-pass-remove]', sh)?.addEventListener('click', async () => {
         if (!await confirmDestructive('New devices won’t be able to join with the passphrase anymore. Devices already syncing keep working.', 'Remove passphrase')) return;
         try { await PassJoin.remove(); close(null); renderAll(); toast('Passphrase removed'); }
@@ -2324,7 +2321,8 @@ function passphraseSheet() {
       });
     },
     onSave(d, form) {
-      if (PassJoin.normalize(d.pass).length < 16) return false;
+      // Only app-generated passphrases (~99 bits) are accepted, since the encrypted copy is public.
+      if (!/^[a-hj-km-np-z2-9]{20}$/.test(PassJoin.normalize(d.pass))) return false;
       const sh = form.closest('.sheet'), btn = $('[data-sheet=save]', sh);
       btn.disabled = true; btn.textContent = 'Encrypting…';
       PassJoin.save(d.pass).then(() => {

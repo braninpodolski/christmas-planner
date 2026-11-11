@@ -44,7 +44,7 @@ Open the site in Safari, then tap **Share → Add to Home Screen**.
 1. On a device that already syncs, go to **Settings → Passphrase for new devices** and save the suggested passphrase somewhere safe.
 2. On the new device, go to **Settings → Set up sync** and type the passphrase.
 
-How it works: the sync token is encrypted with your passphrase (PBKDF2-SHA256 with 600,000 rounds, then AES-256-GCM) and stored in a **public** Gist, so a new device can download it without signing in. It can't be read without the passphrase, but anyone can download the encrypted copy, so keep the passphrase long and random. If you replace your token, set the passphrase again.
+How it works: the sync token is encrypted with your passphrase (PBKDF2-SHA256 with 600,000 rounds, then AES-256-GCM) and stored in a **public** Gist, so a new device can download it without signing in. It can't be read without the passphrase, but anyone can download the encrypted copy, so the app always generates the passphrase (20 random characters, about 99 bits) instead of letting you choose one. If you replace your token, set the passphrase again.
 
 Sync merges changes item by item, so edits made on two devices at the same time are both kept.
 
