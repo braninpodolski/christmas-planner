@@ -183,22 +183,37 @@ body.sheet-open .dock { transform: translateY(140%); }
 .fab:active svg { transform: rotate(90deg); }
 .fab.hidden { scale: 0; opacity: 0; pointer-events: none; }
 
-/* ---------- Gift tag (signature shape) ---------- */
+/* ---------- Gift tag (signature shape) ----------
+   Geometry is driven by height (--h) so the point, the punched hole and the
+   text inset stay in proportion at every size, whatever the width. */
 .tag {
   --c: var(--fir);
-  position: relative; flex: none; width: 46px; height: 30px;
-  display: grid; place-items: center; padding-left: 9px;
+  --h: 30px;
+  --p: calc(var(--h) * .42);              /* depth of the pointed end */
+  --hx: calc(var(--p) * .74);             /* hole centre, inside the point */
+  --hr: calc(var(--h) * .078);            /* hole radius */
+  --ring: max(1px, calc(var(--h) * .03)); /* reinforcement ring */
+  position: relative; flex: none; width: calc(var(--h) * 1.6); height: var(--h);
+  display: grid; place-items: center;
+  padding-left: calc(var(--p) + var(--h) * .02);
   background: var(--c); color: #fff;
-  -webkit-mask: var(--tag-mask) center / 100% 100% no-repeat; mask: var(--tag-mask) center / 100% 100% no-repeat;
-  font-family: var(--serif); font-size: 15px; line-height: 1; letter-spacing: 0;
+  border-radius: calc(var(--h) * .11);
+  clip-path: polygon(var(--p) 0, 100% 0, 100% 100%, var(--p) 100%, calc(var(--h) * .035) calc(50% + var(--h) * .05), calc(var(--h) * .035) calc(50% - var(--h) * .05));
+  -webkit-mask: radial-gradient(circle at var(--hx) 50%, transparent var(--hr), #000 calc(var(--hr) + .7px));
+  mask: radial-gradient(circle at var(--hx) 50%, transparent var(--hr), #000 calc(var(--hr) + .7px));
+  font-family: var(--serif); font-size: calc(var(--h) * .5); line-height: 1; letter-spacing: 0;
 }
-:root { --tag-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40' preserveAspectRatio='none'%3E%3Cpath fill-rule='evenodd' d='M16 1h40a3 3 0 0 1 3 3v32a3 3 0 0 1-3 3H16a3 3 0 0 1-2.2-1L1.8 22.2a3.3 3.3 0 0 1 0-4.4L13.8 2a3 3 0 0 1 2.2-1ZM13 20a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z'/%3E%3C/svg%3E");
-  --tag-mask-wide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40' preserveAspectRatio='none'%3E%3Cpath fill-rule='evenodd' d='M16 1h60a3 3 0 0 1 3 3v32a3 3 0 0 1-3 3H16a3 3 0 0 1-2.2-1L1.8 22.2a3.3 3.3 0 0 1 0-4.4L13.8 2a3 3 0 0 1 2.2-1ZM14 20a3 3 0 1 0 6 0a3 3 0 1 0-6 0Z'/%3E%3C/svg%3E"); }
-.tag.emoji { font-family: inherit; font-size: 16px; }
+.tag::before {
+  content: ""; position: absolute; top: 50%; left: var(--hx);
+  width: calc((var(--hr) + var(--ring)) * 2); height: calc((var(--hr) + var(--ring)) * 2);
+  transform: translate(-50%, -50%); border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--ring) rgba(255,255,255,.32);
+  pointer-events: none;
+}
+.tag.emoji { font-family: inherit; font-size: calc(var(--h) * .52); }
 @media (prefers-color-scheme: dark) { .tag { background: color-mix(in srgb, var(--c) 86%, #fff); } }
-.tag.lg { width: 112px; height: 74px; font-size: 38px; padding-left: 20px; }
-.tag.lg.emoji { font-size: 38px; }
-.tag.xl { width: 136px; height: 90px; font-size: 46px; padding-left: 24px; }
+.tag.lg { --h: 74px; }
+.tag.xl { --h: 90px; }
 
 /* ---------- Sections & rows (flush, Things-like) ---------- */
 .block { margin: 0 0 30px; }
@@ -304,12 +319,12 @@ button.status:active { transform: scale(.92); }
 .shelf-tag { flex: none; scroll-snap-align: start; display: flex; flex-direction: column; align-items: flex-start; gap: 0; text-align: left; transition: transform .35s var(--spring); }
 .shelf-tag:active { transform: scale(.95) rotate(-1deg); }
 .shelf-tag .tag {
-  width: 184px; height: 92px; padding: 0 14px 0 58px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px;
-  -webkit-mask-image: var(--tag-mask-wide); mask-image: var(--tag-mask-wide);
+  --h: 92px; width: 200px; padding: 0 16px 0 calc(var(--p) + var(--h) * .2);
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px;
 }
 .shelf-tag .tag .nm { font-size: 19px; line-height: 1.12; max-width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .shelf-tag .tag .sb { font-family: -apple-system, system-ui, sans-serif; font-size: 13px; letter-spacing: -.08px; opacity: .82; }
-.shelf-tag .tag .em { margin-right: 4px; font-family: -apple-system, system-ui, sans-serif; }
+.shelf-tag .tag .em { margin-right: 5px; font-size: 14px; }
 
 /* ---------- Person page ---------- */
 .person-head { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 6px 20px 24px; }
@@ -345,7 +360,7 @@ button.status:active { transform: scale(.92); }
 .chip.on { background: var(--ink); color: var(--bg); box-shadow: none; }
 .chip.on .ct { color: color-mix(in srgb, var(--bg) 65%, transparent); }
 .group-head { display: flex; align-items: center; gap: 12px; padding: 0 20px 4px; }
-.group-head .tag { width: 38px; height: 25px; font-size: 13px; padding-left: 8px; }
+.group-head .tag { --h: 25px; }
 .group-head h2 { flex: 1; margin: 0; font-family: var(--serif); font-weight: 400; font-size: 21px; color: var(--ink); }
 
 /* ---------- Swipe rows ---------- */
@@ -479,8 +494,8 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 /* ---------- Household ---------- */
 .you { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0; vertical-align: 2px; color: var(--cranberry); background: color-mix(in srgb, var(--cranberry) 12%, transparent); }
 .surprise { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 8px 36px 30px; }
-.surprise .tag { margin-bottom: 20px; padding-left: 26px; transform: rotate(-6deg); }
-.surprise .tag svg { width: 64px; height: 46px; filter: none; }
+.surprise .tag { margin-bottom: 20px; transform: rotate(-6deg); }
+.surprise .tag svg { width: 58px; height: 42px; }
 .surprise h3 { margin: 0 0 8px; font-family: var(--serif); font-weight: 400; font-size: 24px; color: var(--ink); }
 .surprise p { margin: 0; color: var(--text2); font-size: 15px; line-height: 1.45; max-width: 30ch; }
 .whoami {
@@ -497,7 +512,7 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 .whoami-tags.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .whoami-tags.grid .shelf-tag { width: 100%; }
 .whoami .tag { background: color-mix(in srgb, var(--c) 78%, #fff); }
-.whoami-tags.grid .shelf-tag .tag { width: 100%; height: 78px; padding-left: 46px; }
+.whoami-tags.grid .shelf-tag .tag { --h: 80px; width: 100%; }
 .whoami-tags.grid .shelf-tag .tag .nm { font-size: 18px; }
 .whoami-tags .shelf-tag { animation: settle .6s var(--ease) both; }
 .whoami .btn.quiet { color: var(--brass-hi); }
@@ -827,8 +842,8 @@ const Pages = {
                 const n = giftsFor(p.id).length;
                 return `<button class="shelf-tag" data-action="open-person" data-id="${esc(p.id)}" aria-label="${esc(p.name)}">
                   <span class="tag" style="--c:${p.color}">
-                    <span class="nm">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${esc(p.name)}</span>
-                    <span class="sb">${n ? plural(n, 'idea') : 'No ideas yet'}</span>
+                    <span class="nm">${esc(p.name)}</span>
+                    <span class="sb">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${n ? plural(n, 'idea') : 'No ideas yet'}</span>
                   </span>
                 </button>`;
               }).join('')}
@@ -1962,7 +1977,7 @@ const Identity = {
         <p>Gifts that other people are buying for you will stay hidden here.</p>
         <div class="whoami-tags ${people.length > 3 ? 'grid' : ''}">
           ${people.map((p, i) => `<button class="shelf-tag" data-me="${esc(p.id)}" style="animation-delay:${.08 + i * .05}s">
-            <span class="tag" style="--c:${p.color}"><span class="nm">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${esc(p.name)}</span>${isMe(p.id) ? '<span class="sb">This device</span>' : p.relation ? `<span class="sb">${esc(p.relation)}</span>` : ''}</span>
+            <span class="tag" style="--c:${p.color}"><span class="nm">${esc(p.name)}</span>${(() => { const sub = isMe(p.id) ? 'This device' : esc(p.relation); const em = p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''; return sub || em ? `<span class="sb">${em}${sub}</span>` : ''; })()}</span>
           </button>`).join('')}
         </div>
         ${people.length ? '' : '<p>Add yourself as a person first.</p>'}
