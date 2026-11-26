@@ -1,0 +1,54 @@
+rules_version = '2';
+// Gift Tags security rules. Tested by tests/rules.test.js (npm run test:rules).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function member(hid) { return signedIn() && exists(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)); }
+    function invite(code) { return get(/databases/$(database)/documents/invites/$(code)).data; }
+
+    match /households/{hid} {
+      allow read: if member(hid);
+      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if member(hid) && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if false;
+
+      // Shared lists: anyone in the household
+      match /{list}/{id} {
+        allow read, write: if list in ['people', 'occasions', 'gifts', 'tombstones'] && member(hid);
+      }
+
+      // Gifts for a member that someone else is buying: everyone in the household except that member
+      match /surprises/{uid}/gifts/{id} {
+        allow read, write: if member(hid) && request.auth.uid != uid;
+      }
+
+      match /members/{uid} {
+        allow read: if member(hid);
+        // You may add only yourself: as the household's creator (in the same batch that creates it),
+        // or with a live invite to this household.
+        allow create: if signedIn() && request.auth.uid == uid && (
+          getAfter(/databases/$(database)/documents/households/$(hid)).data.createdBy == uid
+          || (request.resource.data.invite is string
+              && invite(request.resource.data.invite).hid == hid
+              && invite(request.resource.data.invite).expires > request.time));
+        allow update: if member(hid);
+        allow delete: if request.auth.uid == uid || member(hid);   // leave, or remove someone
+      }
+    }
+
+    // Invites are read one at a time by their code; they can't be listed.
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if member(request.resource.data.hid) && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.expires is timestamp && code.size() >= 20;
+      allow delete: if member(resource.data.hid);
+      allow update: if false;
+    }
+
+    // Phase 0 sign-in test page: each person's own test area only.
+    match /spike/{uid}/{document=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+  }
+}

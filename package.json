@@ -5,6 +5,12 @@
   "description": "Gift Tags: a personal gift planner. No build step; these scripts only run the tests.",
   "scripts": {
     "test": "node --test \"tests/*.test.js\"",
-    "serve": "python3 -m http.server 8765"
+    "serve": "python3 -m http.server 8765",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-gift-tags \"node --test tests/rules/*.test.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.2.0",
+    "firebase-tools": "15.35.0"
   }
 }
