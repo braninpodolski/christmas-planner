@@ -1,0 +1,152 @@
+/* ---------- Shell ---------- */
+#app {
+  position: fixed; inset: 0; background: var(--bg); overflow: hidden;
+  /* Only transform animates (compositor-only). Radius snaps; dimming comes from the backdrop
+     instead of a full-screen filter, which would repaint the whole app every frame. */
+  transition: transform .5s var(--ease);
+  transform-origin: 50% 0;
+}
+body.sheet-open #app { transform: translateY(calc(var(--safe-t) + 6px)) scale(.93); border-radius: 18px; }
+.tab { position: absolute; inset: 0; visibility: hidden; opacity: 0; transition: opacity .16s ease, visibility 0s .16s; }
+.tab.active { visibility: visible; opacity: 1; transition: opacity .16s ease; }
+.tab.parked { content-visibility: hidden; } /* skip style/layout for tabs you can't see */
+.page { position: absolute; inset: 0; background: var(--bg); contain: layout paint style; }
+.page.under { transform: translateX(-28%); }
+.page.under::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.06); pointer-events: none; }
+.page.anim { transition: transform .5s var(--ease); will-change: transform; }
+.page.offright { transform: translateX(100%); }
+.page.edge-shadow { box-shadow: -1px 0 24px rgba(0,0,0,.14); }
+.scroll {
+  position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--safe-t) + var(--nav-h)) 0 calc(var(--dock-b) + 110px);
+}
+.scroll::-webkit-scrollbar { display: none; }
+.content { max-width: 640px; margin: 0 auto; }
+
+/* ---------- Nav bar ---------- */
+.navbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  height: calc(var(--safe-t) + var(--nav-h)); padding-top: var(--safe-t);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+}
+/* Scroll edge effect, as in iOS: content blurs progressively and fades into the page
+   colour at the very top, so it melts into the status bar with no visible edge.
+   ::before = light blur over the whole fade, ::after = heavy blur near the top only. */
+.navbar::before, .navbar::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; z-index: -1; pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity .3s var(--ease), visibility 0s .3s;
+}
+.navbar::before {
+  bottom: -44px;
+  background: linear-gradient(to bottom, var(--bg) 0%, color-mix(in srgb, var(--bg) 82%, transparent) calc(var(--safe-t) + 8px), color-mix(in srgb, var(--bg) 45%, transparent) 62%, transparent 100%);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.navbar::after {
+  bottom: -10px;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 95%);
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 95%);
+}
+.navbar.scrolled::before, .navbar.scrolled::after { opacity: 1; visibility: visible; transition: opacity .3s var(--ease); }
+.nav-title { font-weight: 600; opacity: 0; transform: translateY(5px); transition: opacity .22s, transform .22s var(--ease); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56vw; color: var(--ink); }
+.navbar.collapsed .nav-title { opacity: 1; transform: none; }
+.nav-left { justify-self: start; padding-left: 16px; display: flex; }
+.nav-right { justify-self: end; padding-right: 16px; display: flex; gap: 10px; align-items: center; }
+.glass {
+  background: var(--g-fill);
+  -webkit-backdrop-filter: var(--g-filter); backdrop-filter: var(--g-filter);
+  box-shadow: var(--g-rim), var(--g-lift);
+}
+.nav-btn {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  height: 40px; min-width: 40px; border-radius: 20px; color: var(--ink);
+  font-size: 16px; font-weight: 600; letter-spacing: -.3px;
+  transition: transform .4s var(--spring), background .25s;
+}
+.nav-btn:active { transform: scale(.88); background: var(--g-fill-strong); }
+.nav-btn svg { width: 21px; height: 21px; }
+.nav-btn.text { padding: 0 16px; }
+.nav-btn.back svg { width: 11px; height: 18px; margin-left: -2px; }
+
+.large-title { font-family: var(--serif); font-weight: 400; font-size: 38px; line-height: 1.05; letter-spacing: -.3px; color: var(--ink); margin: 4px 20px 18px; }
+
+/* ---------- Dock: floating tab capsule + add button ---------- */
+.dock {
+  position: fixed; z-index: 50; left: 0; right: 0; bottom: var(--dock-b);
+  display: flex; justify-content: center; gap: 10px; padding: 0 16px; pointer-events: none;
+  transition: transform .45s var(--ease);
+}
+body.sheet-open .dock, body.menu-open .dock { transform: translateY(140%); }
+.dock::before {
+  content: ""; position: fixed; left: 0; right: 0; bottom: calc(-1 * var(--dock-b)); height: calc(var(--dock-b) + 96px); z-index: -1; pointer-events: none;
+  /* tint-only fade: an always-on full-width blur here would cost every scroll frame */
+  background: linear-gradient(to top, var(--edge-tint) 25%, transparent);
+}
+.capsule, .fab { pointer-events: auto; }
+.capsule {
+  position: relative; display: grid; grid-template-columns: repeat(4, 1fr); flex: 1; max-width: 360px; height: 60px; padding: 4px;
+  border-radius: 30px; background: var(--g-fill);
+  -webkit-backdrop-filter: var(--g-filter); backdrop-filter: var(--g-filter);
+  box-shadow: var(--g-rim), var(--g-lift);
+}
+.capsule-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 4);
+  border-radius: 26px; background: rgba(21,40,31,.07);
+  box-shadow: inset 0 0 0 .5px rgba(255,255,255,.5);
+  transform: translateX(calc(100% * var(--i, 0))); transition: transform .55s var(--spring);
+}
+@media (prefers-color-scheme: dark) { .capsule-thumb { background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.08); } }
+.capsule button {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--text2); font-size: 10.5px; font-weight: 600; letter-spacing: 0; border-radius: 26px;
+  transition: color .25s;
+}
+.capsule button svg { width: 24px; height: 24px; transition: transform .4s var(--spring); }
+.capsule button.active { color: var(--cranberry); }
+.capsule button:active svg { transform: scale(.84); }
+.fab {
+  width: 60px; height: 60px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: var(--cranberry); color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cranberry) 82%, #fff), var(--cranberry) 55%);
+  box-shadow: inset 0 0 0 .5px rgba(255,255,255,.35), inset 0 1px 1px rgba(255,255,255,.5), 0 10px 24px -8px color-mix(in srgb, var(--cranberry) 70%, transparent);
+  transition: transform .4s var(--spring), opacity .3s, scale .3s var(--ease);
+}
+.fab svg { width: 26px; height: 26px; transition: transform .45s var(--spring); }
+.fab:active { transform: scale(.9); }
+.fab:active svg { transform: rotate(90deg); }
+.fab.hidden { scale: 0; opacity: 0; pointer-events: none; }
+
+/* ---------- Gift tag (signature shape) ----------
+   Geometry is driven by height (--h) so the point, the punched hole and the
+   text inset stay in proportion at every size, whatever the width. */
+.tag {
+  --c: var(--fir);
+  --h: 30px;
+  --p: calc(var(--h) * .42);              /* depth of the pointed end */
+  --hx: calc(var(--p) * .74);             /* hole centre, inside the point */
+  --hr: calc(var(--h) * .078);            /* hole radius */
+  --ring: max(1px, calc(var(--h) * .03)); /* reinforcement ring */
+  position: relative; flex: none; width: calc(var(--h) * 1.6); height: var(--h);
+  display: grid; place-items: center;
+  padding-left: calc(var(--p) + var(--h) * .02);
+  background: var(--c); color: #fff;
+  border-radius: calc(var(--h) * .11);
+  clip-path: polygon(var(--p) 0, 100% 0, 100% 100%, var(--p) 100%, calc(var(--h) * .035) calc(50% + var(--h) * .05), calc(var(--h) * .035) calc(50% - var(--h) * .05));
+  -webkit-mask: radial-gradient(circle at var(--hx) 50%, transparent var(--hr), #000 calc(var(--hr) + .7px));
+  mask: radial-gradient(circle at var(--hx) 50%, transparent var(--hr), #000 calc(var(--hr) + .7px));
+  font-family: var(--serif); font-size: calc(var(--h) * .5); line-height: 1; letter-spacing: 0;
+}
+.tag::before {
+  content: ""; position: absolute; top: 50%; left: var(--hx);
+  width: calc((var(--hr) + var(--ring)) * 2); height: calc((var(--hr) + var(--ring)) * 2);
+  transform: translate(-50%, -50%); border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--ring) rgba(255,255,255,.32);
+  pointer-events: none;
+}
+.tag.emoji { font-family: inherit; font-size: calc(var(--h) * .52); }
+@media (prefers-color-scheme: dark) { .tag { background: color-mix(in srgb, var(--c) 86%, #fff); } }
+.tag.lg { --h: 74px; }
+.tag.xl { --h: 90px; }

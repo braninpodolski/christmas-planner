@@ -60,7 +60,39 @@ Sync merges changes item by item, so edits made on two devices at the same time 
 Your existing list becomes a "Christmas 2026" event, and every person, gift, budget and setting is kept. Before converting, the app saves an untouched copy of the old list on each device. Before its first sync in the new format, it also saves a copy to your Gist as `christmas-planner-backup-before-events.json`.
 
 ## Local development
+There's no build step: the browser loads the ES modules in `js/` directly.
 ```bash
 python3 -m http.server 8765
 ```
-The service worker is skipped on `localhost`. After changing files, bump `CACHE` in `sw.js` so installed copies get the update.
+Open http://localhost:8765. The service worker is skipped on `localhost`, and `window.dev` exposes the modules in the console (for example `dev.store.state`). To try offline mode, use http://127.0.0.1:8765 instead.
+
+Run the tests (Node 20 or newer, nothing to install):
+```bash
+npm test
+```
+
+**Releasing:** bump `CACHE` in `sw.js`. If you add a file to `js/` or `css/`, also add it to `ASSETS` there; a test fails if you forget. The service worker caches every file as one version, so an update can't mix old and new modules.
+
+### Code layout
+| File | What it holds |
+| --- | --- |
+| `js/util.js` | DOM helpers, escaping, money, icons |
+| `js/constants.js` | statuses, event types, themes, colors |
+| `js/dates.js` | date math and relative dates |
+| `js/data.js` | **pure data logic**: sanitizing input, merging devices, planning birthdays and yearly events, the upgrade from the Christmas-only version |
+| `js/store.js` | the current state, saving, `commit()`, and who's using this device |
+| `js/ics.js` | **pure** calendar file parsing and name detection |
+| `js/components.js` | small shared views: present card, tiles, tags, status chips |
+| `js/pages.js` | every page (Home, Events, People, Gifts, Settings, detail pages) |
+| `js/nav.js` | page stacks, tab switching, swipe-to-delete and edge-swipe back |
+| `js/sheets.js` | dialogs, confirmation menus, toasts, undo |
+| `js/forms.js`, `js/event-sheet.js`, `js/datefields.js` | the person, gift and event dialogs and typed dates |
+| `js/calendar.js` | calendar import (drops, files, review sheet) and export |
+| `js/gift-drag.js` | dragging gifts between events and into any order |
+| `js/actions.js` | button actions (`data-action`) and app-wide listeners |
+| `js/sync.js`, `js/passjoin.js` | Gist sync and the passphrase join |
+| `js/identity.js`, `js/desktop.js` | "who's using this device", desktop sidebar and shortcuts |
+| `js/main.js` | starts the app |
+| `css/*.css` | base tokens, layout, lists, sheets, desktop |
+
+The pure modules (`data`, `dates`, `ics`, `datefields`) don't touch the page, so the tests run them directly in Node.
