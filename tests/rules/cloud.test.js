@@ -46,13 +46,13 @@ const until = async (check, what) => {
 };
 const titles = dev => dev.state.gifts.map(g => g.title).sort();
 
-test('paths: a gift is a surprise only for a member someone else is buying for', () => {
-  const m = { branin: 'p1', wife: 'p2' };
-  assert.equal(surpriseFor(gift('a', 'p2', 'p1'), m), 'wife');
-  assert.equal(surpriseFor(gift('b', 'p2', 'p2'), m), '', 'her own wish-list item');
-  assert.equal(surpriseFor(gift('c', 'p3', 'p1'), m), '', 'grandma is not a member');
-  assert.equal(pathFor('gifts', gift('a', 'p2', 'p1'), m), 'surprises/wife/gifts/a');
-  assert.equal(pathFor('people', person('p1', 'B'), m), 'people/p1');
+test('paths: every gift is a surprise for its recipient unless they are buying it themselves', () => {
+  assert.equal(surpriseFor(gift('a', 'p2', 'p1')), 'p2');
+  assert.equal(surpriseFor(gift('b', 'p2', 'p2')), '', 'her own wish-list item');
+  assert.equal(surpriseFor(gift('c', 'p3', 'p1')), 'p3', 'grandma: hidden from nobody who is a member');
+  assert.equal(pathFor('gifts', gift('a', 'p2', 'p1')), 'surprises/p2/gifts/a');
+  assert.equal(pathFor('gifts', gift('b', 'p2', 'p2')), 'gifts/b');
+  assert.equal(pathFor('people', person('p1', 'B')), 'people/p1');
 });
 
 test('the list reaches the other device, but never the surprise meant for it', async () => {

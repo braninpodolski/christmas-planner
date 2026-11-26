@@ -40,6 +40,7 @@ Desk.apply();
 saveLocal();   // persists any one-time migration (Christmas list -> events)
 autoPlan();    // make sure upcoming birthdays and yearly events exist
 Identity.check();
+import('./account.js').then(m => m.handleJoinLink());
 if (Cloud.wanted()) Cloud.boot();
 else if (Sync.enabled()) Sync.syncNow();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http') && location.hostname !== 'localhost') {

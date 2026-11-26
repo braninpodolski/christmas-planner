@@ -12,7 +12,7 @@ const randomCode = (n = 24) => Array.from(crypto.getRandomValues(new Uint8Array(
 export const Cloud = {
   cfg: (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } })(),
   saveCfg() { try { localStorage.setItem(KEY, JSON.stringify(this.cfg)); } catch {} },
-  user: null, core: null, status: 'off', error: '',
+  user: null, core: null, status: 'off', error: '', members: {},
 
   wanted() { return !!this.cfg.hid; },          // this device belongs to a household
   active() { return !!(this.core && this.user); },
@@ -42,7 +42,7 @@ export const Cloud = {
       F: this.F, db: this.db, hid: this.cfg.hid, uid: this.user.uid,
       getLocal: () => state,
       setLocal: s => { setState(s); saveLocal(); renderAllPreserve(); },
-      onMembers: m => { if (m[this.user.uid]) setMe(m[this.user.uid]); },
+      onMembers: m => { this.members = m; if (m[this.user.uid]) setMe(m[this.user.uid]); renderAllPreserve(); },
       onStatus: (st, err) => this.setStatus(st, err && (err.code === 'permission-denied' ? 'Not allowed. Are you still in this household?' : err.message)),
     });
   },
@@ -70,16 +70,23 @@ export const Cloud = {
     await b.commit();
     this.cfg = { hid }; this.saveCfg(); this.start();
   },
-  async invite() {
+  // An invite is for one person on the list; whoever accepts it becomes that person.
+  async invite(personId) {
     const code = randomCode(24), { F, db } = this;
-    await F.setDoc(F.doc(db, `invites/${code}`), { hid: this.cfg.hid, createdBy: this.user.uid, expires: F.Timestamp.fromMillis(Date.now() + 7 * 86400000) });
+    await F.setDoc(F.doc(db, `invites/${code}`), { hid: this.cfg.hid, personId, createdBy: this.user.uid, expires: F.Timestamp.fromMillis(Date.now() + 7 * 86400000) });
     return code;
   },
-  async join(code, personId) {
+  async peekInvite(code) {
+    const snap = await this.F.getDoc(this.F.doc(this.db, `invites/${code}`));
+    const inv = snap.data();
+    if (!inv || inv.expires.toMillis() < Date.now()) throw new Error('That invite has expired or was already replaced. Ask for a new one.');
+    return inv;
+  },
+  async join(code) {
     const { F, db } = this, uid = this.user.uid;
-    const inv = (await F.getDoc(F.doc(db, `invites/${code}`))).data();
-    if (!inv) throw new Error('That invite doesn’t exist or has expired.');
-    await F.setDoc(F.doc(db, `households/${inv.hid}/members/${uid}`), { personId, invite: code, joined: Date.now() });
+    const inv = await this.peekInvite(code);
+    await F.setDoc(F.doc(db, `households/${inv.hid}/members/${uid}`), { personId: inv.personId, invite: code, joined: Date.now() });
+    F.deleteDoc(F.doc(db, `invites/${code}`)).catch(() => {}); // used up
     this.cfg = { hid: inv.hid }; this.saveCfg(); this.start();
   },
   async leave() {

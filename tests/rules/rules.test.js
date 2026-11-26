@@ -30,10 +30,10 @@ beforeEach(async () => {
     await setDoc(doc(d, `households/${H}/members/wife`), { personId: 'p2' });
     await setDoc(doc(d, `households/${H}/people/p3`), { name: 'Grandma' });
     await setDoc(doc(d, `households/${H}/gifts/g1`), { title: 'Scarf for Grandma', personId: 'p3' });
-    await setDoc(doc(d, `households/${H}/surprises/branin/gifts/s1`), { title: 'Watch for Branin', personId: 'p1' });
-    await setDoc(doc(d, `households/${H}/surprises/wife/gifts/s2`), { title: 'Airwrap for wife', personId: 'p2' });
-    await setDoc(doc(d, `invites/${CODE}`), { hid: H, createdBy: 'branin', expires: later() });
-    await setDoc(doc(d, 'invites/expired-code-0123456789abc'), { hid: H, createdBy: 'branin', expires: Timestamp.fromMillis(Date.now() - 1000) });
+    await setDoc(doc(d, `households/${H}/surprises/p1/gifts/s1`), { title: 'Watch for Branin', personId: 'p1' });
+    await setDoc(doc(d, `households/${H}/surprises/p2/gifts/s2`), { title: 'Airwrap for wife', personId: 'p2' });
+    await setDoc(doc(d, `invites/${CODE}`), { hid: H, personId: 'p4', createdBy: 'branin', expires: later() });
+    await setDoc(doc(d, 'invites/expired-code-0123456789abc'), { hid: H, personId: 'p5', createdBy: 'branin', expires: Timestamp.fromMillis(Date.now() - 1000) });
   });
 });
 
@@ -45,18 +45,18 @@ test('members can read and write the shared list', async () => {
 
 test('a recipient can never read, list, change or delete their own surprises', async () => {
   const me = db('branin');
-  await assertFails(getDoc(doc(me, `households/${H}/surprises/branin/gifts/s1`)));
-  await assertFails(getDocs(collection(me, `households/${H}/surprises/branin/gifts`)));
-  await assertFails(setDoc(doc(me, `households/${H}/surprises/branin/gifts/s1`), { title: 'peek' }));
-  await assertFails(deleteDoc(doc(me, `households/${H}/surprises/branin/gifts/s1`)));
-  await assertFails(setDoc(doc(me, `households/${H}/surprises/branin/gifts/new`), { title: 'planted' }));
+  await assertFails(getDoc(doc(me, `households/${H}/surprises/p1/gifts/s1`)));
+  await assertFails(getDocs(collection(me, `households/${H}/surprises/p1/gifts`)));
+  await assertFails(setDoc(doc(me, `households/${H}/surprises/p1/gifts/s1`), { title: 'peek' }));
+  await assertFails(deleteDoc(doc(me, `households/${H}/surprises/p1/gifts/s1`)));
+  await assertFails(setDoc(doc(me, `households/${H}/surprises/p1/gifts/new`), { title: 'planted' }));
 });
 
 test('other members can read and plan surprises for someone', async () => {
   const wife = db('wife');
-  await assertSucceeds(getDocs(collection(wife, `households/${H}/surprises/branin/gifts`)));
-  await assertSucceeds(setDoc(doc(wife, `households/${H}/surprises/branin/gifts/s3`), { title: 'Book for Branin' }));
-  await assertSucceeds(getDoc(doc(db('branin'), `households/${H}/surprises/wife/gifts/s2`)));
+  await assertSucceeds(getDocs(collection(wife, `households/${H}/surprises/p1/gifts`)));
+  await assertSucceeds(setDoc(doc(wife, `households/${H}/surprises/p1/gifts/s3`), { title: 'Book for Branin' }));
+  await assertSucceeds(getDoc(doc(db('branin'), `households/${H}/surprises/p2/gifts/s2`)));
 });
 
 test('people outside the household (or signed out) can read nothing', async () => {
@@ -64,7 +64,7 @@ test('people outside the household (or signed out) can read nothing', async () =
     await assertFails(getDoc(doc(d, `households/${H}`)));
     await assertFails(getDoc(doc(d, `households/${H}/gifts/g1`)));
     await assertFails(getDocs(collection(d, `households/${H}/people`)));
-    await assertFails(getDoc(doc(d, `households/${H}/surprises/branin/gifts/s1`)));
+    await assertFails(getDoc(doc(d, `households/${H}/surprises/p1/gifts/s1`)));
     await assertFails(setDoc(doc(d, `households/${H}/gifts/x`), { title: 'spam' }));
   }
 });
@@ -89,6 +89,7 @@ test('you cannot create a household in someone else’s name or add yourself to 
 });
 
 test('joining needs a live invite to that household', async () => {
+  await assertFails(setDoc(doc(db('daughter'), `households/${H}/members/daughter`), { personId: 'p2', invite: CODE }), 'not as someone else');
   await assertSucceeds(setDoc(doc(db('daughter'), `households/${H}/members/daughter`), { personId: 'p4', invite: CODE }));
   await assertFails(setDoc(doc(db('late'), `households/${H}/members/late`), { personId: 'p5', invite: 'expired-code-0123456789abc' }));
   await assertFails(setDoc(doc(db('typo'), `households/${H}/members/typo`), { personId: 'p6', invite: 'no-such-code-0123456789abc' }));
@@ -107,9 +108,9 @@ test('invites can be fetched by code but never listed, and only members create t
   await assertSucceeds(getDoc(doc(db('stranger'), `invites/${CODE}`)));
   await assertFails(getDocs(collection(db('stranger'), 'invites')));
   await assertFails(getDocs(collection(db('branin'), 'invites')));
-  await assertSucceeds(setDoc(doc(db('branin'), 'invites/another-long-code-0123456789'), { hid: H, createdBy: 'branin', expires: later() }));
-  await assertFails(setDoc(doc(db('stranger'), 'invites/sneaky-long-code-0123456789'), { hid: H, createdBy: 'stranger', expires: later() }));
-  await assertFails(setDoc(doc(db('branin'), 'invites/short'), { hid: H, createdBy: 'branin', expires: later() }));
+  await assertSucceeds(setDoc(doc(db('branin'), 'invites/another-long-code-0123456789'), { hid: H, personId: 'p6', createdBy: 'branin', expires: later() }));
+  await assertFails(setDoc(doc(db('stranger'), 'invites/sneaky-long-code-0123456789'), { hid: H, personId: 'p6', createdBy: 'stranger', expires: later() }));
+  await assertFails(setDoc(doc(db('branin'), 'invites/short'), { hid: H, personId: 'p6', createdBy: 'branin', expires: later() }));
 });
 
 test('members can leave, and a removed member loses access', async () => {
@@ -120,4 +121,16 @@ test('members can leave, and a removed member loses access', async () => {
 test('the sign-in test area is private to each person', async () => {
   await assertSucceeds(setDoc(doc(db('branin'), 'spike/branin/notes/n'), { a: 1 }));
   await assertFails(getDoc(doc(db('wife'), 'spike/branin/notes/n')));
+});
+
+test('nobody can change which person they are (to read someone else’s surprises)', async () => {
+  await assertFails(setDoc(doc(db('branin'), `households/${H}/members/branin`), { personId: 'p3' }));
+  await assertFails(setDoc(doc(db('branin'), `households/${H}/members/wife`), { personId: 'p1' }));
+  await assertSucceeds(setDoc(doc(db('branin'), `households/${H}/members/branin`), { personId: 'p1', name: 'B' }));
+});
+
+test('surprises for people who aren’t members are visible to every member', async () => {
+  await env.withSecurityRulesDisabled(ctx => setDoc(doc(ctx.firestore(), `households/${H}/surprises/p3/gifts/s9`), { title: 'For Grandma' }));
+  await assertSucceeds(getDoc(doc(db('branin'), `households/${H}/surprises/p3/gifts/s9`)));
+  await assertSucceeds(getDoc(doc(db('wife'), `households/${H}/surprises/p3/gifts/s9`)));
 });

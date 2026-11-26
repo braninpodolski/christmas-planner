@@ -5,6 +5,8 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function member(hid) { return signedIn() && exists(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)); }
     function invite(code) { return get(/databases/$(database)/documents/invites/$(code)).data; }
+    // the person on the list that the signed-in member is
+    function myPerson(hid) { return get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data.personId; }
 
     match /households/{hid} {
       allow read: if member(hid);
@@ -17,21 +19,24 @@ service cloud.firestore {
         allow read, write: if list in ['people', 'occasions', 'gifts', 'tombstones'] && member(hid);
       }
 
-      // Gifts for a member that someone else is buying: everyone in the household except that member
-      match /surprises/{uid}/gifts/{id} {
-        allow read, write: if member(hid) && request.auth.uid != uid;
+      // Gifts someone else is buying for a person on the list: everyone except that person
+      match /surprises/{pid}/gifts/{id} {
+        allow read, write: if member(hid) && myPerson(hid) != pid;
       }
 
       match /members/{uid} {
         allow read: if member(hid);
         // You may add only yourself: as the household's creator (in the same batch that creates it),
-        // or with a live invite to this household.
-        allow create: if signedIn() && request.auth.uid == uid && (
+        // or with a live invite to this household, as the person the invite was made for.
+        allow create: if signedIn() && request.auth.uid == uid
+          && request.resource.data.personId is string && request.resource.data.personId.size() > 0 && (
           getAfter(/databases/$(database)/documents/households/$(hid)).data.createdBy == uid
           || (request.resource.data.invite is string
               && invite(request.resource.data.invite).hid == hid
+              && invite(request.resource.data.invite).personId == request.resource.data.personId
               && invite(request.resource.data.invite).expires > request.time));
-        allow update: if member(hid);
+        // who you are never changes (or you could become someone else and read their surprises)
+        allow update: if member(hid) && request.resource.data.personId == resource.data.personId;
         allow delete: if request.auth.uid == uid || member(hid);   // leave, or remove someone
       }
     }
@@ -41,7 +46,8 @@ service cloud.firestore {
       allow get: if signedIn();
       allow list: if false;
       allow create: if member(request.resource.data.hid) && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.expires is timestamp && code.size() >= 20;
+        && request.resource.data.expires is timestamp && code.size() >= 20
+        && request.resource.data.personId is string && request.resource.data.personId.size() > 0;
       allow delete: if member(resource.data.hid);
       allow update: if false;
     }

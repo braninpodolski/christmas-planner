@@ -1,4 +1,6 @@
 import { $, $$, plural, uid } from './util.js';
+import { Cloud } from './cloud.js';
+import { signInSheet, createHouseholdSheet, inviteSheet, joinCodeSheet, leaveHousehold } from './account.js';
 import { KINDS, STATUSES, stepLabel } from './constants.js';
 import { sanitize } from './data.js';
 import { autoPlan, commit, giftsFor, isMe, needsIdentity, occ, person, state, statusIndex, ui } from './store.js';
@@ -65,6 +67,12 @@ export function sparkle(btn) {
    Actions (event delegation)
    ========================================================= */
 export const Actions = {
+  'account-signin': async () => { try { await Cloud.load(); } catch { toast('Couldn’t reach Firebase', 'warn'); return; } if (Cloud.user) { if (Cloud.wanted()) Cloud.start(); renderAll(); } else signInSheet(); },
+  'account-signout': async () => { await Cloud.signOut(); renderAll(); },
+  'household-create': () => createHouseholdSheet(),
+  'household-join': () => joinCodeSheet(),
+  'household-invite': () => inviteSheet(),
+  'household-leave': () => leaveHousehold(),
   'key-new-gift': () => giftSheet(),
   'key-help': () => Desk.help(),
   'tab': el => Nav.switchTab(el.dataset.tab),

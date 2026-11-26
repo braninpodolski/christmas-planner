@@ -10,23 +10,20 @@ import { sanitize, merge, canon } from './data.js';
 
 const SYNCED = ['people', 'occasions', 'gifts']; // tasks stay on the device (they're no longer shown)
 
-// Which member a gift is a surprise for ('' if it's visible to everyone)
-export function surpriseFor(g, members) {
-  for (const [uid, pid] of Object.entries(members)) if (pid && pid === g.personId && g.buyer !== pid) return uid;
-  return '';
-}
-export function pathFor(kind, r, members) {
+// The person a gift is a surprise for: anyone other than the buyer ('' when it's their own wish-list item)
+export const surpriseFor = g => (g.buyer !== g.personId ? g.personId : '');
+export function pathFor(kind, r) {
   if (kind !== 'gifts') return `${kind}/${r.id}`;
-  const uid = surpriseFor(r, members);
-  return uid ? `surprises/${uid}/gifts/${r.id}` : `gifts/${r.id}`;
+  const pid = surpriseFor(r);
+  return pid ? `surprises/${pid}/gifts/${r.id}` : `gifts/${r.id}`;
 }
 const clean = r => JSON.parse(JSON.stringify(r));
 // The documents this device wants the household to hold, by path (relative to the household)
-export function cloudDocs(state, members, myUid) {
+export function cloudDocs(state, myPerson) {
   const out = new Map();
   for (const k of SYNCED) for (const r of state[k]) {
-    const p = pathFor(k, r, members);
-    if (p.startsWith(`surprises/${myUid}/`)) continue; // a surprise for me: I may not write it (and shouldn't have it)
+    const p = pathFor(k, r);
+    if (p.startsWith(`surprises/${myPerson}/`)) continue; // a surprise for me: I may not write it (and shouldn't have it)
     out.set(p, clean(r));
   }
   for (const [id, at] of Object.entries(state.deleted || {})) out.set(`tombstones/${id}`, { at });
@@ -69,21 +66,31 @@ export function createCloud({ F, db, hid, uid, getLocal, setLocal, onMembers = (
   };
   const unlisten = key => { subs.get(key)?.(); subs.delete(key); ready.delete(key); };
 
-  // the shared lists, plus everyone else's surprises (never my own)
+  // the shared lists, plus the surprises for everyone on the list except me
   for (const c of [...SYNCED, 'tombstones']) listen(c, `${c}/`, F.collection(db, `${base}/${c}`));
-  subs.set('members', F.onSnapshot(F.collection(db, `${base}/members`), snap => {
-    members = Object.fromEntries(snap.docs.map(d => [d.id, d.data().personId || '']));
-    for (const k of [...subs.keys()]) if (k.startsWith('s:') && !(k.slice(2) in members)) {
+  let me = '';
+  const watchSurprises = () => {
+    if (!me) return;
+    const pids = new Set([...remote.keys()].filter(p => p.startsWith('people/')).map(p => p.split('/')[1]));
+    getLocal().people.forEach(p => pids.add(p.id));
+    pids.delete(me);
+    for (const k of [...subs.keys()]) if (k.startsWith('s:') && !pids.has(k.slice(2))) {
       unlisten(k); for (const p of [...remote.keys()]) if (p.startsWith(`surprises/${k.slice(2)}/`)) remote.delete(p);
     }
-    for (const m of Object.keys(members)) if (m !== uid && !subs.has('s:' + m)) listen('s:' + m, `surprises/${m}/gifts/`, F.collection(db, `${base}/surprises/${m}/gifts`));
-    ready.add('members'); onMembers(members); sync();
+    for (const pid of pids) if (!subs.has('s:' + pid)) listen('s:' + pid, `surprises/${pid}/gifts/`, F.collection(db, `${base}/surprises/${pid}/gifts`));
+  };
+  subs.set('members', F.onSnapshot(F.collection(db, `${base}/members`), snap => {
+    members = Object.fromEntries(snap.docs.map(d => [d.id, d.data().personId || '']));
+    me = members[uid] || '';
+    ready.add('members'); onMembers(members); watchSurprises(); sync();
   }, err => onStatus('error', err)));
 
   const allReady = () => ready.has('members') && [...subs.keys()].every(k => ready.has(k));
 
   function sync() {
-    if (stopped || !allReady()) return; // never merge against a half-loaded household
+    if (stopped || !me) return;
+    watchSurprises(); // someone new on the list: start listening for their surprises
+    if (!allReady()) return; // never merge against a half-loaded household
     const local = getLocal(), theirs = stateFromDocs(remote);
     // A record I'd seen that has vanished from my view, with no tombstone and no newer edit here,
     // was moved out of my reach (it became a surprise for me): drop it rather than send it back.
@@ -96,7 +103,7 @@ export function createCloud({ F, db, hid, uid, getLocal, setLocal, onMembers = (
     const merged = merge(mine, theirs);
     merged.tasks = local.tasks; merged.household = { on: true, mod: local.household?.mod || 0 };
     if (canon(merged) !== canon(local)) setLocal(merged);
-    const { sets, deletes } = diffDocs(cloudDocs(merged, members, uid), remote);
+    const { sets, deletes } = diffDocs(cloudDocs(merged, me), remote);
     if (!sets.length && !deletes.length) { onStatus('idle'); return; }
     onStatus('syncing');
     const ops = [...sets.map(([p, d]) => b => b.set(F.doc(db, `${base}/${p}`), d)), ...deletes.map(p => b => b.delete(F.doc(db, `${base}/${p}`)))];

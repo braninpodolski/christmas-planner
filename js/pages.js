@@ -8,6 +8,7 @@ import { fmtBirthday } from './datefields.js';
 import { byGiftOrder, byPersonThenOrder } from './gift-drag.js';
 import { Sync } from './sync.js';
 import { Desk } from './desktop.js';
+import { Cloud } from './cloud.js';
 
 /* =========================================================
    Pages
@@ -335,7 +336,32 @@ export const Pages = {
       const c = Sync.cfg;
       const connected = Sync.enabled();
       return `
+      ${(() => {
+        const inHH = Cloud.wanted(), u = Cloud.user;
+        const members = Object.entries(Cloud.members).map(([uid, pid]) => ({ uid, p: person(pid) })).filter(m => m.p);
+        return `
         <div class="block">
+          <div class="block-head"><h2>Household</h2><span class="meta">Beta</span></div>
+          <div class="list" style="--inset:64px">
+            ${inHH ? `
+              <div class="row"><div class="row-icon" style="background:${Cloud.status === 'error' ? 'var(--cranberry)' : 'var(--pine)'}">${Icon.cloud}</div>
+                <div class="row-main"><div class="row-title">${esc(u?.email || 'Signed out')}</div><div class="row-sub" id="syncStatus">${Cloud.statusText()}</div></div></div>
+              ${members.map(m => `<div class="row">${tag(m.p)}<div class="row-main">${esc(m.p.name)}</div>${m.uid === u?.uid ? '<span class="you">You</span>' : ''}</div>`).join('')}
+              ${u ? `<button class="row" data-action="household-invite"><div class="row-icon" style="background:var(--fir)">${Icon.gift}</div><div class="row-main">Invite someone</div>${Icon.chev}</button>
+              <button class="row" data-action="household-leave"><div class="row-icon" style="background:var(--cranberry)">${Icon.unlink}</div><div class="row-main">Leave household</div></button>`
+              : `<button class="row" data-action="account-signin"><div class="row-icon" style="background:var(--fir)">${Icon.key}</div><div class="row-main">Sign in again</div>${Icon.chev}</button>`}
+            ` : u ? `
+              <button class="row" data-action="household-create"><div class="row-icon" style="background:var(--pine)">${Icon.cloud}</div><div class="row-main"><div class="row-title">Create a household</div><div class="row-sub">Move this list into your account</div></div>${Icon.chev}</button>
+              <button class="row" data-action="household-join"><div class="row-icon" style="background:var(--fir)">${Icon.gift}</div><div class="row-main">Join with an invite</div>${Icon.chev}</button>
+            ` : `
+              <button class="row" data-action="account-signin"><div class="row-icon" style="background:var(--pine)">${Icon.cloud}</div><div class="row-main"><div class="row-title">Sign in</div><div class="row-sub">Share a list with your own household</div></div>${Icon.chev}</button>
+            `}
+            ${u ? `<button class="row" data-action="account-signout"><div class="row-icon" style="background:var(--s-idea)">${Icon.key}</div><div class="row-main"><div class="row-title">Sign out</div><div class="row-sub">${esc(u.email || '')}</div></div></button>` : ''}
+          </div>
+          <p class="note">${inHH ? 'Everyone in the household shares one list. Gifts someone else is buying for you never reach your devices.' : 'Each household has its own list. Gifts for each other stay hidden, enforced by the database rather than just on screen.'}</p>
+        </div>`;
+      })()}
+        ${Cloud.wanted() ? '' : `<div class="block">
           <div class="block-head"><h2>Sync</h2></div>
           <div class="list" style="--inset:64px">
             <div class="row">
@@ -368,6 +394,7 @@ export const Pages = {
             ? 'Each device hides the gifts other people are buying for its owner, for every event. Everything else is shared.'
             : 'Use one list with someone else. Each of you picks your name, and gifts for each other stay hidden.'}</p>
         </div>
+`}
         <div class="block">
           <div class="block-head"><h2>Calendar</h2></div>
           <div class="list" style="--inset:64px">

@@ -19,6 +19,7 @@ export function load() {
     return sanitize(raw);
   } catch { return blank(); }
 }
+export const KEY_BACKUP_ACCOUNTS = KEY + '-backup-before-accounts';
 export let state = load();
 export function setState(next) { state = next; }
 export function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
