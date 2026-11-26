@@ -388,7 +388,7 @@ button.status:active { transform: scale(.92); }
 
 /* Coming-up tiles */
 .ev-tile {
-  position: relative; flex: none; width: 164px; height: 118px; border-radius: 20px; overflow: hidden; scroll-snap-align: start;
+  position: relative; flex: none; width: 172px; height: 118px; border-radius: 20px; overflow: hidden; scroll-snap-align: start;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 4px; padding: 14px 40px 14px 14px; text-align: left;
   color: #fff; background-image: var(--t-pattern), radial-gradient(120% 100% at 0% 0%, var(--t-bg2), var(--t-bg1) 70%);
   background-size: var(--t-pattern-size), auto;
@@ -399,8 +399,9 @@ button.status:active { transform: scale(.92); }
 .ev-tile .ribbon { position: absolute; top: 0; bottom: 0; right: 16px; width: 10px; background: linear-gradient(90deg, var(--t-rb3), var(--t-rb2) 45%, var(--t-rb3)); }
 .ev-tile .ic { position: absolute; top: 12px; left: 14px; color: var(--t-hi); }
 .ev-tile .ic svg { width: 20px; height: 20px; }
+.ev-tile .prog { position: absolute; top: 14px; left: 42px; right: 34px; font-size: 11.5px; font-weight: 600; letter-spacing: -.02px; color: rgba(255,255,255,.66); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 18px; }
 .ev-tile .nm { font-family: var(--serif); font-size: 18px; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.ev-tile .sb { font-size: 12.5px; color: rgba(255,255,255,.72); letter-spacing: -.05px; line-height: 1.35; }
+.ev-tile .sb { font-size: 12.5px; color: rgba(255,255,255,.72); letter-spacing: -.05px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% + 12px); margin-right: -12px; } /* one line, running up to the ribbon */
 
 .row-count { flex: none; font-size: 13px; color: var(--text2); font-variant-numeric: tabular-nums; letter-spacing: -.08px; }
 .hist { margin-bottom: 14px; }
@@ -667,7 +668,7 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 }
 @keyframes lift { from { transform: scale(1); box-shadow: var(--g-rim); } }
 .drag-ghost::after { display: none; }
-.swipe.drag-src { opacity: .3; transition: opacity .15s; }
+.swipe.drag-src { opacity: 0; overflow: hidden; transition: height .24s cubic-bezier(.2, .8, .2, 1), opacity .12s; }
 body.dragging-gift, body.dragging-gift * { cursor: grabbing !important; }
 body.dragging-gift [data-drop] { position: relative; }
 body.dragging-gift [data-drop].drop-ok::after {
@@ -677,7 +678,7 @@ body.dragging-gift [data-drop].drop-ok::after {
 }
 body.dragging-gift [data-drop].drop-over::after { background: color-mix(in srgb, var(--cranberry) 7%, transparent); box-shadow: inset 0 0 0 2px var(--cranberry); }
 /* the space that opens where the gift will land */
-.drop-gap { height: 0; overflow: hidden; transition: height .28s var(--spring); }
+.drop-gap { height: 0; overflow: hidden; transition: height .24s cubic-bezier(.2, .8, .2, 1); }
 .drop-gap::before { content: ""; display: block; height: calc(100% - 8px); margin: 4px 12px; border-radius: 14px; background: color-mix(in srgb, var(--cranberry) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--cranberry) 45%, transparent); }
 .drop-only { display: none; }
 body.dragging-gift .drop-only { display: block; animation: settle .25s var(--ease) both; }
@@ -1104,6 +1105,7 @@ function sanitize(raw) {
     status: STATUS_IDS.includes(g.status) ? g.status : (LEGACY_STATUS[g.status] || 'idea'),
     kind: g.kind === 'make' ? 'make' : 'buy',
     store: str(g.store, 100), url: str(g.url, 2000), notes: str(g.notes),
+    ...(Number.isFinite(g.order) ? { order: g.order } : {}),
   }));
   s.tasks = arr(raw.tasks).map(t => ({
     id: cleanId(t.id), created: Number(t.created) || 0, done: !!t.done,
@@ -1354,7 +1356,8 @@ function eventTile(o) {
     <span class="ribbon"></span>
     <span class="ic">${Icon[THEMES[o.type].icon]}</span>
     <span class="nm">${esc(occTitle(o))}</span>
-    <span class="sb">${esc(dateRel(o.date))}${gs.length ? `<br>${gs.filter(isReady).length} of ${gs.length} wrapped` : ''}</span>
+    ${gs.length ? `<span class="prog">${gs.filter(isReady).length} of ${gs.length} wrapped</span>` : ''}
+    <span class="sb">${esc(dateRel(o.date))}</span>
   </button>`;
 }
 
@@ -1513,7 +1516,7 @@ const Pages = {
               <div class="group-head">${tag(p)}<h2>${esc(p.name)}</h2><span class="you">You</span></div>
               <p class="note" style="padding-top:2px">Your gifts are a surprise, so they’re hidden here.</p>
             </div>`;
-          const gs = occGifts(o).filter(g => g.personId === p.id).sort((a, b) => statusIndex(a.status) - statusIndex(b.status) || a.created - b.created);
+          const gs = occGifts(o).filter(g => g.personId === p.id).sort(byGiftOrder);
           const saved = ideasFor(p.id).length;
           const b = num(o.budgets[p.id]);
           return `
@@ -1601,7 +1604,7 @@ const Pages = {
           <p>Anything someone else adds for you stays hidden on this device, along with its price and status.</p>
         </div>
         ${p.sizes ? `<div class="block"><div class="block-head"><h2>Sizes and favorites</h2></div><div class="prose">${esc(p.sizes)}</div><p class="note">Everyone sharing this list can see this, so it’s a good place for hints.</p></div>` : `<p class="note" style="text-align:center">Add your sizes and favorites with Edit. Everyone sharing the list can see them.</p>`}`;
-      const sortGifts = gs => gs.sort((a, b) => statusIndex(a.status) - statusIndex(b.status) || a.created - b.created);
+      const sortGifts = gs => gs.sort(byGiftOrder);
       const upcoming = upcomingOccasions().filter(o => o.people.includes(p.id));
       const ideas = sortGifts(ideasFor(p.id));
       const history = pastOccasions().map(o => [o, sortGifts(occGifts(o).filter(g => g.personId === p.id))]).filter(([, gs]) => gs.length);
@@ -1849,7 +1852,7 @@ function giftResults() {
   const groups = new Map();
   gs.forEach(g => { const k = g.occasionId || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(g); });
   const order = [...upcomingOccasions().map(o => o.id), '', ...pastOccasions().map(o => o.id)].filter(k => groups.has(k));
-  const sortG = list => list.sort((a, b) => (person(a.personId)?.name || '').localeCompare(person(b.personId)?.name || '') || statusIndex(a.status) - statusIndex(b.status));
+  const sortG = list => list.sort(byPersonThenOrder);
   return order.map(k => {
     const o = k ? occ(k) : null;
     const head = o
@@ -3050,22 +3053,29 @@ const CalImport = {
    Moving gifts between events (and back to saved ideas)
    ========================================================= */
 // A gift can go to any event except someone else's birthday.
+const giftKey = g => (Number.isFinite(g.order) ? g.order : statusIndex(g.status) * 1e13 + (g.created || 0));
+const byGiftOrder = (a, b) => giftKey(a) - giftKey(b);
+const byPersonThenOrder = (a, b) => (person(a.personId)?.name || '').localeCompare(person(b.personId)?.name || '') || byGiftOrder(a, b);
 function canDrop(g, occId) {
   if (!occId) return true;
   const o = occ(occId);
   if (!o) return false;
   return o.type !== 'birthday' || o.people[0] === g.personId;
 }
-function moveGift(id, toOcc) {
+function moveGift(id, toOcc, order) {
   const g = state.gifts.find(x => x.id === id);
-  if (!g || (g.occasionId || '') === toOcc || !canDrop(g, toOcc)) return;
+  const same = (g?.occasionId || '') === toOcc;
+  if (!g || (same && order === undefined) || !canDrop(g, toOcc)) return;
   const o = toOcc ? occ(toOcc) : null;
-  undoable(`Moved to ${o ? occTitle(o) : 'saved ideas'}`, s => {
+  const apply = s => {
     const gg = s.gifts.find(x => x.id === id);
     gg.occasionId = toOcc;
+    if (order !== undefined) gg.order = order;
     const oo = toOcc && s.occasions.find(x => x.id === toOcc);
     if (oo && !oo.people.includes(gg.personId)) oo.people.push(gg.personId); // planning for someone adds them
-  });
+  };
+  if (same) commit(apply); // a reorder is easy to redo by hand, so no toast
+  else undoable(`Moved to ${o ? occTitle(o) : 'saved ideas'}`, apply);
 }
 async function moveGiftPicker(id) {
   const g = state.gifts.find(x => x.id === id); if (!g) return;
@@ -3081,6 +3091,8 @@ const GiftDrag = (() => {
   let s = null, suppressClick = false, raf = 0;
   const LONG_PRESS = 380, SLOP = 8;
   const page = () => Nav.top();
+  const rowsOf = list => $$(':scope > .swipe', list).filter(w => w !== s.src);
+  const giftOf = w => state.gifts.find(x => x.id === $('[data-row]', w)?.dataset.id);
   const begin = () => {
     s.started = true;
     const r = s.row.getBoundingClientRect();
@@ -3089,42 +3101,65 @@ const GiftDrag = (() => {
     ghost.removeAttribute('data-row'); ghost.removeAttribute('tabindex'); ghost.setAttribute('aria-hidden', 'true');
     ghost.style.cssText = `width:${r.width}px;left:${r.left}px;top:${r.top}px`;
     document.body.appendChild(ghost);
-    s.ghost = ghost;
-    s.src = s.row.closest('.swipe'); s.src?.classList.add('drag-src');
+    s.ghost = ghost; s.r0 = r;
+    s.src = s.row.closest('.swipe');
+    s.h = s.src.offsetHeight;
+    s.home = s.src.parentElement; s.homeIdx = $$(':scope > .swipe', s.home).indexOf(s.src);
+    // the row folds away while a gap opens in its place, so it reads as being lifted out
+    s.src.style.height = s.h + 'px'; s.src.classList.add('drag-src');
+    requestAnimationFrame(() => { if (s?.src) s.src.style.height = '0px'; });
     document.body.classList.add('dragging-gift');
-    $$('[data-drop]', page()).forEach(t => t.classList.toggle('drop-ok', t.dataset.drop !== (s.g.occasionId || '') && canDrop(s.g, t.dataset.drop)));
+    $$('[data-drop]', page()).forEach(t => t.classList.toggle('drop-ok', canDrop(s.g, t.dataset.drop)));
     s.scroller = s.row.closest('.scroll');
     navigator.vibrate?.(10);
     Swipe.closeAll();
+    hit();
     const tick = () => { if (!s?.started) return; autoscroll(); hit(); raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
+  };
+  /* Where the gift would go in a list. Rows are measured as if no gap were open (and the dragged
+     row were gone), so the answer doesn't flicker while things slide around. */
+  const indexIn = list => {
+    const rows = rowsOf(list);
+    const phantoms = [...$$('.drop-gap', page()), s.src].map(el => [el, el.getBoundingClientRect().height]);
+    const mids = rows.map(w => {
+      const r = w.getBoundingClientRect();
+      let shift = 0;
+      for (const [el, h] of phantoms) if (el.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING) shift += h;
+      return r.top - shift + r.height / 2;
+    });
+    let i = mids.filter(m => m < s.cy).length;
+    if (list.dataset.sort === 'person') { // the Gifts tab keeps each person's gifts together
+      const mine = rows.map((w, k) => giftOf(w)?.personId === s.g.personId ? k : -1).filter(k => k >= 0);
+      if (mine.length) i = Math.min(Math.max(i, mine[0]), mine[mine.length - 1] + 1);
+      else { const name = person(s.g.personId)?.name || ''; const k = rows.findIndex(w => (person(giftOf(w)?.personId)?.name || '').localeCompare(name) > 0); i = k < 0 ? rows.length : k; }
+    }
+    return i;
   };
   const hit = () => {
     const el = document.elementFromPoint(s.cx, s.cy)?.closest('[data-drop]');
     const ok = el && el.classList.contains('drop-ok') ? el : null;
-    if (ok !== s.over) { s.over?.classList.remove('drop-over'); ok?.classList.add('drop-over'); s.over = ok; openGap(ok); }
+    if (ok !== s.over) { s.over?.classList.remove('drop-over'); ok?.classList.add('drop-over'); s.over = ok; }
+    const list = ok && $('.list', ok);
+    const idx = list ? indexIn(list) : -1;
+    if (ok !== s.gapIn || idx !== s.idx) { s.idx = idx; s.gapIn = ok; openGap(ok, list, idx); }
   };
-  const byStatus = (a, b) => statusIndex(a.status) - statusIndex(b.status) || a.created - b.created;
-  const byPerson = (a, b) => (person(a.personId)?.name || '').localeCompare(person(b.personId)?.name || '') || statusIndex(a.status) - statusIndex(b.status);
-  const closeGap = () => {
-    const gap = s?.gap; if (!gap) return; s.gap = null;
-    gap.style.height = '0px'; setTimeout(() => gap.remove(), 300);
+  const closeGap = gap => {
+    if (!gap) return;
+    gap.style.height = '0px';
+    gap.addEventListener('transitionend', () => gap.remove(), { once: true });
+    setTimeout(() => gap.remove(), 400);
   };
-  const openGap = target => {
-    closeGap();
+  // The old gap folds shut while the new one opens, so the rows in between slide instead of jumping.
+  const openGap = (target, list, idx) => {
+    closeGap(s.gap); s.gap = null;
     if (!target) return;
-    const list = $('.list', target);
     const gap = document.createElement('div'); gap.className = 'drop-gap'; gap.setAttribute('aria-hidden', 'true');
-    if (list) {
-      const rows = $$(':scope > .swipe', list).filter(w => !w.classList.contains('drag-src'));
-      const cmp = list.dataset.sort === 'person' ? byPerson : byStatus;
-      const before = rows.find(w => { const g = state.gifts.find(x => x.id === $('[data-row]', w)?.dataset.id); return g && cmp(s.g, g) < 0; })
-        || $(':scope > .row.add', list); // otherwise after the last gift, before the add buttons
-      list.insertBefore(gap, before || null);
-    } else target.appendChild(gap);
+    if (list) list.insertBefore(gap, rowsOf(list)[idx] || $(':scope > .row.add', list) || null);
+    else target.appendChild(gap);
     s.gap = gap;
-    const h = s.ghost.offsetHeight + 8;
-    requestAnimationFrame(() => { if (s?.gap === gap) gap.style.height = h + 'px'; });
+    gap.offsetHeight; // start from 0 so it animates open
+    gap.style.height = s.h + 'px';
   };
   const autoscroll = () => {
     if (!s.scroller) return;
@@ -3133,20 +3168,52 @@ const GiftDrag = (() => {
     if (s.cy < top) s.scroller.scrollTop -= Math.min(14, (top - s.cy) / 4);
     else if (s.cy > bottom) s.scroller.scrollTop += Math.min(14, (s.cy - bottom) / 4);
   };
+  // The order number that puts the gift between its new neighbours (only the same person's gifts count)
+  const orderAt = (list, idx) => {
+    if (!list) return undefined;
+    const rows = rowsOf(list).map(giftOf);
+    const mine = g => g && g.personId === s.g.personId;
+    const prev = rows.slice(0, idx).reverse().find(mine), next = rows.slice(idx).find(mine);
+    if (prev && next) return (giftKey(prev) + giftKey(next)) / 2;
+    if (prev) return giftKey(prev) + 60000;
+    if (next) return giftKey(next) - 60000;
+    return undefined;
+  };
   const end = drop => {
     if (!s) return;
     clearTimeout(s.timer); cancelAnimationFrame(raf);
     if (s.started && drop) hit(); // check the spot under the pointer at the moment of release
-    if (s.started) closeGap();
-    const st = s; s = null;
-    if (!st.started) return;
+    const st = s;
+    if (!st.started) { s = null; return; }
+    const target = drop ? st.over : null;
+    const list = target && $('.list', target);
+    const toOcc = target?.dataset.drop;
+    const unchanged = target && list === st.home && st.idx === st.homeIdx;
+    const order = target && !unchanged ? orderAt(list, st.idx) : undefined;
+    s = null;
     suppressClick = true; setTimeout(() => { suppressClick = false; }, 50);
     document.body.classList.remove('dragging-gift');
-    st.src?.classList.remove('drag-src');
     $$('.drop-ok, .drop-over').forEach(t => t.classList.remove('drop-ok', 'drop-over'));
-    const target = drop ? st.over : null;
-    if (target) { st.ghost.remove(); moveGift(st.g.id, target.dataset.drop); }
-    else { // glide back to where it came from
+    const restoreSrc = () => {
+      st.src.style.height = st.h + 'px';
+      setTimeout(() => { st.src.classList.remove('drag-src'); st.src.style.height = ''; }, 260);
+    };
+    if (target && !unchanged && (toOcc !== (st.g.occasionId || '') || order !== undefined)) {
+      // settle the gift into its gap, then save
+      const g = st.gap.getBoundingClientRect();
+      st.ghost.style.transition = 'transform .2s var(--ease), box-shadow .2s';
+      st.ghost.style.transform = `translate(${g.left - st.r0.left}px, ${g.top - st.r0.top}px)`;
+      setTimeout(() => {
+        st.ghost.remove(); moveGift(st.g.id, toOcc, order);
+        if (st.src.isConnected) { st.gap?.remove(); st.src.classList.remove('drag-src'); st.src.style.height = ''; } // nothing changed after all
+      }, 200);
+    } else if (target && st.gap) { // dropped back where it was
+      const g = st.gap.getBoundingClientRect();
+      st.ghost.style.transition = 'transform .2s var(--ease)';
+      st.ghost.style.transform = `translate(${g.left - st.r0.left}px, ${g.top - st.r0.top}px)`;
+      setTimeout(() => { st.ghost.remove(); st.gap?.remove(); st.src.style.transition = 'none'; st.src.style.height = ''; st.src.classList.remove('drag-src'); st.src.offsetHeight; st.src.style.transition = ''; }, 200);
+    } else { // glide back to where it came from
+      closeGap(st.gap); restoreSrc();
       st.ghost.style.transition = 'transform .25s var(--ease), opacity .25s';
       st.ghost.style.transform = 'none'; st.ghost.style.opacity = '0';
       setTimeout(() => st.ghost.remove(), 260);

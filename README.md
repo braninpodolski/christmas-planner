@@ -14,7 +14,7 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
   - Making it: Idea → Making → Finished → Wrapped
 - **Calendar import**: drag events from Calendar onto the window, or pick an `.ics` file. "Amina's Birthday" becomes a birthday tied to Amina, "Christmas" becomes Christmas, and so on. If the app isn't sure, for example with a name that's not on your list or an event it can't place, it asks before adding.
 - **Calendar export**: download birthdays and yearly events as a calendar file, with a reminder a week before each.
-- **Move gifts between events**: drag a gift onto another event or onto Saved ideas (long-press on a phone). On a computer, you can also press M.
+- **Move and reorder gifts**: drag a gift to any spot in its list, onto another event, or onto Saved ideas (long-press on a phone). The others slide aside to show where it will land. On a computer, you can also press M.
 - **Sharing**: one list for your household. Gifts someone else is buying for you stay hidden on your device, for every event.
 - **Undo** after any delete. Works offline, installs to your home screen, and has light and dark mode.
 - **Desktop layout** on computers: a sidebar, hover actions, centered dialogs and keyboard shortcuts.
