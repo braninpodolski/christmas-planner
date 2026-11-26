@@ -11,6 +11,9 @@ import { refreshIfNewDay, renderAllPreserve } from './actions.js';
 export const GIST_FILE = 'christmas-planner.json'; // name kept so existing synced lists are found
 export const GIST_BACKUP_FILE = 'christmas-planner-backup-before-events.json';
 export const GIST_DESC = 'Christmas Planner data (synced by app)';
+import { Cloud } from './cloud.js';
+
+// Gist sync. A device that belongs to a Firebase household hands every call to Cloud instead.
 export const Sync = {
   cfg: (() => { try { const c = JSON.parse(localStorage.getItem('xmas-sync')) || {}; if (c.gistId && !/^[a-f0-9]{1,64}$/i.test(c.gistId)) delete c.gistId; return c; } catch { return {}; } })(),
   state: 'idle',
@@ -18,8 +21,10 @@ export const Sync = {
   timer: null,
   dirty: false,
   saveCfg() { try { localStorage.setItem('xmas-sync', JSON.stringify(this.cfg)); } catch {} },
-  enabled() { return !!(this.cfg.token && this.cfg.gistId); },
+  enabled() { return Cloud.wanted() || !!(this.cfg.token && this.cfg.gistId); },
+  gist() { return !Cloud.wanted() && !!(this.cfg.token && this.cfg.gistId); },
   statusText() {
+    if (Cloud.wanted()) return Cloud.statusText();
     if (!this.enabled()) return 'Off';
     if (this.state === 'syncing') return 'Syncing…';
     if (this.state === 'error') return this.error;
@@ -90,13 +95,15 @@ export const Sync = {
     await this.api(`/gists/${encodeURIComponent(this.cfg.gistId)}`, { method: 'PATCH', body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(state) } } }) });
   },
   schedule() {
-    if (!this.enabled()) return;
+    if (Cloud.wanted()) return Cloud.schedule();
+    if (!this.gist()) return;
     this.dirty = true;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => this.syncNow(), 1500);
   },
   async syncNow(manual = false) {
-    if (!this.enabled()) return;
+    if (Cloud.wanted()) return Cloud.syncNow();
+    if (!this.gist()) return;
     if (this.busy) { this.again = true; return; }
     this.busy = true; this.setState('syncing');
     try {

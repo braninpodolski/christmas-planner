@@ -1,5 +1,5 @@
 rules_version = '2';
-// Gift Tags security rules. Tested by tests/rules.test.js (npm run test:rules).
+// Gift Tags security rules. Tested by tests/rules/*.test.js (npm run test:rules).
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }

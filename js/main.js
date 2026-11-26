@@ -3,6 +3,7 @@ import { autoPlan, load, saveLocal, setState } from './store.js';
 import { Nav } from './nav.js';
 import { refreshIfNewDay, renderAllPreserve } from './actions.js';
 import { Sync } from './sync.js';
+import { Cloud } from './cloud.js';
 import { Identity } from './identity.js';
 import { Desk } from './desktop.js';
 import './util.js';
@@ -39,7 +40,8 @@ Desk.apply();
 saveLocal();   // persists any one-time migration (Christmas list -> events)
 autoPlan();    // make sure upcoming birthdays and yearly events exist
 Identity.check();
-if (Sync.enabled()) Sync.syncNow();
+if (Cloud.wanted()) Cloud.boot();
+else if (Sync.enabled()) Sync.syncNow();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http') && location.hostname !== 'localhost') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
