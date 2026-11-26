@@ -1416,18 +1416,27 @@ const Pages = {
         </section>`;
 
       const needs = next ? occPeople(next).filter(p => !isMe(p.id) && !occGifts(next).some(g => g.personId === p.id && isSpent(g))) : [];
+      const buyingFor = next ? occPeople(next).filter(p => !isMe(p.id)).length : 0;
+      // only what's close: the next 8 weeks (the hero card already shows the very next one)
+      const soon = up.slice(1).filter(o => daysUntil(o.date) <= 56).slice(0, 6);
+      const later = up.length - 1 - soon.length;
       return `
         ${hero}
 
-        ${up.length > 1 ? `
+        ${soon.length ? `
           <div class="block">
             <div class="block-head"><h2>Coming up</h2><button class="link" data-action="tab" data-tab="events">See all</button></div>
-            <div class="shelf">${up.slice(1, 7).map(eventTile).join('')}</div>
-          </div>` : ''}
+            <div class="shelf">${soon.map(eventTile).join('')}</div>
+            ${later ? `<p class="note">Showing the next 8 weeks. ${plural(later, 'more event')} later in the year in Events.</p>` : ''}
+          </div>` : up.length > 1 ? `
+          <div class="block"><div class="list"><button class="row" data-action="tab" data-tab="events">
+            <span class="row-main"><span class="row-title">Nothing else in the next 8 weeks</span><span class="row-sub">${plural(up.length - 1, 'more event')} later in the year</span></span>${Icon.chev}
+          </button></div></div>` : ''}
 
         ${needs.length ? `
           <div class="block">
-            <div class="block-head"><h2>Still shopping for</h2><span class="meta">${needs.length} of ${occPeople(next).filter(p => !isMe(p.id)).length}</span></div>
+            <div class="block-head"><h2>Still need a gift</h2><span class="meta">${buyingFor - needs.length} of ${buyingFor} sorted</span></div>
+            <p class="note" style="padding-top:0;padding-bottom:6px">${needs.length === 1 ? `${esc(firstName(needs[0]))} has nothing` : 'These people have nothing'} ordered or being made yet for ${esc(occTitle(next))}. Tap ${needs.length === 1 ? 'the tag' : 'a tag'} to plan.</p>
             <div class="shelf">
               ${needs.map(p => {
                 const n = occGifts(next).filter(g => g.personId === p.id).length;
@@ -1435,7 +1444,7 @@ const Pages = {
                 return `<button class="shelf-tag" data-action="open-event" data-id="${esc(next.id)}" aria-label="${esc(p.name)}">
                   <span class="tag" style="--c:${p.color}">
                     <span class="nm">${esc(p.name)}</span>
-                    <span class="sb">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${n ? plural(n, 'idea') : saved ? `${plural(saved, 'saved idea')}` : 'No ideas yet'}</span>
+                    <span class="sb">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${n ? `${plural(n, 'idea')}, none ordered` : saved ? `${plural(saved, 'saved idea')} to use` : 'No ideas yet'}</span>
                   </span>
                 </button>`;
               }).join('')}
