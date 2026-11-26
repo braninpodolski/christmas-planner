@@ -36,8 +36,21 @@ export const Cloud = {
     try { await this.load(); if (this.user) this.start(); else this.setStatus('signed-out'); }
     catch (e) { this.setStatus('error', 'Couldn’t reach Firebase'); }
   },
+  // Signing in on a new device: rejoin the household this account already belongs to
+  async restore() {
+    if (this.wanted() || !this.user) return false;
+    const { F, db } = this, uid = this.user.uid;
+    try {
+      const hid = (await F.getDoc(F.doc(db, `users/${uid}`))).data()?.hid;
+      if (!hid || !(await F.getDoc(F.doc(db, `households/${hid}/members/${uid}`))).exists()) return false;
+      this.cfg = { hid }; this.saveCfg(); this.start();
+      return true;
+    } catch { return false; }
+  },
   start() {
     this.core?.stop();
+    const { F, db } = this, uid = this.user.uid;
+    F.setDoc(F.doc(db, `users/${uid}`), { hid: this.cfg.hid }).catch(() => {}); // remember it on the account (also fills in older households)
     this.core = createCloud({
       F: this.F, db: this.db, hid: this.cfg.hid, uid: this.user.uid,
       getLocal: () => state,
@@ -94,7 +107,10 @@ export const Cloud = {
   },
   async leave() {
     const { F, db } = this;
-    await F.deleteDoc(F.doc(db, `households/${this.cfg.hid}/members/${this.user.uid}`));
+    const b = F.writeBatch(db);
+    b.delete(F.doc(db, `households/${this.cfg.hid}/members/${this.user.uid}`));
+    b.delete(F.doc(db, `users/${this.user.uid}`));
+    await b.commit();
     this.core?.stop(); this.core = null; this.cfg = {}; this.saveCfg(); this.setStatus('off');
   },
 };

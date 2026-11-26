@@ -58,6 +58,14 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Which household an account belongs to, so signing in on a new device finds it.
+    // Only you can read yours, and it can only point at a household you're a member of.
+    match /users/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid && request.resource.data.hid is string
+        && existsAfter(/databases/$(database)/documents/households/$(request.resource.data.hid)/members/$(uid));
+    }
+
     // Phase 0 sign-in test page: each person's own test area only.
     match /spike/{uid}/{document=**} {
       allow read, write: if signedIn() && request.auth.uid == uid;

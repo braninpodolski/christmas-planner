@@ -28,7 +28,11 @@ const errLine = '<p class="fnote" data-err role="alert" style="color:var(--cranb
 
 export function signInSheet(then) {
   let sheet, done;
-  const finish = async () => { done(null); renderAllPreserve(); then?.(); };
+  const finish = async () => {
+    done(null);
+    if (await Cloud.restore()) { toast('Welcome back. Your household’s list is loading.'); renderAllPreserve(); return; }
+    renderAllPreserve(); then?.();
+  };
   openSheet({
     title: 'Sign in', saveLabel: 'Sign in', required: [],
     body: `

@@ -155,3 +155,12 @@ test('surprises for people who aren’t members are visible to every member', as
   await assertSucceeds(getDoc(doc(db('branin'), `households/${H}/surprises/p3/gifts/s9`)));
   await assertSucceeds(getDoc(doc(db('wife'), `households/${H}/surprises/p3/gifts/s9`)));
 });
+
+test('your account remembers your household, privately, and only one you belong to', async () => {
+  await assertSucceeds(setDoc(doc(db('branin'), 'users/branin'), { hid: H }));
+  await assertSucceeds(getDoc(doc(db('branin'), 'users/branin')));
+  await assertFails(getDoc(doc(db('wife'), 'users/branin')), 'not readable by others');
+  await assertFails(setDoc(doc(db('wife'), 'users/branin'), { hid: H }), 'not writable by others');
+  await assertFails(setDoc(doc(db('stranger'), 'users/stranger'), { hid: H }), 'not a household you are not in');
+  await assertSucceeds(deleteDoc(doc(db('branin'), 'users/branin')));
+});

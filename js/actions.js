@@ -67,7 +67,7 @@ export function sparkle(btn) {
    Actions (event delegation)
    ========================================================= */
 export const Actions = {
-  'account-signin': async () => { try { await Cloud.load(); } catch { toast('Couldn’t reach Firebase', 'warn'); return; } if (Cloud.user) { if (Cloud.wanted()) Cloud.start(); renderAll(); } else signInSheet(); },
+  'account-signin': async () => { try { await Cloud.load(); } catch { toast('Couldn’t reach Firebase', 'warn'); return; } if (Cloud.user) { if (Cloud.wanted()) Cloud.start(); else if (await Cloud.restore()) toast('Welcome back. Your household’s list is loading.'); renderAll(); } else signInSheet(); },
   'account-signout': async () => { await Cloud.signOut(); renderAll(); },
   'household-create': () => createHouseholdSheet(),
   'household-join': () => joinCodeSheet(),
