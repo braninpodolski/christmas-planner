@@ -11,6 +11,8 @@ const CODE = 'invite-code-0123456789abcdef';
 const db = uid => env.authenticatedContext(uid).firestore();
 const anon = () => env.unauthenticatedContext().firestore();
 const later = () => Timestamp.fromMillis(Date.now() + 7 * 86400000);
+// join the way the app does: add yourself and use up the invite in one write
+const join = (d, uid, personId, code) => { const b = writeBatch(d); b.set(doc(d, `households/${H}/members/${uid}`), { personId, invite: code }); b.delete(doc(d, `invites/${code}`)); return b.commit(); };
 
 before(async () => {
   env = await initializeTestEnvironment({
@@ -88,20 +90,39 @@ test('you cannot create a household in someone else’s name or add yourself to 
   await assertFails(setDoc(doc(db('stranger'), `households/${H}/members/stranger`), { personId: 'p9' }));
 });
 
-test('joining needs a live invite to that household', async () => {
-  await assertFails(setDoc(doc(db('daughter'), `households/${H}/members/daughter`), { personId: 'p2', invite: CODE }), 'not as someone else');
-  await assertSucceeds(setDoc(doc(db('daughter'), `households/${H}/members/daughter`), { personId: 'p4', invite: CODE }));
-  await assertFails(setDoc(doc(db('late'), `households/${H}/members/late`), { personId: 'p5', invite: 'expired-code-0123456789abc' }));
-  await assertFails(setDoc(doc(db('typo'), `households/${H}/members/typo`), { personId: 'p6', invite: 'no-such-code-0123456789abc' }));
+test('joining needs a live invite to that household, as its person', async () => {
+  await assertFails(join(db('daughter'), 'daughter', 'p2', CODE), 'not as someone else');
+  await assertFails(setDoc(doc(db('daughter'), `households/${H}/members/daughter`), { personId: 'p4', invite: CODE }), 'not without using up the invite');
+  await assertSucceeds(join(db('daughter'), 'daughter', 'p4', CODE));
+  await assertFails(join(db('late'), 'late', 'p5', 'expired-code-0123456789abc'));
+  await assertFails(join(db('typo'), 'typo', 'p6', 'no-such-code-0123456789abc'));
+});
+
+test('an invite works only once', async () => {
+  await assertSucceeds(join(db('daughter'), 'daughter', 'p4', CODE));
+  await assertFails(join(db('second'), 'second', 'p4', CODE));
+});
+
+test('the creator cannot leave and come back as someone else', async () => {
+  await assertSucceeds(deleteDoc(doc(db('branin'), `households/${H}/members/branin`)));
+  await assertFails(setDoc(doc(db('branin'), `households/${H}/members/branin`), { personId: 'p3' }));
+});
+
+test('you cannot use an invite you made yourself (to become someone else)', async () => {
+  await assertSucceeds(setDoc(doc(db('branin'), 'invites/self-made-code-0123456789ab'), { hid: H, personId: 'p3', createdBy: 'branin', expires: later() }));
+  await assertSucceeds(deleteDoc(doc(db('branin'), `households/${H}/members/branin`)));
+  await assertFails(join(db('branin'), 'branin', 'p3', 'self-made-code-0123456789ab'));
 });
 
 test('you cannot add someone else with an invite', async () => {
-  await assertFails(setDoc(doc(db('stranger'), `households/${H}/members/friend`), { personId: 'p7', invite: CODE }));
+  await assertFails(join(db('stranger'), 'friend', 'p4', CODE));
 });
 
 test('an invite to one household does not open another', async () => {
   await env.withSecurityRulesDisabled(ctx => setDoc(doc(ctx.firestore(), 'households/home2'), { name: 'Other', createdBy: 'x' }));
-  await assertFails(setDoc(doc(db('stranger'), 'households/home2/members/stranger'), { personId: 'p8', invite: CODE }));
+  const d = db('stranger'), b = writeBatch(d);
+  b.set(doc(d, 'households/home2/members/stranger'), { personId: 'p4', invite: CODE }); b.delete(doc(d, `invites/${CODE}`));
+  await assertFails(b.commit());
 });
 
 test('invites can be fetched by code but never listed, and only members create them', async () => {

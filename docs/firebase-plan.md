@@ -2,7 +2,7 @@
 
 **Goal:** family members can use Gift Tags for their own households. They sign in like any normal app: no GitHub account, no tokens, no passphrases. Surprise gifts become truly private, enforced by the database instead of only hidden on screen. It stays free.
 
-**Status:** phase 0 is done (November 26, 2026). The Firebase project `gift-tags` exists, and sign-in was tested on the iPhone (results below). Phases 1–5 aren't built yet.
+**Status:** phases 0–4 are built (November 26, 2026). Moving your list over is Settings → Household → Create a household. Phase 5 (rollout, then removing Gist sync) is next.
 
 ---
 

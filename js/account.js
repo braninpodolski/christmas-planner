@@ -4,6 +4,7 @@ import { state, sortedPeople, person, me, KEY_BACKUP_ACCOUNTS, firstName, posses
 import { openSheet, toast, confirmDestructive } from './sheets.js';
 import { renderAllPreserve } from './actions.js';
 import { Cloud } from './cloud.js';
+import { Sync } from './sync.js';
 
 const errorText = e => ({
   'auth/invalid-credential': 'That email and password don’t match.',
@@ -66,7 +67,9 @@ export function createHouseholdSheet() {
         <div class="row"><label class="lbl" for="hhme">You are</label>
           <select class="field" id="hhme" name="me">${people.map(p => `<option value="${esc(p.id)}" ${p.id === me ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>${Icon.chev}</div>
       </div>
-      <p class="fnote">Your list moves into the household: ${state.people.length} people, ${state.gifts.length} gifts and ${state.occasions.length} events. A copy is kept on this device first, and syncing through GitHub stops on this device.</p>
+      <p class="fnote">Your list moves into the household: ${state.people.length} people, ${state.gifts.length} gifts and ${state.occasions.length} events. A copy is kept on this device${Sync.gist() ? ' and in your GitHub Gist' : ''} first, and syncing through GitHub stops on this device.</p>
+      ${(() => { const n = state.gifts.filter(g => g.personId === me && g.buyer !== me).length; return n ? `<p class="fnote">${n === 1 ? 'One gift' : `${n} gifts`} someone else is planning for you stay hidden on this device. They reach the household when the person buying them joins.</p>` : ''; })()}
+      ${Sync.gist() ? '<p class="fnote">Devices still syncing through GitHub will show that the list moved, so you can send them an invite.</p>' : ''}
       ${people.length ? '' : '<p class="fnote" style="color:var(--cranberry)">Add yourself on the People tab first.</p>'}
       ${errLine}`,
     onOpen(sh, close) { sheet = sh; done = close; },
@@ -74,7 +77,9 @@ export function createHouseholdSheet() {
       if (!person(d.me)) return false;
       busy(sheet, async () => {
         try { localStorage.setItem(KEY_BACKUP_ACCOUNTS, JSON.stringify(state)); } catch {}
-        await Cloud.createHousehold(d.name.trim() || 'Our household', d.me);
+        const name = d.name.trim() || 'Our household';
+        await Sync.markMoved(name); // backup to the Gist first; nothing moves if this fails
+        await Cloud.createHousehold(name, d.me);
       }).then(ok => { if (ok) { done(null); toast('Household created'); renderAllPreserve(); } });
       return false;
     },
@@ -91,7 +96,7 @@ export function inviteSheet() {
     body: `
       <div class="fgroup"><div class="row"><label class="lbl" for="invp">Who</label>
         <select class="field" id="invp" name="pid">${people.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select>${Icon.chev}</div></div>
-      <p class="fnote">They join as this person, so gifts you plan for them stay hidden from them from the start. The link works for 7 days, and stops working once it’s used.</p>
+      <p class="fnote">They join as this person, so gifts you plan for them stay hidden from them from the start. Only invite someone you’d share the list with. The link works for 7 days, and stops working once it’s used.</p>
       <div data-out hidden>
         <div class="fgroup"><div class="row"><input class="field" data-link readonly aria-label="Invite link"></div></div>
         <div class="fgroup"><button type="button" class="row" data-share style="width:100%;color:var(--cranberry);font-weight:600">Share invite</button></div>

@@ -376,6 +376,7 @@ export const Pages = {
               <button class="row" data-action="sync-connect"><div class="row-icon" style="background:var(--fir)">${Icon.sync}</div><div class="row-main">Set up sync</div>${Icon.chev}</button>
             `}
           </div>
+          ${connected && Sync.moved ? `<p class="note" style="color:var(--cranberry)">This list was moved into “${esc(Sync.moved.household || 'a household')}” on ${esc(new Date(Sync.moved.at).toLocaleDateString())}. Ask whoever moved it for an invite link, then open it on this device. Until then this device keeps syncing through GitHub.</p>` : ''}
           <p class="note">${connected
             ? `Your data is saved in a secret GitHub Gist${c.gistId ? ` (<a href="https://gist.github.com/${esc(c.gistId)}" target="_blank" rel="noopener">view</a>)` : ''}. Changes sync automatically.`
             : 'Sync saves your data to a secret GitHub Gist, so every device you use sees the same list.'}</p>

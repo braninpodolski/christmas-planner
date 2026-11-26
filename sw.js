@@ -1,6 +1,6 @@
 // Offline support. Every app file is cached together as one version, so an update can never
 // mix old and new modules. Bump CACHE whenever app files change so installed copies update.
-const CACHE = 'xmas-v20';
+const CACHE = 'xmas-v21';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   './css/base.css', './css/desktop.css', './css/layout.css', './css/lists.css', './css/sheets.css',

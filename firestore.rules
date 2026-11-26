@@ -30,11 +30,16 @@ service cloud.firestore {
         // or with a live invite to this household, as the person the invite was made for.
         allow create: if signedIn() && request.auth.uid == uid
           && request.resource.data.personId is string && request.resource.data.personId.size() > 0 && (
-          getAfter(/databases/$(database)/documents/households/$(hid)).data.createdBy == uid
+          // creating the household: only in the same write that creates it (not by leaving and coming back)
+          (!exists(/databases/$(database)/documents/households/$(hid))
+            && getAfter(/databases/$(database)/documents/households/$(hid)).data.createdBy == uid)
+          // joining: someone else's live invite, as its person, used up in this same write
           || (request.resource.data.invite is string
               && invite(request.resource.data.invite).hid == hid
               && invite(request.resource.data.invite).personId == request.resource.data.personId
-              && invite(request.resource.data.invite).expires > request.time));
+              && invite(request.resource.data.invite).createdBy != uid
+              && invite(request.resource.data.invite).expires > request.time
+              && !existsAfter(/databases/$(database)/documents/invites/$(request.resource.data.invite))));
         // who you are never changes (or you could become someone else and read their surprises)
         allow update: if member(hid) && request.resource.data.personId == resource.data.personId;
         allow delete: if request.auth.uid == uid || member(hid);   // leave, or remove someone
@@ -48,7 +53,8 @@ service cloud.firestore {
       allow create: if member(request.resource.data.hid) && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.expires is timestamp && code.size() >= 20
         && request.resource.data.personId is string && request.resource.data.personId.size() > 0;
-      allow delete: if member(resource.data.hid);
+      // members can cancel invites; the person joining deletes it as part of joining
+      allow delete: if signedIn() && existsAfter(/databases/$(database)/documents/households/$(resource.data.hid)/members/$(request.auth.uid));
       allow update: if false;
     }
 

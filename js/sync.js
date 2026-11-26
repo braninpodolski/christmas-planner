@@ -11,6 +11,8 @@ import { refreshIfNewDay, renderAllPreserve } from './actions.js';
 export const GIST_FILE = 'christmas-planner.json'; // name kept so existing synced lists are found
 export const GIST_BACKUP_FILE = 'christmas-planner-backup-before-events.json';
 export const GIST_DESC = 'Christmas Planner data (synced by app)';
+export const GIST_MOVED_FILE = 'gift-tags-moved-to-household.json'; // left by the device that moved the list into Firebase
+export const GIST_ACCOUNTS_BACKUP_FILE = 'christmas-planner-backup-before-accounts.json';
 import { Cloud } from './cloud.js';
 
 // Gist sync. A device that belongs to a Firebase household hands every call to Cloud instead.
@@ -72,6 +74,7 @@ export const Sync = {
   },
   async fetchRemote() {
     const g = await this.api(`/gists/${encodeURIComponent(this.cfg.gistId)}`);
+    try { this.moved = g.files?.[GIST_MOVED_FILE] ? JSON.parse(g.files[GIST_MOVED_FILE].content) : null; } catch { this.moved = null; }
     const f = g.files && g.files[GIST_FILE];
     if (!f) return null;
     const text = f.truncated ? await (await fetch(f.raw_url, { cache: 'no-store' })).text() : f.content;
@@ -90,6 +93,14 @@ export const Sync = {
     const merged = remote ? merge(state, remote) : state;
     if (canon(merged) !== canon(state)) { setState(merged); saveLocal(); renderAllPreserve(); setTimeout(autoPlan, 0); }
     if (!remote || canon(merged) !== canon(remote)) await this.push();
+  },
+  // Before this list moves into a household: back it up and leave a note for devices still on the Gist
+  async markMoved(household) {
+    if (!this.gist()) return;
+    await this.api(`/gists/${encodeURIComponent(this.cfg.gistId)}`, { method: 'PATCH', body: JSON.stringify({ files: {
+      [GIST_ACCOUNTS_BACKUP_FILE]: { content: JSON.stringify(state) },
+      [GIST_MOVED_FILE]: { content: JSON.stringify({ at: Date.now(), household }) },
+    } }) });
   },
   async push() {
     await this.api(`/gists/${encodeURIComponent(this.cfg.gistId)}`, { method: 'PATCH', body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(state) } } }) });
@@ -111,6 +122,7 @@ export const Sync = {
       await this.reconcile();
       this.cfg.lastSync = Date.now(); this.saveCfg();
       this.setState('idle');
+      if (this.moved && !this.movedNoticed) { this.movedNoticed = true; toast('This list moved into a household. See Settings to join it.', 'warn'); }
       if (manual) toast('Synced');
     } catch (err) {
       this.dirty = true;

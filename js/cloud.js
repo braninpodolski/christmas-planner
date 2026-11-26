@@ -85,8 +85,11 @@ export const Cloud = {
   async join(code) {
     const { F, db } = this, uid = this.user.uid;
     const inv = await this.peekInvite(code);
-    await F.setDoc(F.doc(db, `households/${inv.hid}/members/${uid}`), { personId: inv.personId, invite: code, joined: Date.now() });
-    F.deleteDoc(F.doc(db, `invites/${code}`)).catch(() => {}); // used up
+    // joining and using up the invite happen together (the rules require it)
+    const b = F.writeBatch(db);
+    b.set(F.doc(db, `households/${inv.hid}/members/${uid}`), { personId: inv.personId, invite: code, joined: Date.now() });
+    b.delete(F.doc(db, `invites/${code}`));
+    await b.commit();
     this.cfg = { hid: inv.hid }; this.saveCfg(); this.start();
   },
   async leave() {
