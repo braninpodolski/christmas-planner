@@ -258,3 +258,12 @@ body.dragging-gift .drop-only { display: block; animation: settle .25s var(--eas
 .toast-act { margin: -6px -12px -6px 6px; padding: 6px 14px; color: #fff; background: var(--cranberry); font-weight: 700; border-radius: 99px; }
 .toast-act:active { transform: scale(.94); }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+/* "Given before" hint under a gift's title */
+.similar { display: flex; gap: 10px; align-items: flex-start; padding: 10px 16px 12px; background: color-mix(in srgb, var(--brass) 12%, var(--field)); box-shadow: 0 -.5px 0 var(--hair); animation: settle .25s var(--ease) both; }
+.similar > svg { width: 17px; height: 17px; flex: none; margin-top: 2px; color: var(--brass); }
+.similar > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.similar-hit { text-align: left; font-size: 14px; line-height: 1.35; color: var(--text); padding: 0; cursor: pointer; }
+.similar-hit b { font-weight: 600; }
+@media (hover: hover) { .similar-hit:hover { text-decoration: underline; text-decoration-color: var(--text3); } }
+.similar-more { font-size: 13px; color: var(--text2); }

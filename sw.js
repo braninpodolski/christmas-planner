@@ -1,13 +1,13 @@
 // Offline support. Every app file is cached together as one version, so an update can never
 // mix old and new modules. Bump CACHE whenever app files change so installed copies update.
-const CACHE = 'xmas-v22';
+const CACHE = 'xmas-v23';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   './css/base.css', './css/desktop.css', './css/layout.css', './css/lists.css', './css/sheets.css',
   './js/account.js', './js/actions.js', './js/calendar.js', './js/cloud-core.js', './js/cloud.js', './js/components.js', './js/constants.js', './js/data.js',
   './js/datefields.js', './js/dates.js', './js/desktop.js', './js/event-sheet.js', './js/firebase-config.js', './js/forms.js',
   './js/gift-drag.js', './js/ics.js', './js/identity.js', './js/main.js', './js/nav.js',
-  './js/pages.js', './js/passjoin.js', './js/sheets.js', './js/store.js', './js/sync.js',
+  './js/pages.js', './js/passjoin.js', './js/sheets.js', './js/similar.js', './js/store.js', './js/sync.js',
   './js/util.js',
 ];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];

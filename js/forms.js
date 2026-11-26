@@ -1,8 +1,9 @@
 import { $, $$, Icon, esc, num, uid } from './util.js';
 import { CATEGORIES, COLORS, EMOJIS, KIND_STEPS, STATUSES, STATUS_IDS } from './constants.js';
-import { daysUntil, fmtDate } from './dates.js';
+import { daysUntil, fmtDate, today0, ymd } from './dates.js';
 import { clearBirthdayDeletion, dateOf } from './data.js';
-import { commit, isMe, me, nextFor, occ, occTitle, occYearTitle, person, sharing, shoppablePeople, state, statusIndex, ui, upcomingOccasions } from './store.js';
+import { commit, firstName, isMe, me, nextFor, occ, occTitle, occYearTitle, person, possessive, sharing, shoppablePeople, state, statusIndex, ui, upcomingOccasions, visibleGifts } from './store.js';
+import { findSimilar } from './similar.js';
 import { tag } from './components.js';
 import { Nav } from './nav.js';
 import { openSheet, toast, undoable } from './sheets.js';
@@ -102,7 +103,8 @@ export function giftSheet(g, presetPerson, presetOcc) {
     required: ['title', 'personId'],
     body: `
       <div class="fgroup">
-        <div class="row"><input class="field big" name="title" placeholder="What’s the gift?" value="${esc(g.title)}" enterkeyhint="done" autocapitalize="sentences" aria-label="Gift"></div>
+        <div class="row"><input class="field big" name="title" placeholder="What’s the gift?" value="${esc(g.title)}" enterkeyhint="done" autocapitalize="sentences" aria-label="Gift" aria-describedby="giftSimilar"></div>
+        <div class="similar" id="giftSimilar" aria-live="polite" hidden></div>
         <div class="row"><label class="lbl" for="gp">For</label>
           <select class="field" id="gp" name="personId">
             <option value="" ${g.personId ? '' : 'selected'} disabled>Choose</option>
@@ -143,6 +145,30 @@ export function giftSheet(g, presetPerson, presetOcc) {
         $('[data-store]', sh).placeholder = k === 'make' ? 'Supplies from' : 'Store';
       });
       if (isNew) setTimeout(() => $('[name=title]', sh).focus({ preventScroll: true }), 460);
+      // "Given before" / "already planned" hint for the chosen person
+      const hint = $('#giftSimilar', sh), form = $('form', sh);
+      let t;
+      const check = () => {
+        const f = form.elements, pid = f.personId.value, p = person(pid);
+        const found = p ? findSimilar({ title: f.title.value, personId: pid, gifts: visibleGifts(), occasions: state.occasions, excludeId: g.id || '', today: ymd(today0()) }) : [];
+        hint.hidden = !found.length;
+        if (!found.length) { hint.innerHTML = ''; return; }
+        const first = firstName(p);
+        hint.innerHTML = `${Icon.idea}<div>${found.slice(0, 2).map(x => {
+          const when = x.occasion ? (x.kind === 'given' ? occYearTitle(x.occasion) : occTitle(x.occasion)) : '';
+          return `<button type="button" class="similar-hit" data-id="${esc(x.gift.id)}">${x.kind === 'given'
+            ? `Similar to <b>${esc(x.gift.title)}</b>, given to ${esc(first)} at ${esc(when)}.`
+            : `<b>${esc(x.gift.title)}</b> is already ${x.occasion ? `planned for ${esc(when)}` : `in ${esc(possessive(first))} saved ideas`}.`}</button>`;
+        }).join('')}${found.length > 2 ? `<span class="similar-more">and ${found.length - 2} more</span>` : ''}</div>`;
+      };
+      form.addEventListener('input', e => { if (e.target.name === 'title') { clearTimeout(t); t = setTimeout(check, 250); } });
+      form.addEventListener('change', e => { if (e.target.name === 'personId') check(); });
+      hint.addEventListener('click', e => {
+        const b = e.target.closest('.similar-hit'); if (!b) return;
+        const other = state.gifts.find(x => x.id === b.dataset.id); if (!other) return;
+        close(null); setTimeout(() => giftSheet(other), 350);
+      });
+      check();
       $('[data-sheet-delete]', sh)?.addEventListener('click', async () => {
         close(null); undoable(`Deleted “${g.title}”`, s => s.gifts = s.gifts.filter(x => x.id !== g.id));
       });
