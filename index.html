@@ -664,16 +664,20 @@ body.dragging-gift .drop-only { display: block; animation: settle .25s var(--eas
 
 /* Calendar import */
 .imp { position: relative; }
-.imp.is-unsure { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--s-started) 70%, transparent); }
 .imp.is-done { opacity: .6; }
 .imp .row-main { display: flex; flex-direction: column; min-width: 0; }
-.imp-pill { flex: none; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; letter-spacing: -.05px; }
+.imp-pill { flex: none; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; letter-spacing: -.05px; }
 .imp-pill.ok { color: var(--pine); background: color-mix(in srgb, var(--pine) 13%, transparent); }
 .imp-pill.ask { color: var(--s-started); background: color-mix(in srgb, var(--s-started) 15%, transparent); }
 .imp-pill.done { color: var(--text2); background: var(--sunken); }
-.imp-more > .row { box-shadow: 0 -.5px 0 var(--hair); }
-.imp-note { margin: 0; padding: 0 16px 12px 52px; color: var(--text2); font-size: 13px; line-height: 1.4; letter-spacing: -.08px; }
-.imp-change { display: block; margin: -4px 0 0 52px; padding: 0 0 12px; font-size: 14px; }
+.imp .imp-more .row, .imp .imp-change { background: var(--field); padding: 12px 16px; min-height: 50px; box-shadow: 0 -.5px 0 var(--hair); }
+.imp-head { padding: 12px 16px; background: var(--field); }
+.imp-head .row-title { white-space: normal; }
+.imp .imp-change { width: 100%; color: var(--cranberry); font-weight: 500; font-size: 15px; min-height: 44px; }
+.imp-pill.verify { color: var(--s-started); background: color-mix(in srgb, var(--s-started) 15%, transparent); }
+.sheet:focus, .sheet:focus-visible { outline: none; } /* focus moves into the dialog; only fields show a ring */
+.imp-note { display: flex; align-items: flex-start; gap: 8px; padding: 11px 16px 12px; color: var(--text2); font-size: 13px; line-height: 1.4; letter-spacing: -.08px; box-shadow: 0 -.5px 0 var(--hair); }
+.imp-note svg { width: 15px; height: 15px; flex: none; margin-top: 1px; color: var(--s-started); }
 .drop-zone {
   position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
@@ -2709,6 +2713,8 @@ const CalImport = {
     const it = { summary: t, date: ev.date, repeat: !!ev.yearly, type: 'celebration', personId: '', newName: '', confident: false, exists: false, note: '' };
     if (this.BDAY_RE.test(t) || birthdayCalendar) {
       it.type = 'birthday'; it.repeat = true;
+      const yy = +it.date.slice(0, 4);
+      if (yy >= new Date().getFullYear() || yy < 1900) it.date = '0000' + it.date.slice(4);
       const name = this.nameFrom(t) || (birthdayCalendar ? t.trim() : '');
       it.newName = name;
       const matches = name ? this.matchPeople(name) : [];
@@ -2823,6 +2829,7 @@ const CalImport = {
     for (const ev of extraEvents) {
       const it = this.classify(ev, false);
       it.confident = false; // text was guessed from a description, so always show it for a check
+      it.fromText = true;
       it.note = [it.note, 'Read from the dragged text, so check the date.'].filter(Boolean).join(' ');
       seen.add(ev.summary.toLowerCase() + '|' + ev.date.slice(5));
       items.push(it);
@@ -2865,7 +2872,7 @@ const CalImport = {
           added.push({ id });
         } else {
           const id = uid();
-          const date = it.repeat ? ymd(nextOccurrence(it.date)) : it.date;
+          const date = it.repeat || it.date.startsWith('0000') ? ymd(nextOccurrence(it.date)) : it.date;
           s.occasions.push({ id, created: Date.now(), type: it.type, title: it.summary.slice(0, 100), date, people: [], budgets: {}, repeat: !!it.repeat, series: it.repeat ? id : '' });
           added.push({ id });
         }
@@ -2879,76 +2886,97 @@ const CalImport = {
   },
 
   review(items) {
+    const single = items.length === 1;
     const typeOpts = sel => EVENT_TYPES.map(t => `<option value="${t}" ${t === sel ? 'selected' : ''}>${THEMES[t].label}</option>`).join('');
     const whoOpts = it => `<option value="" ${it.personId ? '' : 'selected'} disabled>Choose</option>
       ${sortedPeople().map(p => `<option value="${esc(p.id)}" ${p.id === it.personId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
-      <option value="new" ${it.personId === 'new' ? 'selected' : ''}>New person${it.newName ? `: ${esc(it.newName)}` : ''}</option>`;
+      <option value="new" ${it.personId === 'new' ? 'selected' : ''}>Add as a new person${it.newName ? `: ${esc(it.newName)}` : ''}</option>`;
+    const when = it => it.type === 'birthday' || it.repeat
+      ? `${fmtDate(it.date, { month: 'long', day: 'numeric' })}, every year`
+      : fmtDate(it.date, { month: 'long', day: 'numeric', year: 'numeric' });
     const needs = items.filter(i => !i.exists && !i.confident).length;
+    const intro = single
+      ? (items[0].exists ? 'This event is already in Events.' : needs ? 'Check the details, then add it.' : 'Ready to add.')
+      : `Found ${plural(items.length, 'event')}.${needs ? ` ${needs === 1 ? 'One needs' : `${needs} need`} a quick check.` : ''}`;
     openSheet({
       title: 'Add from calendar',
-      saveLabel: 'Add events',
+      saveLabel: single ? 'Add event' : 'Add events',
       required: [],
       body: `
-        <p class="fnote" style="margin:0 0 18px;font-size:15px;color:var(--text)">Found ${plural(items.length, 'event')}. ${needs ? `${needs === 1 ? 'One needs' : `${needs} need`} a quick choice before adding.` : 'Everything is ready to add.'}</p>
+        <p class="fnote" style="margin:0 0 16px;font-size:15px;color:var(--text)">${intro}</p>
         ${items.map((it, i) => `
-          <div class="fgroup imp ${it.exists ? 'is-done' : it.confident ? '' : 'is-unsure'}" data-i="${i}">
-            <label class="row pick">
-              <input type="checkbox" name="inc" value="${i}" ${it.exists ? 'disabled' : (items.length === 1 || it.confident || it.type !== 'celebration') ? 'checked' : ''}>
-              <span class="pick-box">${Icon.check}</span>
+          <div class="fgroup imp ${it.exists ? 'is-done' : ''}" data-i="${i}">
+            <label class="row imp-head ${single ? '' : 'pick'}">
+              <input type="checkbox" name="inc" value="${i}" ${single ? 'hidden' : ''} ${it.exists ? 'disabled' : (single || it.confident || it.type !== 'celebration') ? 'checked' : ''}>
+              ${single ? '' : `<span class="pick-box">${Icon.check}</span>`}
               <span class="ev-badge sm th-${it.type}" data-badge>${Icon[THEMES[it.type].icon]}</span>
-              <span class="row-main"><span class="row-title">${esc(it.summary)}</span><span class="row-sub">${esc(fmtDate(it.date, { month: 'long', day: 'numeric', year: 'numeric' }))}${it.repeat ? ', every year' : ''}</span></span>
-              <span class="imp-pill ${it.exists ? 'done' : it.confident ? 'ok' : 'ask'}">${it.exists ? 'Already added' : it.confident ? 'Ready' : 'Choose'}</span>
+              <span class="row-main"><span class="row-title">${esc(it.summary)}</span><span class="row-sub" data-when>${esc(when(it))}</span></span>
+              <span class="imp-pill" data-pill></span>
             </label>
             ${it.exists ? '' : `
               <div class="imp-more" ${it.confident ? 'hidden' : ''}>
                 <div class="row"><label class="lbl" for="it${i}">Kind</label><select class="field" id="it${i}" name="type_${i}">${typeOpts(it.type)}</select>${Icon.chev}</div>
                 <div class="row" data-whose><label class="lbl" for="iw${i}">Whose</label><select class="field" id="iw${i}" name="who_${i}">${whoOpts(it)}</select>${Icon.chev}</div>
                 <div class="row" data-newname><label class="lbl" for="in${i}">Name</label><input class="field right" id="in${i}" name="name_${i}" value="${esc(it.newName)}" placeholder="Their name" autocapitalize="words"></div>
+                ${dateFields('dt' + i, it.date, { label: 'Date', yearOptional: it.type === 'birthday' || it.repeat })}
                 <label class="row" data-repeat><span class="row-main">Repeats every year</span><input type="checkbox" class="switch" name="rep_${i}" ${it.repeat ? 'checked' : ''}></label>
               </div>
-              ${it.note ? `<p class="imp-note">${esc(it.note)}</p>` : ''}
-              ${it.confident ? `<button type="button" class="imp-change link" data-change>Change</button>` : ''}`}
+              ${it.confident ? `<button type="button" class="row imp-change" data-change>Change details</button>` : ''}
+              ${it.note ? `<div class="imp-note">${Icon.warn}<span>${esc(it.note)}</span></div>` : ''}`}
           </div>`).join('')}`,
       onOpen(sh) {
         const form = $('form', sh), btn = $('[data-sheet=save]', sh);
+        const touched = new Set();
+        form.addEventListener('input', e => { const m = e.target.name?.match(/^dt(\d+)$/); if (m) touched.add(+m[1]); });
         const sync = () => {
           let count = 0, ok = true;
           $$('.imp', form).forEach(box => {
-            const i = +box.dataset.i, it = items[i];
-            if (it.exists) return;
+            const i = +box.dataset.i, it = items[i], pill = box.querySelector('[data-pill]');
+            if (it.exists) { pill.className = 'imp-pill done'; pill.textContent = 'Already added'; return; }
             const t = form.elements['type_' + i].value;
             const who = form.elements['who_' + i].value;
             const name = form.elements['name_' + i].value.trim();
+            const rep = t === 'birthday' || t === 'christmas' || form.elements['rep_' + i].checked;
             box.querySelector('[data-whose]').hidden = t !== 'birthday';
             box.querySelector('[data-newname]').hidden = !(t === 'birthday' && who === 'new');
             box.querySelector('[data-repeat]').hidden = t === 'birthday' || t === 'christmas';
             const badge = box.querySelector('[data-badge]');
             badge.className = `ev-badge sm th-${t}`; badge.innerHTML = Icon[THEMES[t].icon];
-            const on = box.querySelector('input[name=inc]').checked;
-            if (!on) return;
+            const date = hintDate(form, 'dt' + i, rep);
+            if (date) box.querySelector('[data-when]').textContent = when({ type: t, repeat: rep, date: date.startsWith('0000') ? ymd(nextOccurrence(date)) : date });
+            const complete = !!date && !(t === 'birthday' && (!who || (who === 'new' && !name)));
+            const needsDateCheck = it.fromText && !touched.has(i);
+            pill.className = `imp-pill ${!complete ? 'ask' : needsDateCheck ? 'verify' : 'ok'}`;
+            pill.textContent = !complete ? 'Choose' : needsDateCheck ? 'Check date' : 'Ready';
+            if (!box.querySelector('input[name=inc]').checked) return;
             count++;
-            if (t === 'birthday' && (!who || (who === 'new' && !name))) ok = false;
+            if (!complete) ok = false;
           });
           btn.disabled = !ok || !count;
-          btn.firstChild.textContent = count ? `Add ${plural(count, 'event')}` : 'Add events';
+          btn.firstChild.textContent = count === 1 ? 'Add event' : count ? `Add ${count} events` : 'Add events';
         };
         form.addEventListener('input', sync); form.addEventListener('change', sync);
         form.addEventListener('click', e => {
           const b = e.target.closest('[data-change]'); if (!b) return;
-          b.closest('.imp').querySelector('.imp-more').hidden = false; b.remove();
+          const more = b.closest('.imp').querySelector('.imp-more');
+          more.hidden = false; b.remove();
+          more.querySelector('select, input')?.focus();
         });
         sync();
+        // With a keyboard, start on the first thing that needs attention
+        if (Desk.on()) setTimeout(() => $('.imp-more:not([hidden]) select, .imp-more:not([hidden]) input', form)?.focus({ preventScroll: true }), 60);
       },
       onSave(d, form) {
         const chosen = [];
         for (const box of $$('.imp', form)) {
           const i = +box.dataset.i, it = items[i];
           if (it.exists || !box.querySelector('input[name=inc]').checked) continue;
-          const t = d['type_' + i];
-          const who = d['who_' + i];
-          chosen.push({ ...it, type: EVENT_TYPES.includes(t) ? t : 'celebration',
-            personId: t === 'birthday' ? who : '', newName: (d['name_' + i] || '').trim(),
-            repeat: t === 'birthday' || t === 'christmas' ? true : d['rep_' + i] === 'on' });
+          const t = EVENT_TYPES.includes(d['type_' + i]) ? d['type_' + i] : 'celebration';
+          const rep = t === 'birthday' || t === 'christmas' ? true : d['rep_' + i] === 'on';
+          const date = readDate(d, 'dt' + i, rep);
+          if (!date) return false;
+          chosen.push({ ...it, type: t, date, repeat: rep,
+            personId: t === 'birthday' ? d['who_' + i] : '', newName: (d['name_' + i] || '').trim() });
         }
         if (!chosen.length) return false;
         if (chosen.some(c => c.type === 'birthday' && (!c.personId || (c.personId === 'new' && !c.newName)))) return false;
