@@ -7,7 +7,7 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 - **Events**: Christmas, birthdays, anniversaries and celebrations. Each has its own wrapping-paper theme, plus a date, the people involved and an optional budget for each person.
   - Birthdays are set on a person and come back every year automatically.
   - Yearly events (Christmas, anniversaries) roll forward on their own once they pass. Past events stay as history.
-- **People**: a gift tag for each person, with a birthday, sizes and favorites, and notes. Each person's page shows their upcoming events, saved ideas and what you've given them before.
+- **People**: a gift tag for each person, with a birthday (the year is optional), sizes and favorites, and notes. Type dates naturally, like "March 12" or "3/12/1990". Each person's page shows their upcoming events, saved ideas and what you've given them before.
 - **Saved ideas**: write down ideas any time of year, then plan them for an event later.
 - **Gifts**: each gift is marked *Buying it* or *Making it*:
   - Buying it: Idea → Ordered → In hand → Wrapped
