@@ -12,7 +12,9 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 - **Gifts**: each gift is marked *Buying it* or *Making it*:
   - Buying it: Idea → Ordered → In hand → Wrapped
   - Making it: Idea → Making → Finished → Wrapped
+- **Calendar import**: drag events from Calendar onto the window, or pick an `.ics` file. "Amina's Birthday" becomes a birthday tied to Amina, "Christmas" becomes Christmas, and so on. If the app isn't sure, for example with a name that's not on your list or an event it can't place, it asks before adding.
 - **Calendar export**: download birthdays and yearly events as a calendar file, with a reminder a week before each.
+- **Move gifts between events**: drag a gift onto another event or onto Saved ideas (long-press on a phone). On a computer, you can also press M.
 - **Sharing**: one list for your household. Gifts someone else is buying for you stay hidden on your device, for every event.
 - **Undo** after any delete. Works offline, installs to your home screen, and has light and dark mode.
 - **Desktop layout** on computers: a sidebar, hover actions, centered dialogs and keyboard shortcuts.
@@ -30,6 +32,7 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 | ↑ ↓ (or J K) | Move between rows |
 | ↩ | Open the selected row |
 | Space | Next status for the selected gift |
+| M | Move the selected gift to another event |
 | ⌫ | Delete the selected row |
 | ⌘Z | Undo a delete |
 | ⌘↩ / Esc | Save / close a form |

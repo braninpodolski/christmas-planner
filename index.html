@@ -398,6 +398,7 @@ button.status:active { transform: scale(.92); }
 .hist-head { display: flex; align-items: center; gap: 8px; padding: 4px 20px 2px; font-size: 14px; font-weight: 600; color: var(--text2); letter-spacing: -.15px; }
 .present .bow { position: absolute; top: 10px; right: -3px; width: 86px; height: 60px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.25)); transform-origin: 50% 70%; }
 .present h1 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 42px; line-height: 1.02; letter-spacing: -.4px; color: #fff; text-wrap: balance; }
+.present h1.long { font-size: 34px; line-height: 1.05; }
 .present p { margin: 16px 0 0; font-size: 17px; line-height: 1.42; color: var(--on-fir2); letter-spacing: -.3px; text-wrap: pretty; }
 .present p b { color: var(--t-hi); font-weight: 600; font-variant-numeric: tabular-nums; }
 .present .spool { display: flex; height: 8px; gap: 3px; margin: 22px 0 10px; }
@@ -623,6 +624,52 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 .switch:checked::after { transform: translateX(20px); }
 .switch:focus-visible { outline: 2px solid var(--cranberry); outline-offset: 2px; }
 
+/* Dragging gifts between events */
+[data-row="gift"] { -webkit-touch-callout: none; }
+.drag-ghost {
+  position: fixed; z-index: 500; margin: 0; pointer-events: none; border-radius: 16px;
+  background: var(--g-fill-strong); -webkit-backdrop-filter: var(--g-filter); backdrop-filter: var(--g-filter);
+  box-shadow: var(--g-rim), 0 22px 44px -14px rgba(0,0,0,.4); transform-origin: 30% 50%;
+  animation: lift .22s var(--spring) both;
+}
+@keyframes lift { from { transform: scale(1); box-shadow: var(--g-rim); } }
+.drag-ghost::after { display: none; }
+.swipe.drag-src { opacity: .3; transition: opacity .15s; }
+body.dragging-gift, body.dragging-gift * { cursor: grabbing !important; }
+body.dragging-gift [data-drop].drop-ok { border-radius: 20px; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--cranberry) 30%, transparent); transition: background .15s, box-shadow .15s; }
+body.dragging-gift [data-drop].drop-over { background: color-mix(in srgb, var(--cranberry) 8%, transparent); box-shadow: inset 0 0 0 2px var(--cranberry); }
+.drop-only { display: none; }
+body.dragging-gift .drop-only { display: block; animation: settle .25s var(--ease) both; }
+.drop-pad { padding: 10px 0; margin: 0 12px 10px; }
+
+/* Calendar import */
+.imp { position: relative; }
+.imp.is-unsure { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--s-started) 70%, transparent); }
+.imp.is-done { opacity: .6; }
+.imp .row-main { display: flex; flex-direction: column; min-width: 0; }
+.imp-pill { flex: none; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; letter-spacing: -.05px; }
+.imp-pill.ok { color: var(--pine); background: color-mix(in srgb, var(--pine) 13%, transparent); }
+.imp-pill.ask { color: var(--s-started); background: color-mix(in srgb, var(--s-started) 15%, transparent); }
+.imp-pill.done { color: var(--text2); background: var(--sunken); }
+.imp-more > .row { box-shadow: 0 -.5px 0 var(--hair); }
+.imp-note { margin: 0; padding: 0 16px 12px 52px; color: var(--text2); font-size: 13px; line-height: 1.4; letter-spacing: -.08px; }
+.imp-change { display: block; margin: -4px 0 0 52px; padding: 0 0 12px; font-size: 14px; }
+.drop-zone {
+  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+  opacity: 0; transition: opacity .15s ease; pointer-events: none;
+}
+.drop-zone.show { opacity: 1; }
+.drop-card {
+  width: min(440px, 100%); padding: 34px 28px 30px; border-radius: 32px; text-align: center;
+  background: var(--g-fill-strong); box-shadow: var(--g-rim), var(--g-lift), inset 0 0 0 2px color-mix(in srgb, var(--cranberry) 40%, transparent);
+  outline: 2px dashed color-mix(in srgb, var(--cranberry) 55%, transparent); outline-offset: -14px;
+}
+.drop-card .ev-badge { margin: 0 auto 18px; }
+.drop-card h3 { margin: 0 0 8px; font-family: var(--serif); font-weight: 400; font-size: 28px; color: var(--ink); }
+.drop-card p { margin: 0; color: var(--text2); font-size: 15px; line-height: 1.45; }
+
 /* Person sheet: live tag preview, palette */
 .tag-preview { display: flex; justify-content: center; padding: 6px 0 22px; }
 .tag-preview .tag { transition: background .35s var(--ease); }
@@ -827,6 +874,8 @@ html.desk .toast.show { transform: translate(-50%, 0); }
 .keys kbd + kbd { margin-left: 4px; }
 .keys .k { display: flex; justify-content: flex-end; }
 
+html.no-anim *, html.no-anim *::before, html.no-anim *::after { transition: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
 }
@@ -841,6 +890,7 @@ html.desk .toast.show { transform: translate(-50%, 0); }
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
+<input type="file" id="icsFile" accept=".ics,text/calendar" multiple hidden>
 
 <script>
 'use strict';
@@ -1237,7 +1287,7 @@ function presentCard(o, { intro = false, link = true } = {}) {
     <section class="present hero-colors th-${o.type} ${intro ? 'intro' : ''} ${link ? 'linked' : ''}" ${link ? `data-action="open-event" data-id="${esc(o.id)}" role="link" tabindex="0"` : ''} aria-label="${esc(occTitle(o))}">
       <span class="ribbon"></span>${bow()}
       <div class="when">${Icon[THEMES[o.type].icon]}${esc(longDate)}</div>
-      <h1>${esc(eventHeadline(o))}</h1>
+      <h1 class="${eventHeadline(o).length > 34 ? 'long' : ''}">${esc(eventHeadline(o))}</h1>
       <p>${eventSummary(o)}</p>
       ${gs.length ? `
         <div class="spool" role="img" aria-label="${STATUSES.map(s => `${counts[s.id]} ${s.label.toLowerCase()}`).join(', ')}">
@@ -1369,6 +1419,7 @@ const Pages = {
           <h3>No events yet</h3>
           <p>Birthdays you add to people show up here on their own. You can also add Christmas, anniversaries and other celebrations.</p>
           <button class="btn" data-action="add-event">Add event</button>
+          <button class="btn quiet" data-action="import-ics">Import from Calendar</button>
         </div>`;
       return `
         ${up.length ? `
@@ -1381,7 +1432,10 @@ const Pages = {
             <div class="block-head"><h2>Past</h2><button class="link" data-action="toggle-past" aria-expanded="${ui.showPast}">${ui.showPast ? 'Hide' : `Show ${past.length}`}</button></div>
             ${ui.showPast ? `<div class="list" style="--inset:66px">${past.map(eventRow).join('')}</div>` : ''}
           </div>` : ''}
-        <p class="note">Birthdays and yearly events repeat on their own, and their gifts are kept as history. ${Desk.on() ? 'Press E to add an event.' : ''}</p>`;
+        <div class="block"><div class="list">
+          <button class="row add" data-action="import-ics"><span class="plus-dot">${Icon.calendar}</span>Import from a calendar file</button>
+        </div>
+        <p class="note">${Desk.on() ? 'You can also drag events straight from Calendar onto this window. Press E to add an event.' : 'Birthdays and yearly events repeat on their own, and their gifts are kept as history.'}</p></div>`;
     },
   },
 
@@ -1506,7 +1560,7 @@ const Pages = {
           const gs = sortGifts(occGifts(o).filter(g => g.personId === p.id));
           const b = num(o.budgets[p.id]);
           return `
-          <div class="block">
+          <div class="block" data-drop="${esc(o.id)}">
             <button class="group-head" data-action="open-event" data-id="${esc(o.id)}" style="width:100%;text-align:left">
               ${evBadge(o, 'sm')}<h2>${esc(occTitle(o))}</h2><span class="meta">${esc(dateRel(o.date))}</span>
             </button>
@@ -1518,7 +1572,7 @@ const Pages = {
             ${b ? `<p class="note">${money(occSpent(o, p.id))} spent of ${money(b)}.</p>` : ''}
           </div>`;
         }).join('')}
-        <div class="block">
+        <div class="block" data-drop="">
           <div class="block-head"><h2>Saved ideas</h2>${ideas.length ? `<span class="meta">${ideas.length}</span>` : ''}</div>
           <div class="list">
             ${ideas.map(g => giftRow(g)).join('')}
@@ -1629,9 +1683,10 @@ const Pages = {
         <div class="block">
           <div class="block-head"><h2>Calendar</h2></div>
           <div class="list" style="--inset:64px">
+            <button class="row" data-action="import-ics"><div class="row-icon" style="background:var(--s-have)">${Icon.up}</div><div class="row-main"><div class="row-title">Import from Calendar</div><div class="row-sub">Add birthdays and events from a calendar file</div></div>${Icon.chev}</button>
             <button class="row" data-action="export-ics"><div class="row-icon" style="background:var(--cranberry)">${Icon.calendar}</div><div class="row-main"><div class="row-title">Add events to Calendar</div><div class="row-sub">Birthdays and yearly events, with a reminder a week before</div></div>${Icon.chev}</button>
           </div>
-          <p class="note">Downloads a calendar file. Open it to add everything to Apple Calendar or Google Calendar. If you add birthdays later, export again.</p>
+          <p class="note">${Desk.on() ? 'To import, you can also drag events from Calendar onto this window. ' : ''}Exporting downloads a calendar file you can open in Apple Calendar or Google Calendar.</p>
         </div>
         <div class="block">
           <div class="block-head"><h2>Backup</h2></div>
@@ -1750,8 +1805,14 @@ function giftResults() {
     const head = o
       ? `<button class="group-head" data-action="open-event" data-id="${esc(o.id)}" style="width:100%;text-align:left">${evBadge(o, 'sm')}<h2>${esc(daysUntil(o.date) < 0 ? occYearTitle(o) : occTitle(o))}</h2><span class="meta">${esc(dateRel(o.date))}</span></button>`
       : `<div class="group-head"><span class="ev-badge sm th-idea">${Icon.idea}</span><h2>Saved ideas</h2><span class="meta">Not planned yet</span></div>`;
-    return `<div class="block">${head}<div class="list" style="--inset:80px">${sortG(groups.get(k)).map(g => giftRow(g, true)).join('')}</div></div>`;
-  }).join('');
+    return `<div class="block" data-drop="${esc(k)}">${head}<div class="list" style="--inset:80px">${sortG(groups.get(k)).map(g => giftRow(g, true)).join('')}</div></div>`;
+  }).join('') + (f === 'all' && !q ? `
+    <div class="drop-only">
+      <div class="block-head"><h2>Move to another event</h2></div>
+      ${[...upcomingOccasions().filter(o => !groups.has(o.id)), ...(groups.has('') ? [] : [null])].map(o => o
+        ? `<div class="block drop-pad" data-drop="${esc(o.id)}"><div class="group-head">${evBadge(o, 'sm')}<h2>${esc(occTitle(o))}</h2><span class="meta">${esc(dateRel(o.date))}</span></div></div>`
+        : `<div class="block drop-pad" data-drop=""><div class="group-head"><span class="ev-badge sm th-idea">${Icon.idea}</span><h2>Saved ideas</h2></div></div>`).join('')}
+    </div>` : '');
 }
 
 /* =========================================================
@@ -1963,6 +2024,7 @@ const Swipe = (() => {
   });
   document.addEventListener('pointermove', e => {
     if (!s) return;
+    if (GiftDrag.active()) { s = null; return; }
     const dx = e.clientX - s.x, dy = e.clientY - s.y;
     if (!s.active) {
       if (Math.abs(dy) > 8) { s = null; return; }
@@ -2474,6 +2536,382 @@ function ideasSheet(pid, oid) {
   });
 }
 
+/* =========================================================
+   Calendar import: read .ics files (dropped, picked or pasted),
+   guess what each event is, and ask only when unsure.
+   ========================================================= */
+const CalImport = {
+  MAX_BYTES: 2_000_000,
+  CELEBRATION_RE: /graduat|wedding|shower|party|housewarming|retire|valentine|mother.?s day|father.?s day|christening|baptism|bar mitzvah|bat mitzvah|quincea|engagement|hanukkah|chanukah|diwali|\beid\b|easter|new year|recital|promotion/i,
+  BDAY_RE: /\b(birth\s?day|bday|b-day)\b/i,
+
+  // Minimal iCalendar reader: VEVENT summary, start date and yearly repeat.
+  parse(text) {
+    const lines = String(text).replace(/\r?\n[ \t]/g, '').split(/\r?\n/);
+    const out = []; let cur = null; let calName = '';
+    const unesc = v => v.replace(/\\n/gi, ' ').replace(/\\([,;\\])/g, '$1').replace(/\s+/g, ' ').trim();
+    const toDate = val => {
+      const m = val.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?/);
+      if (!m) return '';
+      if (m[4] && m[7]) return ymd(new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]))); // UTC time -> local day
+      return dateOf(`${m[1]}-${m[2]}-${m[3]}`);
+    };
+    for (const line of lines) {
+      if (/^BEGIN:VEVENT/i.test(line)) { cur = {}; continue; }
+      if (/^END:VEVENT/i.test(line)) { if (cur?.summary && cur.date) out.push(cur); cur = null; continue; }
+      const m = line.match(/^([A-Z0-9-]+)((?:;[^:]*)?):(.*)$/i);
+      if (!m) continue;
+      const name = m[1].toUpperCase(), val = m[3];
+      if (!cur) { if (name === 'X-WR-CALNAME') calName = unesc(val); continue; }
+      if (name === 'SUMMARY') cur.summary = unesc(val).slice(0, 120);
+      else if (name === 'DTSTART') cur.date = toDate(val);
+      else if (name === 'RRULE') cur.yearly = /FREQ=YEARLY/i.test(val);
+      if (out.length > 300) break;
+    }
+    return { events: out, calName };
+  },
+
+  // "Amina’s 30th Birthday", "Birthday: Amina", "Happy birthday Amina", "Amina bday"
+  nameFrom(title) {
+    const s = title.replace(/[\u{1F300}-\u{1FAFF}☀-➿️]/gu, '').replace(/\s+/g, ' ').trim();
+    const pats = [
+      /^(?:happy\s+)?(.+?)\s*['’‘`]\s*s?\s+(?:\d+\s*(?:st|nd|rd|th)\s+)?(?:birth\s?day|bday|b-day)\b/i,
+      /^(?:happy\s+)?(?:birth\s?day|bday|b-day)\s*(?:[:\-–—]|\bof\b|\bfor\b)\s*(.+)$/i,
+      /^(?:happy\s+)?(?:birth\s?day|bday|b-day)\s+(.+)$/i,
+      /^(.+?)\s+(?:birth\s?day|bday|b-day)\b/i,
+    ];
+    for (const re of pats) {
+      const m = s.match(re);
+      if (!m) continue;
+      const n = m[1].replace(/[()[\]"“”]/g, '').replace(/\s+\d+$/, '').trim();
+      if (n && n.length <= 60 && !/^(my|our|the|your|his|her|their)$/i.test(n)) return n;
+    }
+    return '';
+  },
+  matchPeople(name) {
+    const n = name.toLowerCase();
+    const exact = state.people.filter(p => p.name.toLowerCase() === n);
+    if (exact.length) return exact;
+    const first = n.split(/\s+/)[0];
+    const byFirst = state.people.filter(p => p.name.toLowerCase().split(/\s+/)[0] === first);
+    if (byFirst.length) return byFirst;
+    return state.people.filter(p => n.startsWith(p.name.toLowerCase() + ' ') || p.name.toLowerCase().startsWith(n + ' '));
+  },
+
+  classify(ev, birthdayCalendar) {
+    const t = ev.summary, md = ev.date.slice(5);
+    const it = { summary: t, date: ev.date, repeat: !!ev.yearly, type: 'celebration', personId: '', newName: '', confident: false, exists: false, note: '' };
+    if (this.BDAY_RE.test(t) || birthdayCalendar) {
+      it.type = 'birthday'; it.repeat = true;
+      const name = this.nameFrom(t) || (birthdayCalendar ? t.trim() : '');
+      it.newName = name;
+      const matches = name ? this.matchPeople(name) : [];
+      if (matches.length === 1) { it.personId = matches[0].id; it.confident = true; }
+      else if (matches.length > 1) it.note = `More than one person matches “${name}”. Choose who this is.`;
+      else if (name) { it.personId = 'new'; it.note = `${name} isn’t on your list yet.`; }
+      else it.note = 'Choose whose birthday this is.';
+      const p = it.personId && it.personId !== 'new' ? person(it.personId) : null;
+      if (p?.birthday) {
+        if (p.birthday.slice(5) === md) it.exists = true;
+        else { it.confident = false; it.note = `This replaces ${possessive(p.name)} saved birthday, ${fmtDate(p.birthday, { month: 'long', day: 'numeric' })}.`; }
+      }
+    } else if (/\b(christmas|xmas|x-mas)\b/i.test(t) && (md === '12-25' || md === '12-24')) {
+      it.type = 'christmas'; it.repeat = true; it.confident = true;
+      if (occ('xmas' + nextChristmasDate().slice(0, 4))) it.exists = true;
+    } else if (/anniversary/i.test(t)) {
+      it.type = 'anniversary'; it.repeat = true; it.confident = true;
+    } else if (this.CELEBRATION_RE.test(t)) {
+      it.type = 'celebration'; it.confident = true;
+    } else {
+      it.note = 'Choose what kind of event this is.';
+    }
+    if (!it.exists && (it.type === 'anniversary' || it.type === 'celebration')) {
+      const tl = t.toLowerCase();
+      it.exists = state.occasions.some(o => o.type === it.type && o.date.slice(5) === md && (o.title || '').toLowerCase() === tl);
+    }
+    return it;
+  },
+
+  async readFiles(files) {
+    const texts = [];
+    for (const f of files) {
+      if (!(/\.ics$/i.test(f.name) || /calendar/i.test(f.type))) continue;
+      if (f.size > this.MAX_BYTES) { toast('That calendar file is too large', 'warn'); continue; }
+      texts.push(await f.text());
+    }
+    return texts;
+  },
+  async fromDataTransfer(dt) {
+    let texts = await this.readFiles([...(dt.files || [])]);
+    if (!texts.length) { const t = dt.getData('text/calendar') || dt.getData('text/plain'); if (/BEGIN:VCALENDAR/i.test(t)) texts = [t]; }
+    if (!texts.length) { toast('Drop a calendar event or an .ics file', 'warn'); return; }
+    this.run(texts);
+  },
+
+  run(texts) {
+    if (needsIdentity()) return;
+    const items = [];
+    const seen = new Set();
+    for (const text of texts) {
+      if (!/BEGIN:VCALENDAR/i.test(text)) continue;
+      const { events, calName } = this.parse(text);
+      const bdayCal = /birthday/i.test(calName);
+      for (const ev of events) {
+        const key = ev.summary.toLowerCase() + '|' + ev.date.slice(5);
+        if (seen.has(key)) continue; // a yearly event exported as several dated copies
+        seen.add(key);
+        items.push(this.classify(ev, bdayCal));
+      }
+    }
+    if (!items.length) { toast('No events found in that file', 'warn'); return; }
+    const fresh = items.filter(i => !i.exists);
+    if (!fresh.length) { toast(items.length === 1 ? 'That event is already in Events' : 'Those events are already in Events'); return; }
+    if (fresh.every(i => i.confident)) this.apply(fresh);
+    else this.review(items);
+  },
+
+  apply(items) {
+    const added = [];
+    undoable(`Added ${plural(items.length, 'event')}`, s => {
+      for (const it of items) {
+        if (it.type === 'birthday') {
+          let p = it.personId && it.personId !== 'new' ? s.people.find(x => x.id === it.personId) : null;
+          if (!p) {
+            const name = (it.newName || '').trim().slice(0, 100); if (!name) continue;
+            p = { id: uid(), created: Date.now(), name, relation: '', birthday: '', budget: '', color: COLORS[s.people.length % COLORS.length], emoji: '', notes: '', sizes: '' };
+            s.people.push(p);
+          }
+          p.birthday = it.date; // planOccasions (run by commit) creates the upcoming birthday event
+          added.push({ series: 'b' + p.id });
+        } else if (it.type === 'christmas') {
+          const date = nextChristmasDate(), id = 'xmas' + date.slice(0, 4);
+          if (!s.occasions.some(o => o.id === id)) s.occasions.push({ id, created: Date.now(), type: 'christmas', title: '', date, people: s.people.map(p => p.id), budgets: {}, repeat: true, series: 'xmas' });
+          added.push({ id });
+        } else {
+          const id = uid();
+          const date = it.repeat ? ymd(nextOccurrence(it.date)) : it.date;
+          s.occasions.push({ id, created: Date.now(), type: it.type, title: it.summary.slice(0, 100), date, people: [], budgets: {}, repeat: !!it.repeat, series: it.repeat ? id : '' });
+          added.push({ id });
+        }
+      }
+    });
+    // Open the single event that was added; for several, show the Events list.
+    if (items.length === 1 && added[0]) {
+      const o = added[0].id ? occ(added[0].id) : upcomingOccasions().find(x => x.series === added[0].series);
+      if (o) setTimeout(() => openEvent(o.id), 250);
+    } else if (Nav.current !== 'events') Nav.switchTab('events');
+  },
+
+  review(items) {
+    const typeOpts = sel => EVENT_TYPES.map(t => `<option value="${t}" ${t === sel ? 'selected' : ''}>${THEMES[t].label}</option>`).join('');
+    const whoOpts = it => `<option value="" ${it.personId ? '' : 'selected'} disabled>Choose</option>
+      ${sortedPeople().map(p => `<option value="${esc(p.id)}" ${p.id === it.personId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+      <option value="new" ${it.personId === 'new' ? 'selected' : ''}>New person${it.newName ? `: ${esc(it.newName)}` : ''}</option>`;
+    const needs = items.filter(i => !i.exists && !i.confident).length;
+    openSheet({
+      title: 'Add from calendar',
+      saveLabel: 'Add events',
+      required: [],
+      body: `
+        <p class="fnote" style="margin:0 0 18px;font-size:15px;color:var(--text)">Found ${plural(items.length, 'event')}. ${needs ? `${needs === 1 ? 'One needs' : `${needs} need`} a quick choice before adding.` : 'Everything is ready to add.'}</p>
+        ${items.map((it, i) => `
+          <div class="fgroup imp ${it.exists ? 'is-done' : it.confident ? '' : 'is-unsure'}" data-i="${i}">
+            <label class="row pick">
+              <input type="checkbox" name="inc" value="${i}" ${it.exists ? 'disabled' : (items.length === 1 || it.confident || it.type !== 'celebration') ? 'checked' : ''}>
+              <span class="pick-box">${Icon.check}</span>
+              <span class="ev-badge sm th-${it.type}" data-badge>${Icon[THEMES[it.type].icon]}</span>
+              <span class="row-main"><span class="row-title">${esc(it.summary)}</span><span class="row-sub">${esc(fmtDate(it.date, { month: 'long', day: 'numeric', year: 'numeric' }))}${it.repeat ? ', every year' : ''}</span></span>
+              <span class="imp-pill ${it.exists ? 'done' : it.confident ? 'ok' : 'ask'}">${it.exists ? 'Already added' : it.confident ? 'Ready' : 'Choose'}</span>
+            </label>
+            ${it.exists ? '' : `
+              <div class="imp-more" ${it.confident ? 'hidden' : ''}>
+                <div class="row"><label class="lbl" for="it${i}">Kind</label><select class="field" id="it${i}" name="type_${i}">${typeOpts(it.type)}</select>${Icon.chev}</div>
+                <div class="row" data-whose><label class="lbl" for="iw${i}">Whose</label><select class="field" id="iw${i}" name="who_${i}">${whoOpts(it)}</select>${Icon.chev}</div>
+                <div class="row" data-newname><label class="lbl" for="in${i}">Name</label><input class="field right" id="in${i}" name="name_${i}" value="${esc(it.newName)}" placeholder="Their name" autocapitalize="words"></div>
+                <label class="row" data-repeat><span class="row-main">Repeats every year</span><input type="checkbox" class="switch" name="rep_${i}" ${it.repeat ? 'checked' : ''}></label>
+              </div>
+              ${it.note ? `<p class="imp-note">${esc(it.note)}</p>` : ''}
+              ${it.confident ? `<button type="button" class="imp-change link" data-change>Change</button>` : ''}`}
+          </div>`).join('')}`,
+      onOpen(sh) {
+        const form = $('form', sh), btn = $('[data-sheet=save]', sh);
+        const sync = () => {
+          let count = 0, ok = true;
+          $$('.imp', form).forEach(box => {
+            const i = +box.dataset.i, it = items[i];
+            if (it.exists) return;
+            const t = form.elements['type_' + i].value;
+            const who = form.elements['who_' + i].value;
+            const name = form.elements['name_' + i].value.trim();
+            box.querySelector('[data-whose]').hidden = t !== 'birthday';
+            box.querySelector('[data-newname]').hidden = !(t === 'birthday' && who === 'new');
+            box.querySelector('[data-repeat]').hidden = t === 'birthday' || t === 'christmas';
+            const badge = box.querySelector('[data-badge]');
+            badge.className = `ev-badge sm th-${t}`; badge.innerHTML = Icon[THEMES[t].icon];
+            const on = box.querySelector('input[name=inc]').checked;
+            if (!on) return;
+            count++;
+            if (t === 'birthday' && (!who || (who === 'new' && !name))) ok = false;
+          });
+          btn.disabled = !ok || !count;
+          btn.firstChild.textContent = count ? `Add ${plural(count, 'event')}` : 'Add events';
+        };
+        form.addEventListener('input', sync); form.addEventListener('change', sync);
+        form.addEventListener('click', e => {
+          const b = e.target.closest('[data-change]'); if (!b) return;
+          b.closest('.imp').querySelector('.imp-more').hidden = false; b.remove();
+        });
+        sync();
+      },
+      onSave(d, form) {
+        const chosen = [];
+        for (const box of $$('.imp', form)) {
+          const i = +box.dataset.i, it = items[i];
+          if (it.exists || !box.querySelector('input[name=inc]').checked) continue;
+          const t = d['type_' + i];
+          const who = d['who_' + i];
+          chosen.push({ ...it, type: EVENT_TYPES.includes(t) ? t : 'celebration',
+            personId: t === 'birthday' ? who : '', newName: (d['name_' + i] || '').trim(),
+            repeat: t === 'birthday' || t === 'christmas' ? true : d['rep_' + i] === 'on' });
+        }
+        if (!chosen.length) return false;
+        if (chosen.some(c => c.type === 'birthday' && (!c.personId || (c.personId === 'new' && !c.newName)))) return false;
+        CalImport.apply(chosen);
+      },
+    });
+  },
+};
+
+/* =========================================================
+   Moving gifts between events (and back to saved ideas)
+   ========================================================= */
+// A gift can go to any event except someone else's birthday.
+function canDrop(g, occId) {
+  if (!occId) return true;
+  const o = occ(occId);
+  if (!o) return false;
+  return o.type !== 'birthday' || o.people[0] === g.personId;
+}
+function moveGift(id, toOcc) {
+  const g = state.gifts.find(x => x.id === id);
+  if (!g || (g.occasionId || '') === toOcc || !canDrop(g, toOcc)) return;
+  const o = toOcc ? occ(toOcc) : null;
+  undoable(`Moved to ${o ? occTitle(o) : 'saved ideas'}`, s => {
+    const gg = s.gifts.find(x => x.id === id);
+    gg.occasionId = toOcc;
+    const oo = toOcc && s.occasions.find(x => x.id === toOcc);
+    if (oo && !oo.people.includes(gg.personId)) oo.people.push(gg.personId); // planning for someone adds them
+  });
+}
+async function moveGiftPicker(id) {
+  const g = state.gifts.find(x => x.id === id); if (!g) return;
+  const opts = [{ id: '', label: 'Saved ideas' }, ...upcomingOccasions().map(o => ({ id: o.id, label: `${occTitle(o)}, ${fmtDate(o.date)}` }))]
+    .filter(o => o.id !== (g.occasionId || '') && canDrop(g, o.id)).slice(0, 8);
+  if (!opts.length) { toast('There’s nowhere else to move this gift', 'warn'); return; }
+  const i = await actionSheet({ message: `Move “${g.title}” to`, actions: opts.map(o => ({ label: o.label })) });
+  if (i >= 0) moveGift(id, opts[i].id);
+}
+
+/* Drag a gift onto another event: long-press on touch, click-and-drag with a mouse. */
+const GiftDrag = (() => {
+  let s = null, suppressClick = false, raf = 0;
+  const LONG_PRESS = 380, SLOP = 8;
+  const page = () => Nav.top();
+  const begin = () => {
+    s.started = true;
+    const r = s.row.getBoundingClientRect();
+    const ghost = s.row.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    ghost.removeAttribute('data-row'); ghost.removeAttribute('tabindex'); ghost.setAttribute('aria-hidden', 'true');
+    ghost.style.cssText = `width:${r.width}px;left:${r.left}px;top:${r.top}px`;
+    document.body.appendChild(ghost);
+    s.ghost = ghost;
+    s.src = s.row.closest('.swipe'); s.src?.classList.add('drag-src');
+    document.body.classList.add('dragging-gift');
+    $$('[data-drop]', page()).forEach(t => t.classList.toggle('drop-ok', t.dataset.drop !== (s.g.occasionId || '') && canDrop(s.g, t.dataset.drop)));
+    s.scroller = s.row.closest('.scroll');
+    navigator.vibrate?.(10);
+    Swipe.closeAll();
+    const tick = () => { if (!s?.started) return; autoscroll(); hit(); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+  };
+  const hit = () => {
+    const el = document.elementFromPoint(s.cx, s.cy)?.closest('[data-drop]');
+    const ok = el && el.classList.contains('drop-ok') ? el : null;
+    if (ok !== s.over) { s.over?.classList.remove('drop-over'); ok?.classList.add('drop-over'); s.over = ok; }
+  };
+  const autoscroll = () => {
+    if (!s.scroller) return;
+    const r = s.scroller.getBoundingClientRect();
+    const top = r.top + 90, bottom = r.bottom - 130;
+    if (s.cy < top) s.scroller.scrollTop -= Math.min(14, (top - s.cy) / 4);
+    else if (s.cy > bottom) s.scroller.scrollTop += Math.min(14, (s.cy - bottom) / 4);
+  };
+  const end = drop => {
+    if (!s) return;
+    clearTimeout(s.timer); cancelAnimationFrame(raf);
+    if (s.started && drop) hit(); // check the spot under the pointer at the moment of release
+    const st = s; s = null;
+    if (!st.started) return;
+    suppressClick = true; setTimeout(() => { suppressClick = false; }, 50);
+    document.body.classList.remove('dragging-gift');
+    st.src?.classList.remove('drag-src');
+    $$('.drop-ok, .drop-over').forEach(t => t.classList.remove('drop-ok', 'drop-over'));
+    const target = drop ? st.over : null;
+    if (target) { st.ghost.remove(); moveGift(st.g.id, target.dataset.drop); }
+    else { // glide back to where it came from
+      st.ghost.style.transition = 'transform .25s var(--ease), opacity .25s';
+      st.ghost.style.transform = 'none'; st.ghost.style.opacity = '0';
+      setTimeout(() => st.ghost.remove(), 260);
+    }
+  };
+  document.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    if (s) end(false); // a release we never saw (e.g. outside the window) must not block the next drag
+    const row = e.target.closest('[data-row="gift"]');
+    if (!row || e.target.closest('button, a, input, select, textarea') || !row.closest('[data-drop]')) return;
+    const g = state.gifts.find(x => x.id === row.dataset.id); if (!g) return;
+    s = { row, g, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, type: e.pointerType, started: false };
+    if (e.pointerType !== 'mouse') s.timer = setTimeout(() => { if (s && !s.started) begin(); }, LONG_PRESS);
+  });
+  document.addEventListener('pointermove', e => {
+    if (!s) return;
+    s.cx = e.clientX; s.cy = e.clientY;
+    const dist = Math.hypot(e.clientX - s.x, e.clientY - s.y);
+    if (!s.started) {
+      if (s.type === 'mouse') { if (dist > 6 && (e.buttons & 1)) begin(); else return; }
+      else { if (dist > SLOP) { clearTimeout(s.timer); s = null; } return; } // moved before the long-press: it's a scroll or swipe
+    }
+    s.ghost.style.transform = `translate(${e.clientX - s.x}px, ${e.clientY - s.y}px) scale(1.03)`;
+  });
+  document.addEventListener('pointerup', () => end(true));
+  document.addEventListener('pointercancel', () => end(false));
+  document.addEventListener('touchmove', e => { if (s?.started) e.preventDefault(); }, { passive: false }); // no scrolling mid-drag
+  document.addEventListener('keydown', e => { if (s?.started && e.key === 'Escape') { e.stopPropagation(); end(false); } }, true);
+  document.addEventListener('click', e => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); suppressClick = false; } }, true);
+  document.addEventListener('contextmenu', e => { if (s) e.preventDefault(); });
+  return { active: () => !!s?.started };
+})();
+
+/* Drag events from Calendar (or any .ics file) onto the page */
+(() => {
+  let depth = 0, overlay = null;
+  const isCal = e => [...(e.dataTransfer?.types || [])].some(t => t === 'Files' || t === 'text/calendar');
+  const show = () => {
+    if (overlay) return;
+    overlay = document.createElement('div');
+    overlay.className = 'drop-zone';
+    overlay.innerHTML = `<div class="drop-card"><span class="ev-badge xl th-birthday">${Icon.calendar}</span><h3>Drop to add events</h3><p>Birthdays are matched to people on your list. Anything unclear gets a quick question.</p></div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay?.classList.add('show'));
+  };
+  const hide = () => { const o = overlay; overlay = null; depth = 0; if (!o) return; o.classList.remove('show'); setTimeout(() => o.remove(), 200); };
+  addEventListener('dragenter', e => { if (!isCal(e) || $('.whoami')) return; e.preventDefault(); depth++; show(); });
+  addEventListener('dragover', e => { if (!isCal(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+  addEventListener('dragleave', e => { if (!isCal(e)) return; depth = Math.max(0, depth - 1); if (!depth) hide(); });
+  addEventListener('drop', e => { if (!isCal(e)) return; e.preventDefault(); hide(); if (!$('.whoami')) CalImport.fromDataTransfer(e.dataTransfer); });
+})();
+
 /* Calendar file (.ics) with yearly birthdays and events, each with a reminder a week before. */
 function exportIcs() {
   const esc2 = v => String(v).replace(/[\\;,]/g, m => '\\' + m).replace(/\r?\n/g, '\\n');
@@ -2581,6 +3019,7 @@ const Actions = {
     updatePage(Nav.stacks.gifts[0]);
   },
   'export-ics': () => exportIcs(),
+  'import-ics': () => $('#icsFile').click(),
   'open-settings': () => Nav.push({ name: 'settings' }),
   'open-person': el => {
     if (Nav.current !== 'people') {
@@ -2681,6 +3120,11 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => {
   if (e.target.id === 'giftSearch') { ui.giftQuery = e.target.value; $('#giftResults').innerHTML = giftResults(); }
+});
+$('#icsFile').addEventListener('change', async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  const texts = await CalImport.readFiles(files);
+  if (texts.length) CalImport.run(texts); else if (files.length) toast('Choose a calendar file (.ics)', 'warn');
 });
 $('#importFile').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
@@ -3156,7 +3600,7 @@ const Desk = {
     const nameOf = o => esc(o.type === 'birthday' ? firstName(person(o.people[0])) : occTitle(o));
     el.innerHTML = `
       <div class="sb-head">${next
-        ? `<button class="sb-count th-${next.type}" data-action="open-event" data-id="${esc(next.id)}">${n === 0 ? 'Today' : `${cap(words(n))} ${n === 1 ? 'day' : 'days'}`}<small>${n === 0 ? esc(occTitle(next)) : `until ${esc(occTitle(next))}`}</small></button>`
+        ? `<button class="sb-count th-${next.type}" data-action="open-event" data-id="${esc(next.id)}">${n === 0 ? 'Today' : n > 99 ? `${n} days` : `${cap(words(n))} ${n === 1 ? 'day' : 'days'}`}<small>${n === 0 ? esc(occTitle(next)) : `until ${esc(occTitle(next))}`}</small></button>`
         : `<div class="sb-count">Gift Tags<small>Every gift, all year</small></div>`}</div>
       <button class="sb-new" data-action="key-new-gift" title="New gift (N)">${Icon.plus}New gift<kbd>N</kbd></button>
       <nav class="sb-nav">
@@ -3216,7 +3660,7 @@ const Desk = {
       </div></div>
       <div class="fgroup"><div class="keys">
         ${row('Move between rows', '↑', '↓')}${row('Open the selected row', '↩')}
-        ${row('Next status, or check off a task', 'Space')}${row('Delete the selected row', '⌫')}
+        ${row('Next status for the selected gift', 'Space')}${row('Move the selected gift to another event', 'M')}${row('Delete the selected row', '⌫')}
         ${row('Undo delete', MOD, 'Z')}${row('Go back', 'Esc')}
       </div></div>
       <div class="fgroup"><div class="keys">${row('Save a form', MOD, '↩')}${row('Close a form', 'Esc')}</div></div>`,
@@ -3224,7 +3668,15 @@ const Desk = {
     });
   },
 };
-Desk.mq.addEventListener('change', () => Desk.apply());
+// Switching between phone and desktop layouts must not animate open dialogs or pages
+// from one layout's position to the other's, so transitions pause for the swap.
+Desk.mq.addEventListener('change', () => {
+  const root = document.documentElement;
+  root.classList.add('no-anim');
+  Desk.apply();
+  void root.offsetWidth;
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-anim')));
+});
 Actions['key-new-gift'] = () => giftSheet();
 Actions['key-help'] = () => Desk.help();
 
@@ -3271,6 +3723,7 @@ document.addEventListener('keydown', e => {
     case 'ArrowUp': case 'k': e.preventDefault(); Desk.move(-1); break;
     case 'Backspace': case 'Delete': if (row) { e.preventDefault(); Desk.rowAction(row, 'delete'); } break;
     case ' ': if (row) { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
+    case 'm': if (row?.dataset.row === 'gift') { e.preventDefault(); moveGiftPicker(row.dataset.id); } break;
     case 'x': if (row?.dataset.row === 'task') { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
     case 'Enter': if (row && row.tagName !== 'BUTTON') { e.preventDefault(); row.click(); } break;
   }
