@@ -2,7 +2,7 @@
 
 **Goal:** family members can use Gift Tags for their own households. They sign in like any normal app: no GitHub account, no tokens, no passphrases. Surprise gifts become truly private, enforced by the database instead of only hidden on screen. It stays free.
 
-**Status:** plan only. Nothing here is built yet.
+**Status:** phase 0 is done (November 26, 2026). The Firebase project `gift-tags` exists, and sign-in was tested on the iPhone (results below). Phases 1–5 aren't built yet.
 
 ---
 
@@ -114,6 +114,22 @@ This is the part most likely to go wrong, so it's phase 0:
 
 **Proposal:** offer email and password everywhere, plus Google where the phase 0 test shows it works. Stay on GitHub Pages unless that test fails badly.
 
+### Phase 0 results (iPhone, iOS 18.7)
+| Check | Safari | Home Screen app |
+| --- | --- | --- |
+| Google sign-in, popup | ✓ | ✓ |
+| Google sign-in, redirect | not tried | ✗ came back signed out (as expected on GitHub Pages) |
+| Still signed in after reopening | ✓ | ✓ |
+| Save to the cloud and read it back | ✓ | ✓ |
+| Save offline, reopen offline, sync when back online | ✓ | ✓ |
+| Email and password | not tried | not tried |
+
+**Decided:**
+- **Google sign-in uses the popup**, never the redirect.
+- **Email and password stays as the fallback.** It doesn't involve a popup or a redirect, so it has nothing to break in the Home Screen app, but it hasn't been tested on a device yet.
+- **Hosting stays on GitHub Pages**, at the same URL.
+- **Still to check during phase 3:** sign-in on the Mac and the work computer. A work browser that blocks popups or third-party cookies could need the email fallback.
+
 ---
 
 ## Phases
@@ -154,8 +170,8 @@ This is the part most likely to go wrong, so it's phase 0:
 ---
 
 ## Decisions for you
-1. **Sign-in methods:** email and password plus Google, or Google only? (Phase 0 will show what works on the iPhone.)
-2. **Hosting:** stay on GitHub Pages (same URL), or move to Firebase Hosting if Google sign-in needs it (new URL, re-add to home screens)?
+1. ~~Sign-in methods~~: decided in phase 0. Google (popup), plus email and password.
+2. ~~Hosting~~: decided in phase 0. Stay on GitHub Pages.
 3. **The old to-do list data** (`tasks`, no longer shown anywhere): bring it along or drop it in the move?
 
 ## Not in scope
