@@ -1,16 +1,17 @@
 // Offline support. Every app file is cached together as one version, so an update can never
 // mix old and new modules. Bump CACHE whenever app files change so installed copies update.
-const CACHE = 'xmas-v17';
+const CACHE = 'xmas-v18';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   './css/base.css', './css/desktop.css', './css/layout.css', './css/lists.css', './css/sheets.css',
   './js/actions.js', './js/calendar.js', './js/components.js', './js/constants.js', './js/data.js',
-  './js/datefields.js', './js/dates.js', './js/desktop.js', './js/event-sheet.js', './js/forms.js',
+  './js/datefields.js', './js/dates.js', './js/desktop.js', './js/event-sheet.js', './js/firebase-config.js', './js/forms.js',
   './js/gift-drag.js', './js/ics.js', './js/identity.js', './js/main.js', './js/nav.js',
   './js/pages.js', './js/passjoin.js', './js/sheets.js', './js/store.js', './js/sync.js',
   './js/util.js',
 ];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+const APP_PATHS = new Set(ASSETS.map(u => new URL(u, self.registration.scope).pathname));
 
 self.addEventListener('install', e => {
   // fetch fresh copies (not the browser's HTTP cache) and store them all, or none
@@ -24,7 +25,9 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   const sameOrigin = url.origin === location.origin;
   const isFont = FONT_HOSTS.includes(url.hostname);
-  if (!sameOrigin && !isFont) return; // never touch GitHub API calls
+  if (!sameOrigin && !isFont) return; // never touch GitHub, Firebase or sign-in traffic
+  // only the app's own files: other pages on this site (like the sign-in test) load straight from the network
+  if (sameOrigin && !APP_PATHS.has(url.pathname)) return;
 
   e.respondWith(caches.open(CACHE).then(async cache => {
     const cached = await cache.match(e.request, { ignoreSearch: sameOrigin });
