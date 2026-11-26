@@ -1,15 +1,28 @@
 {
-  "name": "Christmas Planner",
-  "short_name": "Christmas",
-  "description": "Personal Christmas planning and gift tracking",
+  "name": "Gift Tags",
+  "short_name": "Gift Tags",
+  "description": "Plan gifts for birthdays, Christmas and every occasion",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#F2F2F7",
   "theme_color": "#C8102E",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

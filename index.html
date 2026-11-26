@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Christmas</title>
-<meta name="description" content="Personal Christmas planning and gift tracking">
+<title>Gift Tags</title>
+<meta name="description" content="Plan gifts for birthdays, Christmas and every occasion">
 <meta name="theme-color" content="#FCFDFC" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0C1713" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Christmas">
+<meta name="apple-mobile-web-app-title" content="Gift Tags">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -313,24 +313,93 @@ button.status:active { transform: scale(.92); }
 .status.bump .pips i:nth-child(2) { animation-delay: .03s; } .status.bump .pips i:nth-child(3) { animation-delay: .06s; } .status.bump .pips i:nth-child(4) { animation-delay: .09s; }
 @keyframes pip { 40% { transform: scaleY(1.7); } }
 
-/* ---------- Overview hero: the present ---------- */
+/* ---------- Event themes: each event type is its own wrapping paper ----------
+   --t-bg1/2 paper, --t-rb1..3 ribbon (light to dark), --t-hi figures, --t-badge icon tile. */
+.th-christmas, :root {
+  --t-bg1: #173B2F; --t-bg2: #21503E; --t-rb1: #E24A62; --t-rb2: #D63850; --t-rb3: #A51A31; --t-hi: #E6C478; --t-shadow: rgba(16,45,33,.7);
+  --t-pattern: none; --t-pattern-size: auto;
+}
+.th-birthday {
+  --t-bg1: #2A1F57; --t-bg2: #43318A; --t-rb1: #FFDF9A; --t-rb2: #F2B84B; --t-rb3: #C48A22; --t-hi: #FFD27A; --t-shadow: rgba(42,31,87,.7);
+  --t-pattern: radial-gradient(circle at 22% 30%, rgba(255,210,122,.5) 0 1.6px, transparent 2.4px), radial-gradient(circle at 68% 64%, rgba(255,140,190,.45) 0 1.8px, transparent 2.6px), radial-gradient(circle at 40% 82%, rgba(130,215,255,.4) 0 1.3px, transparent 2px), radial-gradient(circle at 85% 18%, rgba(255,255,255,.28) 0 1.2px, transparent 2px);
+  --t-pattern-size: 92px 92px, 124px 124px, 70px 70px, 56px 56px;
+}
+.th-anniversary {
+  --t-bg1: #3E1424; --t-bg2: #66243C; --t-rb1: #FBE0E3; --t-rb2: #ECB0B8; --t-rb3: #C47E89; --t-hi: #F7D2A6; --t-shadow: rgba(62,20,36,.7);
+  --t-pattern: repeating-linear-gradient(135deg, rgba(255,255,255,.045) 0 1px, transparent 1px 13px);
+  --t-pattern-size: auto;
+}
+.th-celebration {
+  --t-bg1: #12233F; --t-bg2: #213E69; --t-rb1: #F6DFA8; --t-rb2: #DDB462; --t-rb3: #AE8234; --t-hi: #EBCB8B; --t-shadow: rgba(18,35,63,.7);
+  --t-pattern: radial-gradient(circle at 30% 40%, rgba(235,203,139,.55) 0 1.1px, transparent 1.8px), radial-gradient(circle at 76% 22%, rgba(255,255,255,.4) 0 .9px, transparent 1.6px);
+  --t-pattern-size: 58px 58px, 84px 84px;
+}
+.th-idea { --t-bg1: var(--sunken); --t-bg2: var(--sunken); --t-hi: var(--text2); }
+
+/* ---------- Hero: the present ---------- */
 .present {
   position: relative; margin: 0 14px 30px; border-radius: 26px; overflow: hidden;
-  background: radial-gradient(120% 90% at 0% 0%, var(--fir-2), var(--fir) 60%);
-  color: var(--on-fir); padding: 26px 82px 24px 22px; min-height: 260px;
-  box-shadow: 0 20px 40px -24px rgba(16,45,33,.7);
+  background-image: var(--t-pattern), radial-gradient(120% 90% at 0% 0%, var(--t-bg2), var(--t-bg1) 60%);
+  background-size: var(--t-pattern-size), auto;
+  color: var(--on-fir); padding: 22px 82px 24px 22px; min-height: 260px;
+  box-shadow: 0 20px 40px -24px var(--t-shadow);
+  transition: transform .35s var(--spring);
 }
-@media (prefers-color-scheme: dark) { .present { box-shadow: 0 0 0 .5px rgba(230,191,106,.18); } }
+@media (prefers-color-scheme: dark) { .present { box-shadow: 0 0 0 .5px color-mix(in srgb, var(--t-hi) 22%, transparent); } }
+.present.linked { cursor: pointer; }
+/* breathing room below the floating nav controls when the card leads the page */
+.content > .present:first-child { margin-top: 14px; }
+.present.linked:active { transform: scale(.985); }
+.present .when { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-size: 14px; font-weight: 600; letter-spacing: -.15px; color: var(--t-hi); }
+.present .when svg { width: 16px; height: 16px; }
+.present-actions { margin-top: 20px; }
+.pbtn { height: 40px; padding: 0 18px; border-radius: 20px; font-weight: 600; font-size: 15px; color: var(--t-bg1); background: var(--t-hi); transition: transform .3s var(--spring); }
+.pbtn:active { transform: scale(.95); }
 .present .ribbon {
   position: absolute; top: 0; bottom: 0; right: 30px; width: 20px;
-  background: linear-gradient(90deg, #A51A31, #D63850 45%, #B71F37);
+  background: linear-gradient(90deg, var(--t-rb3), var(--t-rb2) 45%, var(--t-rb3));
   box-shadow: -1px 0 0 rgba(0,0,0,.12), 1px 0 0 rgba(0,0,0,.12);
   transform-origin: top;
 }
+
+/* Event badge: a little square of the event's paper with its icon */
+.ev-badge {
+  width: 34px; height: 34px; border-radius: 11px; flex: none; display: grid; place-items: center; color: var(--t-hi);
+  background-image: radial-gradient(120% 100% at 0% 0%, var(--t-bg2), var(--t-bg1));
+  box-shadow: inset 0 0 0 .5px rgba(255,255,255,.12);
+}
+.ev-badge svg { width: 19px; height: 19px; }
+.ev-badge.sm { width: 28px; height: 28px; border-radius: 9px; }
+.ev-badge.sm svg { width: 16px; height: 16px; }
+.ev-badge.xs { width: 20px; height: 20px; border-radius: 6px; }
+.ev-badge.xs svg { width: 12px; height: 12px; }
+.ev-badge.xl { width: 84px; height: 84px; border-radius: 26px; margin-bottom: 22px; transform: rotate(-6deg); }
+.ev-badge.xl svg { width: 44px; height: 44px; }
+.ev-badge.th-idea { box-shadow: inset 0 0 0 1px var(--hair); }
+
+/* Coming-up tiles */
+.ev-tile {
+  position: relative; flex: none; width: 164px; height: 118px; border-radius: 20px; overflow: hidden; scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 4px; padding: 14px 40px 14px 14px; text-align: left;
+  color: #fff; background-image: var(--t-pattern), radial-gradient(120% 100% at 0% 0%, var(--t-bg2), var(--t-bg1) 70%);
+  background-size: var(--t-pattern-size), auto;
+  box-shadow: 0 12px 24px -16px var(--t-shadow);
+  transition: transform .35s var(--spring);
+}
+.ev-tile:active { transform: scale(.96); }
+.ev-tile .ribbon { position: absolute; top: 0; bottom: 0; right: 16px; width: 10px; background: linear-gradient(90deg, var(--t-rb3), var(--t-rb2) 45%, var(--t-rb3)); }
+.ev-tile .ic { position: absolute; top: 12px; left: 14px; color: var(--t-hi); }
+.ev-tile .ic svg { width: 20px; height: 20px; }
+.ev-tile .nm { font-family: var(--serif); font-size: 18px; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ev-tile .sb { font-size: 12.5px; color: rgba(255,255,255,.72); letter-spacing: -.05px; line-height: 1.35; }
+
+.row-count { flex: none; font-size: 13px; color: var(--text2); font-variant-numeric: tabular-nums; letter-spacing: -.08px; }
+.hist { margin-bottom: 14px; }
+.hist-head { display: flex; align-items: center; gap: 8px; padding: 4px 20px 2px; font-size: 14px; font-weight: 600; color: var(--text2); letter-spacing: -.15px; }
 .present .bow { position: absolute; top: 10px; right: -3px; width: 86px; height: 60px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.25)); transform-origin: 50% 70%; }
 .present h1 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 42px; line-height: 1.02; letter-spacing: -.4px; color: #fff; text-wrap: balance; }
 .present p { margin: 16px 0 0; font-size: 17px; line-height: 1.42; color: var(--on-fir2); letter-spacing: -.3px; text-wrap: pretty; }
-.present p b { color: var(--brass-hi); font-weight: 600; font-variant-numeric: tabular-nums; }
+.present p b { color: var(--t-hi); font-weight: 600; font-variant-numeric: tabular-nums; }
 .present .spool { display: flex; height: 8px; gap: 3px; margin: 22px 0 10px; }
 .present .spool i { display: block; height: 100%; border-radius: 4px; min-width: 0; transition: flex-grow .9s var(--ease); }
 .present .spool.empty i { background: rgba(241,246,242,.14); flex: 1; }
@@ -521,6 +590,39 @@ textarea.field { resize: none; min-height: 84px; line-height: 1.4; }
 .kind input { position: absolute; opacity: 0; pointer-events: none; }
 .kind label:has(input:focus-visible) { outline: 2px solid var(--cranberry); border-radius: 9px; }
 
+[hidden] { display: none !important; }
+.row label.lbl svg, .row span.lbl svg { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; margin-right: 6px; color: var(--text2); }
+
+/* Event sheet */
+.ev-preview { display: flex; justify-content: center; padding: 2px 0 18px; }
+.ev-preview .ev-tile { width: 200px; height: 124px; }
+.types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 16px 22px; }
+.type-tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 12px 4px 10px; border-radius: 18px;
+  background: var(--field); font-size: 12.5px; font-weight: 600; color: var(--text2); letter-spacing: -.05px; cursor: pointer;
+  box-shadow: inset 0 0 0 1px transparent; transition: box-shadow .2s, color .2s, transform .3s var(--spring);
+}
+.type-tile input { position: absolute; opacity: 0; pointer-events: none; }
+.type-tile:has(input:checked) { color: var(--ink); box-shadow: inset 0 0 0 2px var(--t-rb2), 0 6px 16px -10px var(--t-shadow); }
+.type-tile:has(input:focus-visible) { outline: 2px solid var(--cranberry); outline-offset: 2px; }
+.type-tile:active { transform: scale(.95); }
+.pick { gap: 12px; cursor: pointer; }
+.pick > input[type=checkbox] { position: absolute; opacity: 0; pointer-events: none; }
+.pick-box { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; box-shadow: inset 0 0 0 1.6px var(--text3); transition: background .2s, box-shadow .2s, transform .3s var(--spring); }
+.pick-box svg { width: 12px; height: 12px; color: #fff; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .3s var(--spring); }
+.pick:has(> input:checked) .pick-box { background: var(--cranberry); box-shadow: none; }
+.pick:has(> input:checked) .pick-box svg { opacity: 1; transform: none; }
+.pick:has(> input:focus-visible) .pick-box { outline: 2px solid var(--cranberry); outline-offset: 2px; }
+.pick .tag { --h: 24px; }
+.pick .budget-in { width: 84px; flex: none; }
+.pick:not(:has(> input:checked)) .budget-in { visibility: hidden; }
+/* iOS-style switch */
+.switch { -webkit-appearance: none; appearance: none; position: relative; flex: none; width: 51px; height: 31px; border-radius: 16px; background: var(--sunken); box-shadow: inset 0 0 0 1px var(--hair); cursor: pointer; transition: background .25s; margin: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.18), 0 1px 1px rgba(0,0,0,.08); transition: transform .35s var(--spring); }
+.switch:checked { background: var(--pine); box-shadow: none; }
+.switch:checked::after { transform: translateX(20px); }
+.switch:focus-visible { outline: 2px solid var(--cranberry); outline-offset: 2px; }
+
 /* Person sheet: live tag preview, palette */
 .tag-preview { display: flex; justify-content: center; padding: 6px 0 22px; }
 .tag-preview .tag { transition: background .35s var(--ease); }
@@ -650,7 +752,10 @@ html.desk #sidebar {
   padding: 18px 12px 12px; background: var(--sunken); overflow: hidden;
 }
 .sb-head { padding: 6px 10px 18px; }
-.sb-count { font-family: var(--serif); font-size: 26px; line-height: 1.05; color: var(--ink); }
+.sb-count { font-family: var(--serif); font-size: 26px; line-height: 1.05; color: var(--ink); text-align: left; display: block; width: 100%; }
+button.sb-count:hover small { color: var(--ink); }
+.sb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-person .ev-badge { margin: 0 1px; }
 .sb-count small { display: block; margin-top: 4px; font-family: -apple-system, system-ui, sans-serif; font-size: 13px; color: var(--text2); letter-spacing: -.08px; }
 .sb-new {
   display: flex; align-items: center; gap: 8px; width: 100%; height: 38px; padding: 0 12px; margin-bottom: 16px; border-radius: 19px;
@@ -786,23 +891,21 @@ const Icon = {
   key: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12.5" r="3.5"/><path d="m9.5 10 7-7M14 5.5l2 2M12 7.5l1.5 1.5"/></svg>',
   ok: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 10.5 3.5 3.5 7.5-8"/></svg>',
   warn: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4.5M10 13.6v.1"/></svg>',
+  // event types
+  tree: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 16.5 8.5H14l4 5h-2.6l3.6 5H5l3.6-5H6l4-5H7.5Z"/><path d="M12 18.5V21.5"/></svg>',
+  cake: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20.5h16M5.5 20.5v-6.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v6.5"/><path d="M5.5 16.2c1.6 1.2 3.2 1.2 4.6 0s3-1.2 4.4 0 3 1.2 4 .2"/><path d="M12 12V9M12 6.8c-1-.9-1-2.2 0-3.3 1 1.1 1 2.4 0 3.3Z"/></svg>',
+  rings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="14.5" r="5.5"/><circle cx="15" cy="14.5" r="5.5"/><path d="m10.4 5.2 1.6-2.2 1.6 2.2-1.6 1.9Z"/></svg>',
+  sparkle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3c.7 4.6 2.9 6.8 7.5 7.5-4.6.7-6.8 2.9-7.5 7.5-.7-4.6-2.9-6.8-7.5-7.5C8.1 9.8 10.3 7.6 11 3Z"/><path d="M18.5 15c.3 1.8 1.1 2.6 2.9 2.9-1.8.3-2.6 1.1-2.9 2.9-.3-1.8-1.1-2.6-2.9-2.9 1.8-.3 2.6-1.1 2.9-2.9Z"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none"/></svg>',
+  idea: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3Z"/></svg>',
 };
-const BOW = `<svg class="bow" viewBox="0 0 72 50" aria-hidden="true">
-  <defs><linearGradient id="bw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E24A62"/><stop offset="1" stop-color="#A9182F"/></linearGradient></defs>
-  <path d="M36 26 C24 6 6 4 8 18 C9 28 24 30 36 26Z" fill="url(#bw)"/>
-  <path d="M36 26 C48 6 66 4 64 18 C63 28 48 30 36 26Z" fill="url(#bw)"/>
-  <path d="M33 27 L24 48 L30 45 L33 49 L36 29Z M39 27 L48 48 L42 45 L39 49 L36 29Z" fill="#B71F37"/>
-  <path d="M15 14 C20 12 27 16 31 22" stroke="rgba(255,255,255,.28)" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M57 14 C52 12 45 16 41 22" stroke="rgba(0,0,0,.18)" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <ellipse cx="36" cy="26" rx="6.5" ry="6" fill="#C8243F"/><ellipse cx="34.5" cy="24.5" rx="2.5" ry="2" fill="rgba(255,255,255,.25)"/>
-</svg>`;
 
 const BOW_SMALL = `<svg viewBox="0 0 72 50" aria-hidden="true"><path d="M36 26 C24 6 6 4 8 18 C9 28 24 30 36 26Z M36 26 C48 6 66 4 64 18 C63 28 48 30 36 26Z" fill="#fff"/><path d="M33 27 L24 48 L30 45 L33 49 L36 29Z M39 27 L48 48 L42 45 L39 49 L36 29Z" fill="rgba(255,255,255,.75)"/><ellipse cx="36" cy="26" rx="6.5" ry="6" fill="#fff"/></svg>`;
 
 /* =========================================================
    State
    ========================================================= */
-const KEY = 'xmas-planner-v1';
+const KEY = 'xmas-planner-v1'; // storage key kept so existing lists keep loading
 // Generic labels (used for filters and the overview); each gift shows labels for its own kind.
 const STATUSES = [
   { id: 'idea', label: 'Ideas' },
@@ -821,8 +924,48 @@ const CATEGORIES = ['Shopping', 'Decorating', 'Food', 'Cards', 'Events', 'Other'
 const COLORS = ['#173B2F', '#2F7D5B', '#1E6F86', '#3B4F9A', '#6D3F8F', '#A3264A', '#C8243F', '#B8782A'];
 const EMOJIS = ['', '🎅', '🤶', '👶', '👧', '👦', '👩', '👨', '👵', '👴', '🐶', '🐱', '⭐️', '❄️', '🦌', '⛄️', '🎄', '🍪', '🔔', '🧸', '🎁', '🕯️', '🎿', '🎮'];
 
-const blank = () => ({ version: 2, updatedAt: 0, people: [], gifts: [], tasks: [], deleted: {}, household: { on: false, mod: 0 } });
-const KINDS = ['people', 'gifts', 'tasks'];
+/* Event types. Each has its own wrapping-paper theme (see .th-* in the CSS). */
+const EVENT_TYPES = ['birthday', 'christmas', 'anniversary', 'celebration'];
+const THEMES = {
+  birthday: { label: 'Birthday', icon: 'cake' },
+  christmas: { label: 'Christmas', icon: 'tree' },
+  anniversary: { label: 'Anniversary', icon: 'rings' },
+  celebration: { label: 'Celebration', icon: 'sparkle' },
+};
+
+const blank = () => ({ version: 3, updatedAt: 0, people: [], gifts: [], tasks: [], occasions: [], deleted: {}, household: { on: false, mod: 0 } });
+const KINDS = ['people', 'gifts', 'tasks', 'occasions'];
+
+/* ---------- Dates ---------- */
+const pad2 = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const parseYmd = s => new Date(s + 'T00:00');
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const daysUntil = s => Math.round((parseYmd(s) - today0()) / 86400000);
+// Month is 1-12. Feb 29 falls back to Feb 28 in years without it.
+function onDate(y, m, d) { const dt = new Date(y, m - 1, d); return dt.getMonth() === m - 1 ? dt : new Date(y, m, 0); }
+// Same month and day as `dateStr`, on or after `from`.
+function nextOccurrence(dateStr, from = today0()) {
+  const [, m, d] = dateStr.split('-').map(Number);
+  let dt = onDate(from.getFullYear(), m, d);
+  if (dt < from) dt = onDate(from.getFullYear() + 1, m, d);
+  return dt;
+}
+const fmtDate = (s, opts = { month: 'short', day: 'numeric' }) => parseYmd(s).toLocaleDateString(undefined, opts);
+function relDays(n) {
+  if (n === 0) return 'today';
+  if (n === 1) return 'tomorrow';
+  if (n < 14) return `in ${n} days`;
+  if (n < 60) return `in ${Math.round(n / 7)} weeks`;
+  return `in ${Math.round(n / 30.44)} months`;
+}
+// "Dec 25, in 4 weeks" for upcoming dates, "Dec 25, 2025" for past ones
+function dateRel(s) {
+  const n = daysUntil(s);
+  if (n < 0) return fmtDate(s, { month: 'short', day: 'numeric', year: 'numeric' });
+  if (n <= 1) return cap(relDays(n));
+  return `${fmtDate(s)}, ${relDays(n)}`;
+}
 
 /* Normalize any data entering the app (localStorage, imported file, synced Gist)
    so ids, enums and colors can never carry markup into rendered HTML. */
@@ -830,7 +973,7 @@ const ID_RE = /^[a-z0-9]{1,40}$/i;
 const str = (v, max = 2000) => (typeof v === 'string' ? v : v == null ? '' : String(v)).slice(0, max);
 const cleanId = v => (typeof v === 'string' && ID_RE.test(v) ? v : uid());
 const priceOf = v => (v === '' || v == null ? '' : Math.max(0, num(v)));
-const dateOf = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '');
+const dateOf = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(parseYmd(v)) ? v : '');
 function sanitize(raw) {
   const s = blank();
   if (!raw || typeof raw !== 'object') return s;
@@ -839,13 +982,28 @@ function sanitize(raw) {
   s.people = arr(raw.people).map(p => ({
     id: cleanId(p.id), created: Number(p.created) || 0,
     name: str(p.name, 100) || 'Unnamed', relation: str(p.relation, 100), budget: priceOf(p.budget),
+    birthday: dateOf(p.birthday),
     color: COLORS.includes(p.color) ? p.color : COLORS[0],
     emoji: EMOJIS.includes(p.emoji) ? p.emoji : '',
     notes: str(p.notes), sizes: str(p.sizes),
   }));
   const ids = new Set(s.people.map(p => p.id));
+  s.occasions = arr(raw.occasions).map(o => {
+    const people = (Array.isArray(o.people) ? o.people : []).filter(id => typeof id === 'string' && ids.has(id));
+    const budgets = {};
+    if (o.budgets && typeof o.budgets === 'object') for (const pid of people) { const b = priceOf(o.budgets[pid]); if (b) budgets[pid] = b; }
+    return {
+      id: cleanId(o.id), created: Number(o.created) || 0,
+      type: EVENT_TYPES.includes(o.type) ? o.type : 'celebration',
+      title: str(o.title, 100), date: dateOf(o.date) || ymd(today0()),
+      people: [...new Set(people)], budgets, repeat: !!o.repeat,
+      series: typeof o.series === 'string' && ID_RE.test(o.series) && o.series.length <= 24 ? o.series : '',
+    };
+  });
+  const oids = new Set(s.occasions.map(o => o.id));
   s.gifts = arr(raw.gifts).filter(g => ids.has(g.personId)).map(g => ({
     id: cleanId(g.id), created: Number(g.created) || 0, personId: g.personId,
+    occasionId: oids.has(g.occasionId) ? g.occasionId : '',
     title: str(g.title, 200) || 'Gift', price: priceOf(g.price), buyer: ids.has(g.buyer) ? g.buyer : '',
     status: STATUS_IDS.includes(g.status) ? g.status : (LEGACY_STATUS[g.status] || 'idea'),
     kind: g.kind === 'make' ? 'make' : 'buy',
@@ -865,6 +1023,16 @@ function sanitize(raw) {
   if (raw.deleted && typeof raw.deleted === 'object') {
     for (const [id, t] of Object.entries(raw.deleted)) if (ID_RE.test(id) && Number(t) > cutoff) s.deleted[id] = Number(t);
   }
+  // Migration from the Christmas-only version: everything becomes one Christmas event.
+  if (!Array.isArray(raw.occasions) && (s.people.length || s.gifts.length)) {
+    const now = new Date();
+    const y = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const budgets = {};
+    s.people.forEach(p => { if (p.budget) budgets[p.id] = p.budget; });
+    const xmas = { id: 'xmas' + y, created: 0, type: 'christmas', title: '', date: `${y}-12-25`, people: s.people.map(p => p.id), budgets, repeat: true, series: 'xmas', mod: 0 };
+    s.occasions.push(xmas);
+    s.gifts.forEach(g => { g.occasionId = xmas.id; });
+  }
   return s;
 }
 
@@ -882,14 +1050,72 @@ function merge(a, b) {
   });
   const pids = new Set(out.people.map(p => p.id));
   out.gifts = out.gifts.filter(g => pids.has(g.personId));
+  const oids = new Set(out.occasions.map(o => o.id));
+  out.gifts.forEach(g => { if (g.occasionId && !oids.has(g.occasionId)) g.occasionId = ''; });
   return out;
 }
 const canon = s => JSON.stringify([s.household, KINDS.map(k => [...s[k]].sort((x, y) => x.id < y.id ? -1 : 1)), Object.keys(s.deleted).sort().map(k => [k, s.deleted[k]])]);
-function load() { try { return sanitize(JSON.parse(localStorage.getItem(KEY))); } catch { return blank(); } }
+
+/* Keep the calendar rolling: each person's next birthday, and next year's copy of any
+   repeating event once this year's has passed. IDs are deterministic (series + year),
+   so two devices creating the same event at the same time merge into one. */
+function planOccasions(s) {
+  const t = today0();
+  const pids = new Set(s.people.map(p => p.id));
+  s.occasions.forEach(o => {
+    if (o.people.some(id => !pids.has(id))) {
+      o.people = o.people.filter(id => pids.has(id));
+      for (const k of Object.keys(o.budgets)) if (!pids.has(k)) delete o.budgets[k];
+    }
+  });
+  s.occasions = s.occasions.filter(o => o.type !== 'birthday' || o.people.length);
+  for (const p of s.people) {
+    const series = 'b' + p.id;
+    const mine = s.occasions.filter(o => o.series === series);
+    const upcoming = mine.find(o => daysUntil(o.date) >= 0);
+    if (!p.birthday) {
+      // birthday removed: drop the upcoming automatic event unless something was planned for it
+      if (upcoming && !s.gifts.some(g => g.occasionId === upcoming.id)) s.occasions = s.occasions.filter(o => o !== upcoming);
+      continue;
+    }
+    const due = ymd(nextOccurrence(p.birthday, t));
+    if (upcoming) { if (upcoming.date !== due) upcoming.date = due; continue; }
+    const id = `${series}y${due.slice(0, 4)}`;
+    if (s.deleted[id] || s.occasions.some(o => o.id === id)) continue;
+    const prev = [...mine].sort((a, b) => b.date.localeCompare(a.date))[0];
+    s.occasions.push({ id, created: 0, type: 'birthday', title: '', date: due, people: [p.id], budgets: prev ? { ...prev.budgets } : {}, repeat: true, series, mod: 0 });
+  }
+  const bySeries = {};
+  s.occasions.forEach(o => { if (o.series && o.type !== 'birthday') (bySeries[o.series] ||= []).push(o); });
+  for (const [series, list] of Object.entries(bySeries)) {
+    const latest = [...list].sort((a, b) => b.date.localeCompare(a.date))[0];
+    if (!latest.repeat || daysUntil(latest.date) >= 0) continue;
+    const due = ymd(nextOccurrence(latest.date, t));
+    const id = series === 'xmas' ? 'xmas' + due.slice(0, 4) : `${series}y${due.slice(0, 4)}`;
+    if (s.deleted[id] || s.occasions.some(o => o.id === id)) continue;
+    s.occasions.push({ ...latest, id, created: 0, date: due, people: [...latest.people], budgets: { ...latest.budgets }, mod: 0 });
+  }
+  const oids = new Set(s.occasions.map(o => o.id));
+  s.gifts.forEach(g => { if (g.occasionId && !oids.has(g.occasionId)) g.occasionId = ''; });
+}
+function needsPlan() { const c = structuredClone(state); planOccasions(c); return canon(c) !== canon(state); }
+function autoPlan() { if (needsPlan()) commit(() => {}); }
+
+function load() {
+  try {
+    const text = localStorage.getItem(KEY);
+    const raw = JSON.parse(text);
+    // Before converting a Christmas-only list to events, keep an untouched copy on this device.
+    if (raw && !Array.isArray(raw.occasions) && Array.isArray(raw.people) && raw.people.length && !localStorage.getItem(KEY + '-backup-v2')) {
+      localStorage.setItem(KEY + '-backup-v2', text);
+    }
+    return sanitize(raw);
+  } catch { return blank(); }
+}
 let state = load();
 function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
 
-const ui = { giftFilter: 'all', giftQuery: '', justAdded: null, introPlayed: false };
+const ui = { giftFilter: 'all', giftQuery: '', justAdded: null, introPlayed: false, showPast: false };
 
 function commit(fn, { render = true } = {}) {
   const key = (k, r) => k + ':' + r.id;
@@ -898,6 +1124,7 @@ function commit(fn, { render = true } = {}) {
   KINDS.forEach(k => state[k].forEach(r => before.set(key(k, r), sig(r))));
   const hh = state.household.on;
   fn(state);
+  planOccasions(state); // birthdays and repeating events stay current with every change
   if (state.household.on !== hh) state.household.mod = Date.now();
   const now = Date.now(), seen = new Set();
   KINDS.forEach(k => state[k].forEach(r => {
@@ -922,19 +1149,113 @@ const visibleGifts = () => needsIdentity() ? [] : state.gifts.filter(g => !(isMe
 const giftsFor = id => visibleGifts().filter(g => g.personId === id);
 const isSpent = g => g.status !== 'idea';
 const isReady = g => g.status === 'wrapped';
-const spentFor = id => giftsFor(id).filter(isSpent).reduce((a, g) => a + num(g.price), 0);
+const sumSpent = gs => gs.filter(isSpent).reduce((a, g) => a + num(g.price), 0);
+const spentFor = id => sumSpent(giftsFor(id));
 const sortedPeople = () => [...state.people].sort((a, b) => a.name.localeCompare(b.name));
 const shoppablePeople = () => sortedPeople().filter(p => !isMe(p.id));
-const budgetTotal = () => shoppablePeople().reduce((a, p) => a + num(p.budget), 0);
 const statusIndex = id => Math.max(0, STATUS_IDS.indexOf(id));
 
+/* ---------- Events ---------- */
+const occ = id => state.occasions.find(o => o.id === id);
+const possessive = n => n + (/s$/i.test(n) ? '’' : '’s');
+const firstName = p => (p?.name || '').trim().split(/\s+/)[0] || 'them';
+function occTitle(o) {
+  if (o.type === 'birthday') return `${possessive(person(o.people[0])?.name || 'Someone')} birthday`;
+  return o.title || THEMES[o.type].label;
+}
+// Adds the year where a title would otherwise repeat in history ("Christmas 2026")
+const occYearTitle = o => `${occTitle(o)} ${o.date.slice(0, 4)}`;
+const byDate = (a, b) => a.date.localeCompare(b.date) || occTitle(a).localeCompare(occTitle(b));
+const upcomingOccasions = () => state.occasions.filter(o => daysUntil(o.date) >= 0).sort(byDate);
+const pastOccasions = () => state.occasions.filter(o => daysUntil(o.date) < 0).sort((a, b) => b.date.localeCompare(a.date));
+const occGifts = o => visibleGifts().filter(g => g.occasionId === o.id);
+const occPeople = o => o.people.map(person).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+const occBudget = o => occPeople(o).filter(p => !isMe(p.id)).reduce((a, p) => a + num(o.budgets[p.id]), 0);
+const occSpent = (o, pid) => sumSpent(occGifts(o).filter(g => !pid || g.personId === pid));
+const ideasFor = pid => giftsFor(pid).filter(g => !g.occasionId);
+const nextFor = pid => upcomingOccasions().find(o => o.people.includes(pid));
+const nextChristmasDate = () => ymd(nextOccurrence('2000-12-25'));
+const evBadge = (o, cls = '') => `<span class="ev-badge th-${o.type} ${cls}" aria-hidden="true">${Icon[THEMES[o.type].icon]}</span>`;
+
 function christmas() {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  let y = now.getFullYear();
-  let xmas = new Date(y, 11, 25);
-  if (today > xmas) xmas = new Date(++y, 11, 25);
-  return { days: Math.round((xmas - today) / 86400000), year: y };
+  const d = nextChristmasDate();
+  return { days: daysUntil(d), year: +d.slice(0, 4) };
+}
+
+/* The countdown sentence for an event: "Twelve days until Sam’s birthday." */
+function eventHeadline(o) {
+  const n = daysUntil(o.date);
+  const p = person(o.people[0]);
+  if (n === 0) {
+    if (o.type === 'christmas') return 'Merry Christmas.';
+    if (o.type === 'birthday') return isMe(p?.id) ? 'Happy birthday.' : `It’s ${possessive(firstName(p))} birthday.`;
+    if (o.type === 'anniversary') return 'Happy anniversary.';
+    return `${occTitle(o)} is today.`;
+  }
+  if (n < 0) return `${occTitle(o)} was ${fmtDate(o.date, { month: 'long', day: 'numeric', year: 'numeric' })}.`;
+  const what = o.type === 'christmas' ? 'Christmas'
+    : o.type === 'birthday' ? (isMe(p?.id) ? 'your birthday' : `${possessive(firstName(p))} birthday`)
+    : o.type === 'anniversary' ? (o.title || 'your anniversary')
+    : (o.title || 'the celebration');
+  return `${cap(words(n))} ${n === 1 ? 'day' : 'days'} until ${what}.`;
+}
+function eventSummary(o) {
+  const gs = occGifts(o), budget = occBudget(o), spent = sumSpent(gs);
+  const people = occPeople(o).filter(p => !isMe(p.id));
+  if (!people.length) return o.type === 'birthday' ? 'This one’s for you, so any gifts for you stay hidden.' : 'Choose who you’re buying for to start planning.';
+  const sp = budget ? `You’ve spent <b>${money(spent)}</b> of your <b>${money(budget)}</b> budget.` : spent ? `You’ve spent <b>${money(spent)}</b> so far.` : '';
+  const ready = gs.filter(isReady).length;
+  const gf = gs.length ? ` <b>${ready}</b> of <b>${gs.length}</b> ${gs.length === 1 ? 'gift is' : 'gifts are'} wrapped.` : ' No gifts picked yet.';
+  const waiting = gs.filter(g => g.status === 'started' && g.kind === 'buy').length;
+  const making = gs.filter(g => g.status === 'started' && g.kind === 'make').length;
+  const extra = [waiting ? `<b>${waiting}</b> ${waiting === 1 ? 'order hasn’t' : 'orders haven’t'} arrived` : '', making ? `<b>${making}</b> handmade ${making === 1 ? 'gift is' : 'gifts are'} in progress` : ''].filter(Boolean);
+  return (sp + gf + (extra.length ? ' ' + cap(extra.join(', and ')) + '.' : '')).trim();
+}
+
+let bowSeq = 0;
+// Bow colors come from the event theme; each bow needs its own gradient id.
+function bow(cls = 'bow') {
+  const id = 'bw' + (++bowSeq);
+  return `<svg class="${cls}" viewBox="0 0 72 50" aria-hidden="true">
+  <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--t-rb1)"/><stop offset="1" style="stop-color:var(--t-rb3)"/></linearGradient></defs>
+  <path d="M36 26 C24 6 6 4 8 18 C9 28 24 30 36 26Z" fill="url(#${id})"/>
+  <path d="M36 26 C48 6 66 4 64 18 C63 28 48 30 36 26Z" fill="url(#${id})"/>
+  <path d="M33 27 L24 48 L30 45 L33 49 L36 29Z M39 27 L48 48 L42 45 L39 49 L36 29Z" style="fill:var(--t-rb2)"/>
+  <path d="M15 14 C20 12 27 16 31 22" stroke="rgba(255,255,255,.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M57 14 C52 12 45 16 41 22" stroke="rgba(0,0,0,.18)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <ellipse cx="36" cy="26" rx="6.5" ry="6" style="fill:var(--t-rb2)"/><ellipse cx="34.5" cy="24.5" rx="2.5" ry="2" fill="rgba(255,255,255,.3)"/>
+</svg>`;
+}
+
+/* The wrapped-present card, themed for the event. */
+function presentCard(o, { intro = false, link = true } = {}) {
+  const gs = occGifts(o);
+  const counts = Object.fromEntries(STATUSES.map(s => [s.id, gs.filter(g => g.status === s.id).length]));
+  const heroVars = { idea: 'var(--h-idea)', started: 'var(--h-started)', have: 'var(--h-have)', wrapped: 'var(--h-wrapped)' };
+  const longDate = fmtDate(o.date, { weekday: 'long', month: 'long', day: 'numeric', ...(daysUntil(o.date) < 0 || daysUntil(o.date) > 300 ? { year: 'numeric' } : {}) });
+  return `
+    <section class="present hero-colors th-${o.type} ${intro ? 'intro' : ''} ${link ? 'linked' : ''}" ${link ? `data-action="open-event" data-id="${esc(o.id)}" role="link" tabindex="0"` : ''} aria-label="${esc(occTitle(o))}">
+      <span class="ribbon"></span>${bow()}
+      <div class="when">${Icon[THEMES[o.type].icon]}${esc(longDate)}</div>
+      <h1>${esc(eventHeadline(o))}</h1>
+      <p>${eventSummary(o)}</p>
+      ${gs.length ? `
+        <div class="spool" role="img" aria-label="${STATUSES.map(s => `${counts[s.id]} ${s.label.toLowerCase()}`).join(', ')}">
+          ${STATUSES.map(s => `<i style="flex-grow:${counts[s.id]};background:${heroVars[s.id]}"></i>`).join('')}
+        </div>
+        <div class="key">${STATUSES.map(s => `<span><i style="--c:${heroVars[s.id]}"></i>${s.label} <b>${counts[s.id]}</b></span>`).join('')}</div>` : ''}
+    </section>`;
+}
+
+/* Small themed card for the "Coming up" shelf. */
+function eventTile(o) {
+  const gs = occGifts(o);
+  return `<button class="ev-tile th-${o.type}" data-action="open-event" data-id="${esc(o.id)}" aria-label="${esc(occTitle(o))}, ${esc(dateRel(o.date))}">
+    <span class="ribbon"></span>
+    <span class="ic">${Icon[THEMES[o.type].icon]}</span>
+    <span class="nm">${esc(occTitle(o))}</span>
+    <span class="sb">${esc(dateRel(o.date))}${gs.length ? `<br>${gs.filter(isReady).length} of ${gs.length} wrapped` : ''}</span>
+  </button>`;
 }
 
 function tag(p, cls = '') {
@@ -963,90 +1284,147 @@ function leftLabel(spent, budget) {
    Pages
    ========================================================= */
 const TABS = [
-  { id: 'home', label: 'Overview', icon: 'star', root: 'home' },
+  { id: 'home', label: 'Home', icon: 'star', root: 'home' },
+  { id: 'events', label: 'Events', icon: 'calendar', root: 'events' },
   { id: 'people', label: 'People', icon: 'tag', root: 'people' },
   { id: 'gifts', label: 'Gifts', icon: 'gift', root: 'gifts' },
-  { id: 'todo', label: 'To-Do', icon: 'todo', root: 'todo' },
 ];
 
 const Pages = {
   home: {
-    title: () => 'Christmas',
+    title: () => 'Home',
     largeTitle: false,
     collapseAt: 120,
     actions: () => `<button class="nav-btn glass" data-action="open-settings" aria-label="Settings">${Icon.gear}</button>`,
     render() {
-      const { days } = christmas();
-      const vg = visibleGifts();
-      const budget = budgetTotal();
-      const spent = vg.filter(isSpent).reduce((a, g) => a + num(g.price), 0);
-      const total = vg.length;
-      const ready = vg.filter(isReady).length;
-      const counts = Object.fromEntries(STATUSES.map(s => [s.id, vg.filter(g => g.status === s.id).length]));
-      const openTasks = state.tasks.filter(t => !t.done).sort(byDue);
-
-      const headline = days === 0 ? 'Merry Christmas.' : `${cap(words(days))} ${days === 1 ? 'day' : 'days'} until Christmas.`;
-      let line;
-      if (!state.people.length) line = 'Add the people you’re buying for, and this card will keep track of your spending and gifts.';
-      else {
-        const sp = budget ? `You’ve spent <b>${money(spent)}</b> of your <b>${money(budget)}</b> budget.` : `You’ve spent <b>${money(spent)}</b> so far.`;
-        const gf = total ? ` <b>${ready}</b> of <b>${total}</b> ${total === 1 ? 'gift is' : 'gifts are'} wrapped.` : ' No gifts picked yet.';
-        const waiting = vg.filter(g => g.status === 'started' && g.kind === 'buy').length;
-        const making = vg.filter(g => g.status === 'started' && g.kind === 'make').length;
-        const extra = [waiting ? `<b>${waiting}</b> ${waiting === 1 ? 'order hasn’t' : 'orders haven’t'} arrived` : '', making ? `<b>${making}</b> handmade ${making === 1 ? 'gift is' : 'gifts are'} in progress` : ''].filter(Boolean);
-        line = sp + gf + (extra.length ? ' ' + cap(extra.join(', and ')) + '.' : '');
-      }
-      const heroVars = { idea: 'var(--h-idea)', started: 'var(--h-started)', have: 'var(--h-have)', wrapped: 'var(--h-wrapped)' };
+      const up = upcomingOccasions();
+      const next = up[0];
       const intro = !ui.introPlayed; ui.introPlayed = true;
+      const ideas = visibleGifts().filter(g => !g.occasionId);
 
-      const needs = shoppablePeople().filter(p => !giftsFor(p.id).some(isSpent));
+      const hero = next ? presentCard(next, { intro }) : `
+        <section class="present hero-colors th-celebration ${intro ? 'intro' : ''}" aria-label="Getting started">
+          <span class="ribbon"></span>${bow()}
+          <h1>${state.people.length ? 'Plan the next celebration.' : 'Every gift, all year.'}</h1>
+          <p>${state.people.length
+            ? 'Add birthdays to the people on your list, or create an event like Christmas or an anniversary. This card counts down to whatever is next.'
+            : 'Add the people you buy for, then their birthdays and holidays. This card counts down to whatever is next.'}</p>
+          <div class="present-actions"><button class="pbtn" data-action="${state.people.length ? 'add-event' : 'add-person'}">${state.people.length ? 'Add event' : 'Add person'}</button></div>
+        </section>`;
+
+      const needs = next ? occPeople(next).filter(p => !isMe(p.id) && !occGifts(next).some(g => g.personId === p.id && isSpent(g))) : [];
       return `
-        <section class="present hero-colors ${intro ? 'intro' : ''}" aria-label="Christmas countdown">
-          <span class="ribbon"></span>${BOW}
-          <h1>${headline}</h1>
-          <p>${line}</p>
-          ${total ? `
-            <div class="spool" role="img" aria-label="${STATUSES.map(s => `${counts[s.id]} ${s.label.toLowerCase()}`).join(', ')}">
-              ${STATUSES.map(s => `<i style="flex-grow:${counts[s.id]};background:${heroVars[s.id]}"></i>`).join('')}
+        ${hero}
+
+        ${up.length > 1 ? `
+          <div class="block">
+            <div class="block-head"><h2>Coming up</h2><button class="link" data-action="tab" data-tab="events">See all</button></div>
+            <div class="shelf">${up.slice(1, 7).map(eventTile).join('')}</div>
+          </div>` : ''}
+
+        ${needs.length ? `
+          <div class="block">
+            <div class="block-head"><h2>Still shopping for</h2><span class="meta">${needs.length} of ${occPeople(next).filter(p => !isMe(p.id)).length}</span></div>
+            <div class="shelf">
+              ${needs.map(p => {
+                const n = occGifts(next).filter(g => g.personId === p.id).length;
+                const saved = ideasFor(p.id).length;
+                return `<button class="shelf-tag" data-action="open-event" data-id="${esc(next.id)}" aria-label="${esc(p.name)}">
+                  <span class="tag" style="--c:${p.color}">
+                    <span class="nm">${esc(p.name)}</span>
+                    <span class="sb">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${n ? plural(n, 'idea') : saved ? `${plural(saved, 'saved idea')}` : 'No ideas yet'}</span>
+                  </span>
+                </button>`;
+              }).join('')}
             </div>
-            <div class="key">${STATUSES.map(s => `<span><i style="--c:${heroVars[s.id]}"></i>${s.label} <b>${counts[s.id]}</b></span>`).join('')}</div>`
-          : ''}
-        </section>
+          </div>` : ''}
 
         ${!state.people.length ? `
           <div class="empty">
             <span class="tag xl" style="--c:var(--cranberry)">?</span>
             <h3>Who’s on your list?</h3>
-            <p>Start with the people you’re buying for. You can give each one a budget.</p>
+            <p>Start with the people you buy for. Add their birthdays and they’ll show up on their own every year.</p>
             <button class="btn" data-action="add-person">Add person</button>
           </div>` : ''}
 
-        ${needs.length ? `
+        ${ideas.length ? `
           <div class="block">
-            <div class="block-head"><h2>Still shopping for</h2><span class="meta">${needs.length} of ${shoppablePeople().length}</span></div>
-            <div class="shelf">
-              ${needs.map(p => {
-                const n = giftsFor(p.id).length;
-                return `<button class="shelf-tag" data-action="open-person" data-id="${esc(p.id)}" aria-label="${esc(p.name)}">
-                  <span class="tag" style="--c:${p.color}">
-                    <span class="nm">${esc(p.name)}</span>
-                    <span class="sb">${p.emoji ? `<span class="em">${esc(p.emoji)}</span>` : ''}${n ? plural(n, 'idea') : 'No ideas yet'}</span>
-                  </span>
-                </button>`;
-              }).join('')}
-            </div>
-          </div>` : (state.people.length && total ? `
-          <div class="block"><div class="block-head"><h2>Everyone’s covered</h2></div>
-          <p class="note" style="padding-top:0;font-size:15px">Everyone has at least one gift on the way or in hand.</p></div>` : '')}
+            <div class="list"><button class="row" data-action="show-ideas" data-row="link">
+              <span class="ev-badge th-idea">${Icon.idea}</span>
+              <div class="row-main"><div class="row-title">${plural(ideas.length, 'saved idea')}</div><div class="row-sub">Ideas you haven’t planned for an event yet</div></div>${Icon.chev}
+            </button></div>
+          </div>` : ''}
 
-        ${state.people.length || state.tasks.length ? `
-        <div class="block">
-          <div class="block-head"><h2>Coming up</h2>${state.tasks.length ? `<button class="link" data-action="tab" data-tab="todo">See all</button>` : ''}</div>
-          ${openTasks.length ? `<div class="list" style="--inset:56px">${openTasks.slice(0, 4).map(taskRow).join('')}</div>`
-            : state.tasks.length ? `<p class="note" style="padding-top:0;font-size:15px">Your to-do list is clear.</p>`
-            : `<div class="list"><button class="row add" data-action="starter-tasks"><span class="plus-dot">${Icon.plus}</span>Add a starter checklist</button></div>`}
-        </div>` : ''}
       `;
+    },
+  },
+
+  events: {
+    title: () => 'Events',
+    render() {
+      const up = upcomingOccasions(), past = pastOccasions();
+      if (!state.occasions.length) return `
+        <div class="empty">
+          <span class="ev-badge xl th-birthday">${Icon.cake}</span>
+          <h3>No events yet</h3>
+          <p>Birthdays you add to people show up here on their own. You can also add Christmas, anniversaries and other celebrations.</p>
+          <button class="btn" data-action="add-event">Add event</button>
+        </div>`;
+      return `
+        ${up.length ? `
+          <div class="block">
+            <div class="block-head"><h2>Coming up</h2><span class="meta">${up.length}</span></div>
+            <div class="list" style="--inset:66px">${up.map(eventRow).join('')}</div>
+          </div>` : '<p class="note" style="font-size:15px">Nothing coming up. Add an event, or add birthdays to people.</p>'}
+        ${past.length ? `
+          <div class="block">
+            <div class="block-head"><h2>Past</h2><button class="link" data-action="toggle-past" aria-expanded="${ui.showPast}">${ui.showPast ? 'Hide' : `Show ${past.length}`}</button></div>
+            ${ui.showPast ? `<div class="list" style="--inset:66px">${past.map(eventRow).join('')}</div>` : ''}
+          </div>` : ''}
+        <p class="note">Birthdays and yearly events repeat on their own, and their gifts are kept as history. ${Desk.on() ? 'Press E to add an event.' : ''}</p>`;
+    },
+  },
+
+  event: {
+    title: r => { const o = occ(r.id); return o ? occTitle(o) : ''; },
+    largeTitle: false,
+    collapseAt: 220,
+    actions: r => `<button class="nav-btn text glass" data-action="edit-event" data-id="${esc(r.id)}">Edit</button>`,
+    render(r) {
+      const o = occ(r.id);
+      if (!o) { setTimeout(() => Nav.pop(), 0); return ''; }
+      const people = occPeople(o);
+      const budget = occBudget(o), spent = occSpent(o);
+      return `
+        ${presentCard(o, { link: false })}
+        ${budget ? `
+          <div class="ledger">
+            <div class="ledger-row"><span class="big">${money(spent)}</span><span class="of">of ${money(budget)}</span></div>
+            <div class="meter ${spent > budget ? 'over' : ''}"><i style="width:${Math.min(spent / budget, 1) * 100}%"></i></div>
+            <div class="say">${spent <= budget ? `<b>${money(budget - spent)}</b> left to spend.` : `<b class="over">${money(spent - budget)}</b> over budget.`}</div>
+          </div>` : ''}
+        ${people.map(p => {
+          if (isMe(p.id)) return `
+            <div class="block">
+              <div class="group-head">${tag(p)}<h2>${esc(p.name)}</h2><span class="you">You</span></div>
+              <p class="note" style="padding-top:2px">Your gifts are a surprise, so they’re hidden here.</p>
+            </div>`;
+          const gs = occGifts(o).filter(g => g.personId === p.id).sort((a, b) => statusIndex(a.status) - statusIndex(b.status) || a.created - b.created);
+          const saved = ideasFor(p.id).length;
+          const b = num(o.budgets[p.id]);
+          return `
+            <div class="block">
+              <button class="group-head" data-action="open-person" data-id="${esc(p.id)}" style="width:100%;text-align:left">${tag(p)}<h2>${esc(p.name)}</h2>${b ? leftLabel(occSpent(o, p.id), b) : ''}</button>
+              <div class="list">
+                ${gs.map(g => giftRow(g)).join('')}
+                <button class="row add" data-action="add-gift" data-person="${esc(p.id)}" data-occ="${esc(o.id)}"><span class="plus-dot">${Icon.plus}</span>Add gift</button>
+                ${saved ? `<button class="row add" data-action="use-ideas" data-person="${esc(p.id)}" data-occ="${esc(o.id)}"><span class="plus-dot">${Icon.idea}</span>Use a saved idea<span class="meta" style="margin-left:auto">${saved}</span></button>` : ''}
+              </div>
+            </div>`;
+        }).join('')}
+        ${o.type === 'birthday' ? '' : `<div class="block"><div class="list">
+          <button class="row add" data-action="edit-event" data-id="${esc(o.id)}"><span class="plus-dot">${Icon.tag}</span>${people.length ? 'Add or remove people' : 'Choose who you’re buying for'}</button>
+        </div></div>`}`;
     },
   },
 
@@ -1057,25 +1435,24 @@ const Pages = {
         <div class="empty">
           <span class="tag xl" style="--c:var(--fir)">?</span>
           <h3>Who’s on your list?</h3>
-          <p>Add the people you’re buying for. Give each one a budget to keep spending in check.</p>
+          <p>Add the people you buy for. Give them a birthday and it shows up in Events every year.</p>
           <button class="btn" data-action="add-person">Add person</button>
         </div>`;
-      const budget = budgetTotal();
-      const spent = visibleGifts().filter(isSpent).reduce((a, g) => a + num(g.price), 0);
       return `
         <div class="block">
           <div class="list" style="--inset:80px">
             ${sortedPeople().map(p => {
+              const nx = nextFor(p.id);
+              const nxLabel = nx ? `${nx.type === 'birthday' && nx.people[0] === p.id ? 'Birthday' : occTitle(nx)} ${relDays(daysUntil(nx.date))}` : (p.relation || 'Nothing coming up');
               if (isMe(p.id)) return `
               <div class="swipe"><div class="swipe-content">
-                <button class="row" data-action="open-person" data-id="${esc(p.id)}">
+                <button class="row" data-action="open-person" data-id="${esc(p.id)}" data-row="person">
                   ${tag(p)}
-                  <div class="row-main"><div class="row-title">${esc(p.name)} <span class="you">You</span></div><div class="row-sub">Your gifts are a surprise</div></div>
+                  <div class="row-main"><div class="row-title">${esc(p.name)} <span class="you">You</span></div><div class="row-sub">${esc(nxLabel)}</div></div>
                   ${Icon.chev}
                 </button>
               </div></div>`;
-              const gs = giftsFor(p.id), sp = spentFor(p.id), b = num(p.budget);
-              const ready = gs.filter(isReady).length;
+              const saved = ideasFor(p.id).length;
               return `
               <div class="swipe ${ui.justAdded === p.id ? 'enter' : ''}">
                 <div class="swipe-actions"><button data-action="delete-person" data-id="${esc(p.id)}">Delete</button></div>
@@ -1084,16 +1461,16 @@ const Pages = {
                     ${tag(p)}
                     <div class="row-main">
                       <div class="row-title">${esc(p.name)}</div>
-                      <div class="row-sub">${gs.length ? `${ready} of ${plural(gs.length, 'gift')} wrapped` : 'No gifts yet'}</div>
-                      ${b ? `<div class="meter ${sp > b ? 'over' : ''}"><i style="width:${Math.min(sp / b, 1) * 100}%"></i></div>` : ''}
+                      <div class="row-sub">${esc(nxLabel)}</div>
                     </div>
-                    <div class="row-end"><span class="money">${money(sp)}</span>${leftLabel(sp, b)}</div>
+                    ${saved ? `<span class="row-count">${plural(saved, 'idea')}</span>` : ''}
+                    ${Icon.chev}
                   </button>
                 </div>
               </div>`;
             }).join('')}
           </div>
-          <p class="note">${budget ? `${money(spent)} spent of ${money(budget)} across ${plural(shoppablePeople().length, 'person', 'people')}.` : `${plural(state.people.length, 'person', 'people')}.`} ${Desk.on() ? 'Hover a person to delete, or select one and press ⌫.' : 'Swipe left on a person to delete.'}</p>
+          <p class="note">${plural(state.people.length, 'person', 'people')}. ${Desk.on() ? 'Hover a person to delete, or select one and press ⌫.' : 'Swipe left on a person to delete.'}</p>
         </div>`;
     },
   },
@@ -1106,40 +1483,59 @@ const Pages = {
     render(r) {
       const p = person(r.id);
       if (!p) { setTimeout(() => Nav.pop(), 0); return ''; }
-      if (isMe(p.id)) return `
+      const bday = p.birthday ? `Birthday ${fmtDate(p.birthday, { month: 'long', day: 'numeric' })}` : '';
+      const head = `
         <div class="person-head">
           ${tag(p, 'lg')}
           <h1>${esc(p.name)}</h1>
-          <div class="rel">You</div>
-        </div>
+          <div class="rel">${[isMe(p.id) ? 'You' : esc(p.relation), bday].filter(Boolean).join('<br>')}</div>
+        </div>`;
+      if (isMe(p.id)) return `${head}
         <div class="surprise">
           <span class="tag xl" style="--c:var(--cranberry)">${BOW_SMALL}</span>
           <h3>Your gifts are a surprise</h3>
           <p>Anything someone else adds for you stays hidden on this device, along with its price and status.</p>
         </div>
         ${p.sizes ? `<div class="block"><div class="block-head"><h2>Sizes and favorites</h2></div><div class="prose">${esc(p.sizes)}</div><p class="note">Everyone sharing this list can see this, so it’s a good place for hints.</p></div>` : `<p class="note" style="text-align:center">Add your sizes and favorites with Edit. Everyone sharing the list can see them.</p>`}`;
-      const gs = giftsFor(p.id).sort((a, b) => statusIndex(a.status) - statusIndex(b.status) || (a.created - b.created));
-      const sp = spentFor(p.id), b = num(p.budget);
-      const ideas = gs.filter(g => g.status === 'idea').reduce((a, g) => a + num(g.price), 0);
-      return `
-        <div class="person-head">
-          ${tag(p, 'lg')}
-          <h1>${esc(p.name)}</h1>
-          ${p.relation ? `<div class="rel">${esc(p.relation)}</div>` : ''}
-        </div>
-        <div class="ledger">
-          <div class="ledger-row"><span class="big">${money(sp)}</span><span class="of">${b ? `of ${money(b)}` : 'spent'}</span></div>
-          ${b ? `<div class="meter ${sp > b ? 'over' : ''}"><i style="width:${Math.min(sp / b, 1) * 100}%"></i></div>` : ''}
-          <div class="say">${b ? (sp <= b ? `<b>${money(b - sp)}</b> left to spend.` : `<b class="over">${money(sp - b)}</b> over budget.`) : 'Add a budget to track what’s left.'}${ideas ? ` Ideas add up to ${money(ideas)}.` : ''}</div>
-        </div>
+      const sortGifts = gs => gs.sort((a, b) => statusIndex(a.status) - statusIndex(b.status) || a.created - b.created);
+      const upcoming = upcomingOccasions().filter(o => o.people.includes(p.id));
+      const ideas = sortGifts(ideasFor(p.id));
+      const history = pastOccasions().map(o => [o, sortGifts(occGifts(o).filter(g => g.personId === p.id))]).filter(([, gs]) => gs.length);
+      return `${head}
+        ${upcoming.map(o => {
+          const gs = sortGifts(occGifts(o).filter(g => g.personId === p.id));
+          const b = num(o.budgets[p.id]);
+          return `
+          <div class="block">
+            <button class="group-head" data-action="open-event" data-id="${esc(o.id)}" style="width:100%;text-align:left">
+              ${evBadge(o, 'sm')}<h2>${esc(occTitle(o))}</h2><span class="meta">${esc(dateRel(o.date))}</span>
+            </button>
+            <div class="list">
+              ${gs.map(g => giftRow(g)).join('')}
+              <button class="row add" data-action="add-gift" data-person="${esc(p.id)}" data-occ="${esc(o.id)}"><span class="plus-dot">${Icon.plus}</span>Add gift</button>
+              ${ideas.length ? `<button class="row add" data-action="use-ideas" data-person="${esc(p.id)}" data-occ="${esc(o.id)}"><span class="plus-dot">${Icon.idea}</span>Use a saved idea<span class="meta" style="margin-left:auto">${ideas.length}</span></button>` : ''}
+            </div>
+            ${b ? `<p class="note">${money(occSpent(o, p.id))} spent of ${money(b)}.</p>` : ''}
+          </div>`;
+        }).join('')}
         <div class="block">
-          <div class="block-head"><h2>Gifts</h2>${gs.length ? `<span class="meta">${gs.filter(isReady).length} of ${gs.length} wrapped</span>` : ''}</div>
+          <div class="block-head"><h2>Saved ideas</h2>${ideas.length ? `<span class="meta">${ideas.length}</span>` : ''}</div>
           <div class="list">
-            ${gs.map(g => giftRow(g)).join('')}
-            <button class="row add" data-action="add-gift" data-person="${esc(p.id)}"><span class="plus-dot">${Icon.plus}</span>${gs.length ? 'Add gift' : 'Add the first gift idea'}</button>
+            ${ideas.map(g => giftRow(g)).join('')}
+            <button class="row add" data-action="add-gift" data-person="${esc(p.id)}" data-occ=""><span class="plus-dot">${Icon.plus}</span>${ideas.length ? 'Add idea' : `Save an idea for ${esc(firstName(p))}`}</button>
           </div>
-          ${gs.length ? `<p class="note">Tap a status to move a gift along. Open a gift to change it.</p>` : ''}
+          ${!ideas.length ? `<p class="note">Heard them mention something? Save it here and plan it for an event later.</p>` : ''}
         </div>
+        ${!upcoming.length && !p.birthday ? `<div class="block"><div class="list"><button class="row add" data-action="edit-person" data-id="${esc(p.id)}"><span class="plus-dot">${Icon.cake}</span>Add ${esc(possessive(firstName(p)))} birthday</button></div></div>` : ''}
+        ${history.length ? `
+          <div class="block">
+            <div class="block-head"><h2>Given before</h2></div>
+            ${history.map(([o, gs]) => `
+              <div class="hist">
+                <button class="hist-head" data-action="open-event" data-id="${esc(o.id)}">${evBadge(o, 'xs')}<span>${esc(occYearTitle(o))}</span></button>
+                <div class="list">${gs.map(g => giftRow(g)).join('')}</div>
+              </div>`).join('')}
+          </div>` : ''}
         ${p.sizes ? `<div class="block"><div class="block-head"><h2>Sizes and favorites</h2></div><div class="prose">${esc(p.sizes)}</div></div>` : ''}
         ${p.notes ? `<div class="block"><div class="block-head"><h2>Notes</h2></div><div class="prose">${esc(p.notes)}</div></div>` : ''}`;
     },
@@ -1152,11 +1548,11 @@ const Pages = {
         <div class="empty">
           <span class="tag xl" style="--c:var(--pine)">?</span>
           <h3>No gifts yet</h3>
-          <p>${state.people.length ? 'Write down ideas as they come. Then move each one along as you buy, wrap and give it.' : 'Add a person first, then start writing down gift ideas for them.'}</p>
+          <p>${state.people.length ? 'Save ideas whenever they come up, then plan them for a birthday, Christmas or any other event.' : 'Add a person first, then start saving gift ideas for them.'}</p>
           <button class="btn" data-action="${state.people.length ? 'add-gift' : 'add-person'}">${state.people.length ? 'Add gift' : 'Add person'}</button>
         </div>`;
       return `
-        <div class="search">${Icon.search}<input type="search" id="giftSearch" placeholder="Search gifts, stores, people" value="${esc(ui.giftQuery)}" autocomplete="off" aria-label="Search gifts"></div>
+        <div class="search">${Icon.search}<input type="search" id="giftSearch" placeholder="Search gifts, stores, people, events" value="${esc(ui.giftQuery)}" autocomplete="off" aria-label="Search gifts"></div>
         <div class="chips" id="giftChips">${giftChips()}</div>
         <div id="giftResults">${giftResults()}</div>`;
     },
@@ -1168,9 +1564,9 @@ const Pages = {
       if (!state.tasks.length) return `
         <div class="empty">
           <span class="tag xl" style="--c:var(--brass)">?</span>
-          <h3>Plan the rest of the season</h3>
-          <p>Start with a checklist of common holiday tasks, or add your own.</p>
-          <button class="btn" data-action="starter-tasks">Add starter checklist</button>
+          <h3>Plan ahead</h3>
+          <p>Keep track of cards, parties, shipping deadlines and everything else. Start with a Christmas checklist, or add your own.</p>
+          <button class="btn" data-action="starter-tasks">Add Christmas checklist</button>
           <button class="btn quiet" data-action="add-task">Add task</button>
         </div>`;
       const open = state.tasks.filter(t => !t.done);
@@ -1227,24 +1623,24 @@ const Pages = {
             `}
           </div>
           <p class="note">${sharing()
-            ? 'Each device hides the gifts other people are buying for its owner. Everything else is shared.'
+            ? 'Each device hides the gifts other people are buying for its owner, for every event. Everything else is shared.'
             : 'Use one list with someone else. Each of you picks your name, and gifts for each other stay hidden.'}</p>
+        </div>
+        <div class="block">
+          <div class="block-head"><h2>Calendar</h2></div>
+          <div class="list" style="--inset:64px">
+            <button class="row" data-action="export-ics"><div class="row-icon" style="background:var(--cranberry)">${Icon.calendar}</div><div class="row-main"><div class="row-title">Add events to Calendar</div><div class="row-sub">Birthdays and yearly events, with a reminder a week before</div></div>${Icon.chev}</button>
+          </div>
+          <p class="note">Downloads a calendar file. Open it to add everything to Apple Calendar or Google Calendar. If you add birthdays later, export again.</p>
         </div>
         <div class="block">
           <div class="block-head"><h2>Backup</h2></div>
           <div class="list" style="--inset:64px">
             <button class="row" data-action="export"><div class="row-icon" style="background:var(--s-have)">${Icon.down}</div><div class="row-main">Export backup</div>${Icon.chev}</button>
             <button class="row" data-action="import"><div class="row-icon" style="background:var(--brass)">${Icon.up}</div><div class="row-main">Import backup</div>${Icon.chev}</button>
-          </div>
-          <p class="note">${plural(state.people.length, 'person', 'people')}, ${plural(visibleGifts().length, 'gift')} and ${plural(state.tasks.length, 'task')}${state.updatedAt ? `. Last edited ${timeAgo(state.updatedAt)}` : ''}.</p>
-        </div>
-        <div class="block">
-          <div class="block-head"><h2>New season</h2></div>
-          <div class="list">
-            <button class="row" data-action="new-season"><div class="row-main">Start next year</div>${Icon.chev}</button>
             <button class="row danger" data-action="reset">Erase all data</button>
           </div>
-          <p class="note">Starting next year keeps your people and budgets, deletes every gift and unchecks your to-do list.</p>
+          <p class="note">${plural(state.people.length, 'person', 'people')}, ${plural(state.occasions.length, 'event')} and ${plural(visibleGifts().length, 'gift')}${state.updatedAt ? `. Last edited ${timeAgo(state.updatedAt)}` : ''}.</p>
         </div>
         <p class="note" style="text-align:center;padding-top:4px">To install on iPhone, open this page in Safari and tap Share, then Add to Home Screen.</p>`;
     },
@@ -1258,10 +1654,8 @@ function byDue(a, b) {
 }
 function dueInfo(d) {
   if (!d) return null;
-  const dt = new Date(d + 'T00:00');
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const diff = Math.round((dt - today) / 86400000);
-  const label = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : diff === -1 ? 'Yesterday' : dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const diff = daysUntil(d);
+  const label = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : diff === -1 ? 'Yesterday' : fmtDate(d);
   return { label, diff };
 }
 function timeAgo(t) {
@@ -1270,6 +1664,24 @@ function timeAgo(t) {
   if (s < 3600) return `${Math.round(s / 60)} min ago`;
   if (s < 86400) return `${Math.round(s / 3600)} hr ago`;
   return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function eventRow(o) {
+  const gs = occGifts(o);
+  const ready = gs.filter(isReady).length;
+  const budget = occBudget(o), spent = sumSpent(gs);
+  return `
+    <div class="swipe ${ui.justAdded === o.id ? 'enter' : ''}">
+      <div class="swipe-actions"><button data-action="delete-event" data-id="${esc(o.id)}">Delete</button></div>
+      <div class="swipe-content">
+        <button class="row" data-action="open-event" data-id="${esc(o.id)}" data-row="event">
+          ${evBadge(o)}
+          <div class="row-main"><div class="row-title">${esc(daysUntil(o.date) < 0 ? occYearTitle(o) : occTitle(o))}</div><div class="row-sub">${esc(dateRel(o.date))}</div></div>
+          <div class="row-end">${gs.length ? `<span class="row-count">${ready} of ${gs.length} wrapped</span>` : ''}${budget ? leftLabel(spent, budget) : ''}</div>
+          ${Icon.chev}
+        </button>
+      </div>
+    </div>`;
 }
 
 function taskRow(t) {
@@ -1293,12 +1705,13 @@ function taskRow(t) {
 
 function giftRow(g, showPerson = false) {
   const p = person(g.personId);
-  const sub = showPerson ? (p?.name || '') : g.store;
+  const sub = showPerson ? [p?.name, g.store].filter(Boolean).join(', ') : g.store;
   return `
     <div class="swipe ${ui.justAdded === g.id ? 'enter' : ''}">
       <div class="swipe-actions"><button data-action="delete-gift" data-id="${esc(g.id)}">Delete</button></div>
       <div class="swipe-content">
         <div class="row tap" data-action="edit-gift" data-id="${esc(g.id)}" data-row="gift" tabindex="0" role="button" aria-label="${esc(g.title)}">
+          ${showPerson ? tag(p) : ''}
           <div class="row-main">
             <div class="row-title">${esc(g.title)}</div>
             ${sub ? `<div class="row-sub">${esc(sub)}</div>` : ''}
@@ -1313,10 +1726,10 @@ function giftRow(g, showPerson = false) {
 }
 
 function giftChips() {
-  const opts = [{ id: 'all', label: 'All' }, ...STATUSES, { id: 'make', label: 'Handmade' }];
+  const opts = [{ id: 'all', label: 'All' }, { id: 'later', label: 'Saved ideas' }, ...STATUSES.slice(1), { id: 'make', label: 'Handmade' }];
+  const vg = visibleGifts();
   return opts.map(o => {
-    const vg = visibleGifts();
-    const n = o.id === 'all' ? vg.length : o.id === 'make' ? vg.filter(g => g.kind === 'make').length : vg.filter(g => g.status === o.id).length;
+    const n = o.id === 'all' ? vg.length : o.id === 'make' ? vg.filter(g => g.kind === 'make').length : o.id === 'later' ? vg.filter(g => !g.occasionId).length : vg.filter(g => g.status === o.id).length;
     return `<button class="chip ${o.id === ui.giftFilter ? 'on' : ''} ${STATUS_IDS.includes(o.id) ? 's-' + o.id : ''}" data-action="gift-filter" data-f="${o.id}" aria-pressed="${o.id === ui.giftFilter}">
       ${STATUS_IDS.includes(o.id) ? '<span class="sw"></span>' : ''}${o.label}<span class="ct">${n}</span></button>`;
   }).join('');
@@ -1324,20 +1737,20 @@ function giftChips() {
 
 function giftResults() {
   const q = ui.giftQuery.trim().toLowerCase();
-  let gs = visibleGifts().filter(g => ui.giftFilter === 'all' || (ui.giftFilter === 'make' ? g.kind === 'make' : g.status === ui.giftFilter));
-  if (q) gs = gs.filter(g => [g.title, g.store, g.notes, person(g.personId)?.name].join(' ').toLowerCase().includes(q));
-  if (!gs.length) return `<p class="note" style="text-align:center;padding-top:24px;font-size:15px">${q ? 'No gifts match your search.' : (ui.giftFilter === 'make' ? 'No handmade gifts yet.' : `Nothing is ${STATUSES.find(s => s.id === ui.giftFilter)?.label.toLowerCase()} right now.`)}</p>`;
-  const byPerson = {};
-  gs.forEach(g => (byPerson[g.personId] ||= []).push(g));
-  return sortedPeople().filter(p => byPerson[p.id]).map(p => {
-    const list = byPerson[p.id].sort((a, b) => statusIndex(a.status) - statusIndex(b.status));
-    return `
-    <div class="block">
-      <button class="group-head" data-action="open-person" data-id="${esc(p.id)}" style="width:100%;text-align:left">
-        ${tag(p)}<h2>${esc(p.name)}</h2>${leftLabel(spentFor(p.id), num(p.budget))}
-      </button>
-      <div class="list">${list.map(g => giftRow(g)).join('')}</div>
-    </div>`;
+  const f = ui.giftFilter;
+  let gs = visibleGifts().filter(g => f === 'all' || (f === 'make' ? g.kind === 'make' : f === 'later' ? !g.occasionId : g.status === f));
+  if (q) gs = gs.filter(g => [g.title, g.store, g.notes, person(g.personId)?.name, g.occasionId ? occTitle(occ(g.occasionId)) : 'saved idea'].join(' ').toLowerCase().includes(q));
+  if (!gs.length) return `<p class="note" style="text-align:center;padding-top:24px;font-size:15px">${q ? 'No gifts match your search.' : f === 'make' ? 'No handmade gifts yet.' : f === 'later' ? 'No saved ideas. Ideas you save without an event show up here.' : `Nothing is ${STATUSES.find(s => s.id === f)?.label.toLowerCase()} right now.`}</p>`;
+  const groups = new Map();
+  gs.forEach(g => { const k = g.occasionId || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(g); });
+  const order = [...upcomingOccasions().map(o => o.id), '', ...pastOccasions().map(o => o.id)].filter(k => groups.has(k));
+  const sortG = list => list.sort((a, b) => (person(a.personId)?.name || '').localeCompare(person(b.personId)?.name || '') || statusIndex(a.status) - statusIndex(b.status));
+  return order.map(k => {
+    const o = k ? occ(k) : null;
+    const head = o
+      ? `<button class="group-head" data-action="open-event" data-id="${esc(o.id)}" style="width:100%;text-align:left">${evBadge(o, 'sm')}<h2>${esc(daysUntil(o.date) < 0 ? occYearTitle(o) : occTitle(o))}</h2><span class="meta">${esc(dateRel(o.date))}</span></button>`
+      : `<div class="group-head"><span class="ev-badge sm th-idea">${Icon.idea}</span><h2>Saved ideas</h2><span class="meta">Not planned yet</span></div>`;
+    return `<div class="block">${head}<div class="list" style="--inset:80px">${sortG(groups.get(k)).map(g => giftRow(g, true)).join('')}</div></div>`;
   }).join('');
 }
 
@@ -1715,7 +2128,7 @@ function initStepper(root) {
 
 function personSheet(p, opts = {}) {
   const isNew = !p;
-  p = p || { name: '', budget: '', emoji: '', color: COLORS[state.people.length % COLORS.length], relation: '', notes: '', sizes: '' };
+  p = p || { name: '', birthday: '', emoji: '', color: COLORS[state.people.length % COLORS.length], relation: '', notes: '', sizes: '' };
   return openSheet({
     title: isNew ? 'New person' : 'Edit person',
     saveLabel: isNew ? 'Add' : 'Done',
@@ -1727,8 +2140,9 @@ function personSheet(p, opts = {}) {
         <div class="row"><input class="field" name="relation" placeholder="Relationship, like sister or coworker" value="${esc(p.relation)}" autocapitalize="sentences" aria-label="Relationship"></div>
       </div>
       <div class="fgroup">
-        <div class="row"><label class="lbl" for="pb">Budget</label><input class="field right num" id="pb" name="budget" inputmode="decimal" placeholder="$0" value="${p.budget !== '' ? esc(p.budget) : ''}"></div>
+        <div class="row"><label class="lbl" for="pbd">${Icon.cake}Birthday</label><input class="field" id="pbd" type="date" name="birthday" value="${esc(p.birthday || '')}"></div>
       </div>
+      <p class="fnote">Optional. Their birthday shows up in Events every year, so you can plan ahead.</p>
       <div class="flabel">Tag</div>
       <div class="fgroup">
         <div class="swatches">${COLORS.map(c => `<label aria-label="Color"><input type="radio" name="color" value="${c}" ${c === p.color ? 'checked' : ''}><span style="--c:${c}"></span></label>`).join('')}</div>
@@ -1749,7 +2163,7 @@ function personSheet(p, opts = {}) {
       $('[data-sheet-delete]', sh)?.addEventListener('click', async () => { if (await deletePerson(p.id)) close(null); });
     },
     onSave(d) {
-      const data = { name: d.name.trim().slice(0, 100), relation: d.relation.trim(), budget: d.budget ? Math.max(0, num(d.budget)) : '', color: COLORS.includes(d.color) ? d.color : COLORS[0], emoji: EMOJIS.includes(d.emoji) ? d.emoji : '', notes: d.notes.trim(), sizes: d.sizes.trim() };
+      const data = { name: d.name.trim().slice(0, 100), relation: d.relation.trim(), birthday: dateOf(d.birthday), color: COLORS.includes(d.color) ? d.color : COLORS[0], emoji: EMOJIS.includes(d.emoji) ? d.emoji : '', notes: d.notes.trim(), sizes: d.sizes.trim() };
       if (isNew) {
         const np = { id: uid(), created: Date.now(), ...data };
         ui.justAdded = np.id;
@@ -1761,14 +2175,23 @@ function personSheet(p, opts = {}) {
   });
 }
 
-function giftSheet(g, presetPerson) {
+/* presetOcc: an event id, '' for "save as an idea", or undefined to pick a sensible default */
+function giftSheet(g, presetPerson, presetOcc) {
   const isNew = !g;
   if (!state.people.length) return personSheet();
   const topRoute = Nav.top()?._route;
   let preset = presetPerson || (topRoute?.name === 'person' ? topRoute.id : '');
   if (isMe(preset)) preset = '';
-  g = g || { title: '', personId: preset, price: '', status: 'idea', kind: 'buy', store: '', url: '', notes: '', buyer: '' };
+  let occId = presetOcc;
+  if (occId === undefined) {
+    if (topRoute?.name === 'event') occId = topRoute.id;
+    else if (preset) occId = nextFor(preset)?.id || '';
+    else occId = upcomingOccasions()[0]?.id || '';
+  }
+  g = g || { title: '', personId: preset, occasionId: occId, price: '', status: 'idea', kind: 'buy', store: '', url: '', notes: '', buyer: '' };
   const addedBy = g.buyer && g.buyer !== me ? person(g.buyer) : null;
+  const cur = g.occasionId ? occ(g.occasionId) : null;
+  const occOptions = [...upcomingOccasions(), ...(cur && daysUntil(cur.date) < 0 ? [cur] : [])];
   return openSheet({
     title: isNew ? 'New gift' : 'Edit gift',
     saveLabel: isNew ? 'Add' : 'Done',
@@ -1780,6 +2203,11 @@ function giftSheet(g, presetPerson) {
           <select class="field" id="gp" name="personId">
             <option value="" ${g.personId ? '' : 'selected'} disabled>Choose</option>
             ${shoppablePeople().map(p => `<option value="${esc(p.id)}" ${p.id === g.personId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+          </select>${Icon.chev}</div>
+        <div class="row"><label class="lbl" for="goc">When</label>
+          <select class="field" id="goc" name="occasionId">
+            <option value="" ${g.occasionId ? '' : 'selected'}>Save as an idea for later</option>
+            ${occOptions.map(o => `<option value="${esc(o.id)}" ${o.id === g.occasionId ? 'selected' : ''}>${esc(daysUntil(o.date) < 0 ? occYearTitle(o) : occTitle(o))}, ${esc(fmtDate(o.date))}</option>`).join('')}
           </select>${Icon.chev}</div>
         <div class="row"><label class="lbl" for="gpr" data-price-label>${g.kind === 'make' ? 'Cost' : 'Price'}</label><input class="field right num" id="gpr" name="price" data-price inputmode="decimal" placeholder="$0" value="${g.price !== '' ? esc(g.price) : ''}"></div>
       </div>
@@ -1817,12 +2245,16 @@ function giftSheet(g, presetPerson) {
     },
     onSave(d) {
       if (!person(d.personId) || isMe(d.personId)) return false;
-      const data = { title: d.title.trim().slice(0, 200), personId: d.personId, price: d.price ? Math.max(0, num(d.price)) : '', status: STATUS_IDS.includes(d.status) ? d.status : 'idea', kind: d.kind === 'make' ? 'make' : 'buy', store: d.store.trim(), url: d.url.trim(), notes: d.notes.trim() };
+      const occasionId = occ(d.occasionId) ? d.occasionId : '';
+      const data = { title: d.title.trim().slice(0, 200), personId: d.personId, occasionId, price: d.price ? Math.max(0, num(d.price)) : '', status: STATUS_IDS.includes(d.status) ? d.status : 'idea', kind: d.kind === 'make' ? 'make' : 'buy', store: d.store.trim(), url: d.url.trim(), notes: d.notes.trim() };
+      // planning a gift for someone adds them to that event
+      const join = s => { const o = s.occasions.find(x => x.id === occasionId); if (o && !o.people.includes(d.personId)) o.people.push(d.personId); };
       if (isNew) {
         const ng = { id: uid(), created: Date.now(), buyer: sharing() && person(me) ? me : '', ...data };
         ui.justAdded = ng.id;
-        commit(s => s.gifts.push(ng));
-      } else commit(s => Object.assign(s.gifts.find(x => x.id === g.id), data));
+        commit(s => { s.gifts.push(ng); join(s); });
+        if (!occasionId) toast('Saved as an idea');
+      } else commit(s => { Object.assign(s.gifts.find(x => x.id === g.id), data); join(s); });
     },
   });
 }
@@ -1858,6 +2290,221 @@ function taskSheet(t) {
       } else commit(s => Object.assign(s.tasks.find(x => x.id === t.id), data));
     },
   });
+}
+
+/* ---------- Events ---------- */
+function eventSheet(o, presetType) {
+  const isNew = !o;
+  const type0 = o?.type || presetType || 'birthday';
+  const draft = o ? structuredClone(o) : { type: type0, title: '', date: '', people: [], budgets: {}, repeat: type0 !== 'celebration' };
+  const bperson = draft.type === 'birthday' ? person(draft.people[0]) : null;
+  const pplRows = sortedPeople().map(p => {
+    const on = draft.people.includes(p.id) || (isNew && draft.type === 'christmas');
+    return `<label class="row pick">
+      <input type="checkbox" name="pp" value="${esc(p.id)}" ${on ? 'checked' : ''}>
+      <span class="pick-box">${Icon.check}</span>${tag(p)}
+      <span class="row-main"><span class="row-title">${esc(p.name)}</span></span>
+      ${isMe(p.id) ? '<span class="you">You</span>' : `<input class="field right num budget-in" name="bud_${esc(p.id)}" inputmode="decimal" placeholder="Budget" aria-label="Budget for ${esc(p.name)}" value="${draft.budgets[p.id] ? esc(draft.budgets[p.id]) : ''}">`}
+    </label>`;
+  }).join('');
+  const typeTiles = EVENT_TYPES.map(t => `
+    <label class="type-tile th-${t}"><input type="radio" name="type" value="${t}" ${t === draft.type ? 'checked' : ''} ${isNew ? '' : 'disabled'}>
+      <span class="ev-badge">${Icon[THEMES[t].icon]}</span><span>${THEMES[t].label}</span></label>`).join('');
+  return openSheet({
+    title: isNew ? 'New event' : 'Edit event',
+    saveLabel: isNew ? 'Add' : 'Done',
+    required: [],
+    body: `
+      <div class="ev-preview" data-preview></div>
+      ${isNew ? `<div class="types" role="radiogroup" aria-label="Kind of event">${typeTiles}</div>` : ''}
+      <div class="fgroup" data-for="birthday">
+        <div class="row"><label class="lbl" for="ebp">Whose</label>
+          <select class="field" id="ebp" name="bperson" ${isNew ? '' : 'disabled'}>
+            <option value="" ${bperson ? '' : 'selected'} disabled>Choose</option>
+            ${sortedPeople().map(p => `<option value="${esc(p.id)}" ${p.id === bperson?.id ? 'selected' : ''} data-bday="${esc(p.birthday || '')}">${esc(p.name)}</option>`).join('')}
+          </select>${Icon.chev}</div>
+        <div class="row"><label class="lbl" for="ebd">Birthday</label><input class="field" id="ebd" type="date" name="bdate" value="${esc(bperson?.birthday || '')}"></div>
+        <div class="row" data-not-me><label class="lbl" for="ebb">Budget</label><input class="field right num" id="ebb" name="bbudget" inputmode="decimal" placeholder="$0" value="${bperson && draft.budgets[bperson.id] ? esc(draft.budgets[bperson.id]) : ''}"></div>
+      </div>
+      <p class="fnote" data-for="birthday">The birthday is saved to their profile and comes back every year.</p>
+      <div class="fgroup" data-for="christmas anniversary celebration">
+        <div class="row"><input class="field big" name="title" placeholder="Name" value="${esc(draft.title)}" autocapitalize="sentences" aria-label="Event name"></div>
+        <div class="row" data-for="anniversary celebration"><label class="lbl" for="edt">Date</label><input class="field" id="edt" type="date" name="date" value="${esc(draft.date)}"></div>
+        <div class="row" data-for="christmas"><span class="lbl">Date</span><span class="row-main" style="text-align:right;color:var(--text2)">December 25</span></div>
+        <label class="row" data-for="anniversary celebration"><span class="row-main">Repeats every year</span><input type="checkbox" class="switch" name="repeat" ${draft.repeat ? 'checked' : ''}></label>
+      </div>
+      <div data-for="christmas anniversary celebration">
+        <div class="flabel">Who are you buying for?</div>
+        <div class="fgroup pick-people">${pplRows || '<div class="row" style="color:var(--text2)">Add people first, then choose them here.</div>'}</div>
+        <p class="fnote">Set an optional budget for each person.</p>
+      </div>
+      ${isNew ? '' : `<div class="fgroup"><button type="button" class="row danger" data-sheet-delete style="width:100%">Delete event</button></div>`}`,
+    onOpen(sh, close) {
+      const form = $('form', sh), btn = $('[data-sheet=save]', sh);
+      const cur = () => (isNew ? $('input[name=type]:checked', form)?.value : draft.type) || 'birthday';
+      const update = () => {
+        const t = cur();
+        $$('[data-for]', form).forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(t); });
+        const title = $('[name=title]', form);
+        title.placeholder = t === 'christmas' ? 'Christmas' : t === 'anniversary' ? 'Our anniversary' : 'What’s the occasion?';
+        const sel = $('[name=bperson]', form), bp = person(sel.value);
+        if (t === 'birthday') {
+          const notMe = $('[data-not-me]', form); notMe.hidden = !bp || isMe(bp.id);
+        }
+        // live preview tile
+        const fake = { id: 'preview', type: t, title: title.value.trim(), people: t === 'birthday' && bp ? [bp.id] : [], budgets: {},
+          date: t === 'christmas' ? nextChristmasDate() : t === 'birthday' ? ($('[name=bdate]', form).value ? ymd(nextOccurrence($('[name=bdate]', form).value)) : '') : $('[name=date]', form).value };
+        $('[data-preview]', form).innerHTML = `<div class="ev-tile th-${t}" aria-hidden="true"><span class="ribbon"></span><span class="ic">${Icon[THEMES[t].icon]}</span>
+          <span class="nm">${esc(t === 'birthday' ? (bp ? `${possessive(bp.name)} birthday` : 'Birthday') : fake.title || THEMES[t].label)}</span>
+          <span class="sb">${fake.date ? esc(dateRel(fake.date)) : 'Pick a date'}</span></div>`;
+        // validation
+        const ok = t === 'birthday' ? !!(bp && dateOf($('[name=bdate]', form).value))
+          : t === 'christmas' ? true : !!dateOf($('[name=date]', form).value);
+        btn.disabled = !ok;
+      };
+      form.addEventListener('input', update); form.addEventListener('change', update);
+      $('[name=bperson]', form).addEventListener('change', e => {
+        const bd = e.target.selectedOptions[0]?.dataset.bday; if (bd) $('[name=bdate]', form).value = bd;
+        update();
+      });
+      update();
+      $('[data-sheet-delete]', sh)?.addEventListener('click', async () => { if (await deleteEvent(o.id)) close(null); });
+    },
+    onSave(d, form) {
+      const t = isNew ? d.type : draft.type;
+      const fd = new FormData(form);
+      const chosen = fd.getAll('pp').filter(id => person(id));
+      const budgets = {};
+      chosen.forEach(id => { const b = priceOf(d['bud_' + id]); if (b) budgets[id] = b; });
+      let openId = o?.id;
+      if (t === 'birthday') {
+        const pid = isNew ? d.bperson : draft.people[0];
+        const bdate = dateOf(d.bdate);
+        if (!person(pid) || !bdate) return false;
+        const b = priceOf(d.bbudget);
+        commit(s => {
+          s.people.find(x => x.id === pid).birthday = bdate;
+          planOccasions(s);
+          const ev = s.occasions.find(x => x.series === 'b' + pid && daysUntil(x.date) >= 0) || (o && s.occasions.find(x => x.id === o.id));
+          if (ev) { ev.budgets = b ? { [pid]: b } : {}; openId = ev.id; }
+        });
+      } else if (t === 'christmas') {
+        const date = isNew ? nextChristmasDate() : draft.date;
+        const id = isNew ? 'xmas' + date.slice(0, 4) : o.id;
+        if (isNew && occ(id)) { toast('Christmas is already in Events'); setTimeout(() => openEvent(id), 300); return; }
+        const data = { type: 'christmas', title: d.title.trim().slice(0, 100), date, people: chosen, budgets, repeat: true, series: 'xmas' };
+        if (isNew) commit(s => s.occasions.push({ id, created: Date.now(), ...data }));
+        else commit(s => Object.assign(s.occasions.find(x => x.id === o.id), data));
+        openId = id;
+      } else {
+        const date = dateOf(d.date); if (!date) return false;
+        const repeat = d.repeat === 'on';
+        if (isNew) {
+          const id = uid();
+          commit(s => s.occasions.push({ id, created: Date.now(), type: t, title: d.title.trim().slice(0, 100), date, people: chosen, budgets, repeat, series: repeat ? id : '' }));
+          openId = id;
+        } else commit(s => Object.assign(s.occasions.find(x => x.id === o.id), {
+          title: d.title.trim().slice(0, 100), date, people: chosen, budgets, repeat, series: o.series || (repeat ? o.id : ''),
+        }));
+      }
+      if (isNew && openId) { ui.justAdded = openId; setTimeout(() => openEvent(openId), 320); }
+    },
+  });
+}
+
+async function deleteEvent(id) {
+  const o = occ(id); if (!o) return false;
+  const n = state.gifts.filter(g => g.occasionId === id).length;
+  const msg = [
+    `Delete ${daysUntil(o.date) < 0 ? occYearTitle(o) : occTitle(o)}?`,
+    n ? ` ${n === 1 ? 'Its gift moves' : `Its ${n} gifts move`} to saved ideas.` : '',
+    o.type === 'birthday' ? ` It comes back next year unless you remove the birthday from ${person(o.people[0])?.name || 'their profile'}.` : '',
+  ].join('');
+  if (!await confirmDestructive(msg, 'Delete event')) { Swipe.closeAll(); return false; }
+  undoable(`Deleted ${occTitle(o)}`, s => {
+    s.occasions = s.occasions.filter(x => x.id !== id);
+    // stop the series from rolling forward again
+    if (o.series) s.occasions.forEach(x => { if (x.series === o.series && o.type !== 'birthday') x.repeat = false; });
+    s.gifts.forEach(g => { if (g.occasionId === id) g.occasionId = ''; });
+  });
+  return true;
+}
+
+function openEvent(id) {
+  if (!occ(id)) return;
+  if (Nav.current !== 'events') {
+    const st = Nav.stacks.events;
+    while (st.length > 1) st.pop().remove();
+    st[0].classList.remove('under'); st[0].style.transform = '';
+    Nav.switchTab('events');
+  }
+  const top = Nav.top()?._route;
+  if (top?.name === 'event' && top.id === id) return;
+  Nav.push({ name: 'event', id });
+}
+
+function ideasSheet(pid, oid) {
+  const p = person(pid), o = occ(oid);
+  if (!p || !o) return;
+  const ideas = ideasFor(pid);
+  return openSheet({
+    title: 'Use saved ideas',
+    saveLabel: 'Add to event',
+    required: [],
+    body: `
+      <p class="fnote" style="margin:0 0 18px;font-size:15px;color:var(--text)">Choose ideas for ${esc(firstName(p))} to plan for ${esc(occTitle(o))}.</p>
+      <div class="fgroup pick-people">
+        ${ideas.map(g => `<label class="row pick">
+          <input type="checkbox" name="g" value="${esc(g.id)}"><span class="pick-box">${Icon.check}</span>
+          <span class="row-main"><span class="row-title">${esc(g.title)}</span>${g.store ? `<span class="row-sub">${esc(g.store)}</span>` : ''}</span>
+          ${g.price !== '' ? `<span class="money">${money(num(g.price))}</span>` : ''}
+        </label>`).join('')}
+      </div>`,
+    onOpen(sh) {
+      const btn = $('[data-sheet=save]', sh), form = $('form', sh);
+      const upd = () => { btn.disabled = !$$('input[name=g]:checked', form).length; };
+      form.addEventListener('change', upd); upd();
+    },
+    onSave(d, form) {
+      const ids = new FormData(form).getAll('g');
+      if (!ids.length) return false;
+      commit(s => s.gifts.forEach(g => { if (ids.includes(g.id)) g.occasionId = oid; }));
+      toast(`Added ${plural(ids.length, 'idea')} to ${occTitle(o)}`);
+    },
+  });
+}
+
+/* Calendar file (.ics) with yearly birthdays and events, each with a reminder a week before. */
+function exportIcs() {
+  const esc2 = v => String(v).replace(/[\\;,]/g, m => '\\' + m).replace(/\r?\n/g, '\\n');
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Gift Tags//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:Gift Tags'];
+  let count = 0;
+  const add = (key, date, summary, yearly) => {
+    const d0 = parseYmd(date), d1 = new Date(d0); d1.setDate(d1.getDate() + 1);
+    lines.push('BEGIN:VEVENT', `UID:${key}@gift-tags`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${date.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${ymd(d1).replace(/-/g, '')}`,
+      `SUMMARY:${esc2(summary)}`, ...(yearly ? ['RRULE:FREQ=YEARLY'] : []), 'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc2(summary)} is in a week`, 'TRIGGER:-P7D', 'END:VALARM', 'END:VEVENT');
+    count++;
+  };
+  state.people.forEach(p => { if (p.birthday) add('bday-' + p.id, ymd(nextOccurrence(p.birthday)), `${possessive(p.name)} birthday`, true); });
+  const seen = new Set();
+  upcomingOccasions().forEach(o => {
+    if (o.type === 'birthday') return;
+    const key = o.repeat && o.series ? 'series-' + o.series : 'event-' + o.id;
+    if (seen.has(key)) return; seen.add(key);
+    add(key, o.date, occTitle(o), !!(o.repeat && o.series));
+  });
+  if (!count) { toast('Add a birthday or an event first', 'warn'); return; }
+  lines.push('END:VCALENDAR');
+  const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/calendar' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gift-tags-events.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(`Exported ${plural(count, 'event')}`);
 }
 
 async function deletePerson(id) {
@@ -1917,10 +2564,23 @@ const Actions = {
     const r = Nav.top()?._route;
     if (!r) return;
     if (r.name === 'people') return personSheet();
-    if (r.name === 'todo') return taskSheet();
+    if (r.name === 'events') return eventSheet();
     if (r.name === 'person') return giftSheet(null, r.id);
+    if (r.name === 'event') return giftSheet(null, '', r.id);
     return state.people.length ? giftSheet() : personSheet();
   },
+  'open-event': el => openEvent(el.dataset.id),
+  'add-event': el => eventSheet(null, el.dataset.type),
+  'edit-event': el => { const o = occ(el.dataset.id); if (o) eventSheet(o); },
+  'delete-event': el => deleteEvent(el.dataset.id),
+  'use-ideas': el => ideasSheet(el.dataset.person, el.dataset.occ),
+  'toggle-past': () => { ui.showPast = !ui.showPast; updatePage(Nav.top()); },
+  'show-ideas': () => {
+    ui.giftFilter = 'later';
+    if (Nav.current !== 'gifts') Nav.switchTab('gifts'); else if (Nav.stacks.gifts.length > 1) Nav.popToRoot();
+    updatePage(Nav.stacks.gifts[0]);
+  },
+  'export-ics': () => exportIcs(),
   'open-settings': () => Nav.push({ name: 'settings' }),
   'open-person': el => {
     if (Nav.current !== 'people') {
@@ -1934,7 +2594,7 @@ const Actions = {
   'add-person': () => personSheet(),
   'edit-person': el => personSheet(person(el.dataset.id)),
   'delete-person': el => deletePerson(el.dataset.id),
-  'add-gift': el => giftSheet(null, el.dataset.person),
+  'add-gift': el => giftSheet(null, el.dataset.person, el.dataset.occ), // data-occ="" means save as idea
   'edit-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) giftSheet(g); },
   'delete-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) undoable(`Deleted “${g.title}”`, s => s.gifts = s.gifts.filter(x => x.id !== g.id)); },
   'cycle': (el, e) => {
@@ -1978,17 +2638,13 @@ const Actions = {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `christmas-planner-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `gift-tags-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   },
   'import': () => $('#importFile').click(),
-  'new-season': async () => {
-    if (!await confirmDestructive('This deletes every gift and unchecks your to-do list. People and budgets stay. Export a backup first if you want to keep this year’s list.', 'Start next year')) return;
-    undoable('Started next year', s => { s.gifts = []; s.tasks.forEach(t => t.done = false); });
-  },
   'reset': async () => {
-    if (!await confirmDestructive('This erases every person, gift and task, including the synced copy on your other devices.', 'Erase all data')) return;
+    if (!await confirmDestructive('This erases every person, event, gift and task, including the synced copy on your other devices.', 'Erase all data')) return;
     commit(s => KINDS.forEach(k => s[k] = []));
     toast('All data erased');
   },
@@ -2042,7 +2698,8 @@ $('#importFile').addEventListener('change', async e => {
 /* =========================================================
    Sync via a secret GitHub Gist
    ========================================================= */
-const GIST_FILE = 'christmas-planner.json';
+const GIST_FILE = 'christmas-planner.json'; // name kept so existing synced lists are found
+const GIST_BACKUP_FILE = 'christmas-planner-backup-before-events.json';
 const GIST_DESC = 'Christmas Planner data (synced by app)';
 const Sync = {
   cfg: (() => { try { const c = JSON.parse(localStorage.getItem('xmas-sync')) || {}; if (c.gistId && !/^[a-f0-9]{1,64}$/i.test(c.gistId)) delete c.gistId; return c; } catch { return {}; } })(),
@@ -2108,9 +2765,15 @@ const Sync = {
   // Fetch the Gist, merge item-by-item with local data, then write back whichever side is behind.
   async reconcile() {
     const raw = await this.fetchRemote();
+    // The first time this version syncs a Christmas-only list, save that original as its own
+    // file in the Gist before anything in the new format is written over it.
+    if (raw && Array.isArray(raw.people) && !Array.isArray(raw.occasions) && !this.cfg.v2backup) {
+      await this.api(`/gists/${encodeURIComponent(this.cfg.gistId)}`, { method: 'PATCH', body: JSON.stringify({ files: { [GIST_BACKUP_FILE]: { content: JSON.stringify(raw) } } }) });
+      this.cfg.v2backup = Date.now(); this.saveCfg();
+    }
     const remote = raw && Array.isArray(raw.people) ? sanitize(raw) : null;
     const merged = remote ? merge(state, remote) : state;
-    if (canon(merged) !== canon(state)) { state = merged; saveLocal(); renderAllPreserve(); }
+    if (canon(merged) !== canon(state)) { state = merged; saveLocal(); renderAllPreserve(); setTimeout(autoPlan, 0); }
     if (!remote || canon(merged) !== canon(remote)) await this.push();
   },
   async push() {
@@ -2371,7 +3034,7 @@ function tokenSheet() {
 let lastDay = new Date().toDateString();
 function refreshIfNewDay() {
   const d = new Date().toDateString();
-  if (d !== lastDay) { lastDay = d; renderAllPreserve(); }
+  if (d !== lastDay) { lastDay = d; autoPlan(); renderAllPreserve(); } // roll birthdays/events forward at midnight
 }
 setInterval(refreshIfNewDay, 60000);
 addEventListener('storage', e => { if (e.key === KEY) { state = load(); renderAllPreserve(); } });
@@ -2483,22 +3146,31 @@ const Desk = {
   render() {
     if (!this.on()) return;
     const el = $('#sidebar'); if (!el) return;
-    const { days } = christmas();
     const r = Nav.top()?._route || {};
     const vg = visibleGifts();
-    const counts = { home: '', people: state.people.length || '', gifts: vg.length || '', todo: state.tasks.filter(t => !t.done).length || '' };
+    const up = upcomingOccasions();
+    const next = up[0];
+    const n = next ? daysUntil(next.date) : null;
+    const counts = { home: '', events: up.length || '', people: state.people.length || '', gifts: vg.length || '' };
     const syncC = !Sync.enabled() ? 'var(--s-idea)' : Sync.state === 'error' ? 'var(--cranberry)' : 'var(--pine)';
+    const nameOf = o => esc(o.type === 'birthday' ? firstName(person(o.people[0])) : occTitle(o));
     el.innerHTML = `
-      <div class="sb-head"><div class="sb-count">${days === 0 ? 'Merry Christmas' : `${cap(words(days))} ${days === 1 ? 'day' : 'days'}`}<small>${days === 0 ? 'Enjoy the day' : 'until Christmas'}</small></div></div>
+      <div class="sb-head">${next
+        ? `<button class="sb-count th-${next.type}" data-action="open-event" data-id="${esc(next.id)}">${n === 0 ? 'Today' : `${cap(words(n))} ${n === 1 ? 'day' : 'days'}`}<small>${n === 0 ? esc(occTitle(next)) : `until ${esc(occTitle(next))}`}</small></button>`
+        : `<div class="sb-count">Gift Tags<small>Every gift, all year</small></div>`}</div>
       <button class="sb-new" data-action="key-new-gift" title="New gift (N)">${Icon.plus}New gift<kbd>N</kbd></button>
       <nav class="sb-nav">
         ${TABS.map((t, i) => `<button class="sb-item ${Nav.current === t.id && r.name !== 'settings' ? 'on' : ''}" data-action="tab" data-tab="${t.id}" title="${t.label} (${i + 1})">${Icon[t.icon]}${t.label}<span class="ct">${counts[t.id]}</span><kbd>${i + 1}</kbd></button>`).join('')}
       </nav>
-      <div class="sb-label"><span>People</span><button data-action="add-person" title="New person (P)" aria-label="New person">${Icon.plus}</button></div>
       <div class="sb-people">
+        <div class="sb-label"><span>Coming up</span><button data-action="add-event" title="New event (E)" aria-label="New event">${Icon.plus}</button></div>
+        ${up.slice(0, 6).map(o => `<button class="sb-item sb-person ${r.name === 'event' && r.id === o.id ? 'on' : ''}" data-action="open-event" data-id="${esc(o.id)}">${evBadge(o, 'xs')}<span class="sb-name">${nameOf(o)}</span><span class="ct" style="display:inline">${esc(daysUntil(o.date) === 0 ? 'Today' : fmtDate(o.date))}</span></button>`).join('')
+          || '<p class="note" style="padding:4px 10px">Press E to add an event.</p>'}
+        <div class="sb-label"><span>People</span><button data-action="add-person" title="New person (P)" aria-label="New person">${Icon.plus}</button></div>
         ${sortedPeople().map(p => {
           const on = r.name === 'person' && r.id === p.id;
-          return `<button class="sb-item sb-person ${on ? 'on' : ''}" data-action="open-person" data-id="${esc(p.id)}">${tag(p)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span>${isMe(p.id) ? '' : leftLabel(spentFor(p.id), num(p.budget)).replace(/ left| over/, '')}</button>`;
+          const ideas = isMe(p.id) ? 0 : ideasFor(p.id).length;
+          return `<button class="sb-item sb-person ${on ? 'on' : ''}" data-action="open-person" data-id="${esc(p.id)}">${tag(p)}<span class="sb-name">${esc(p.name)}</span>${ideas ? `<span class="ct" style="display:inline" title="Saved ideas">${ideas}</span>` : ''}</button>`;
         }).join('') || '<p class="note" style="padding:4px 10px">Press P to add someone.</p>'}
       </div>
       <div class="sb-foot">
@@ -2517,7 +3189,7 @@ const Desk = {
   rowAction(el, kind) {
     const type = el.dataset.row;
     if (kind === 'delete') {
-      const map = { gift: 'delete-gift', task: 'delete-task', person: 'delete-person' };
+      const map = { gift: 'delete-gift', task: 'delete-task', person: 'delete-person', event: 'delete-event' };
       const rows = this.rows(), i = rows.indexOf(el);
       Actions[map[type]]?.(el);
       // keep keyboard focus in the list after the row disappears
@@ -2539,8 +3211,8 @@ const Desk = {
     openSheet({
       title: 'Keyboard shortcuts', saveLabel: 'Done', required: [],
       body: `<div class="fgroup"><div class="keys">
-        ${row('New gift', 'N')}${row('New person', 'P')}${row('New task', 'T')}
-        ${row('Search gifts', '/')}${row('Overview, People, Gifts, To-Do', '1', '2', '3', '4')}${row('Settings', ',')}
+        ${row('New gift', 'N')}${row('New saved idea', 'I')}${row('New event', 'E')}${row('New person', 'P')}
+        ${row('Search gifts', '/')}${row('Home, Events, People, Gifts', '1', '2', '3', '4')}${row('Settings', ',')}
       </div></div>
       <div class="fgroup"><div class="keys">
         ${row('Move between rows', '↑', '↓')}${row('Open the selected row', '↩')}
@@ -2589,7 +3261,8 @@ document.addEventListener('keydown', e => {
   switch (key) {
     case 'n': e.preventDefault(); giftSheet(); break;
     case 'p': e.preventDefault(); personSheet(); break;
-    case 't': e.preventDefault(); taskSheet(); break;
+    case 'e': e.preventDefault(); eventSheet(); break;
+    case 'i': { e.preventDefault(); const r = Nav.top()?._route; giftSheet(null, r?.name === 'person' ? r.id : '', ''); break; }
     case '/': e.preventDefault(); Desk.goSearch(); break;
     case ',': e.preventDefault(); if (Nav.top()?._route.name !== 'settings') Nav.push({ name: 'settings' }); break;
     case '?': e.preventDefault(); Desk.help(); break;
@@ -2608,6 +3281,8 @@ document.addEventListener('touchstart', () => {}, { passive: true });
 document.documentElement.classList.toggle('desk', Desk.on());
 Nav.init();
 Desk.apply();
+saveLocal();   // persists any one-time migration (Christmas list -> events)
+autoPlan();    // make sure upcoming birthdays and yearly events exist
 Identity.check();
 if (Sync.enabled()) Sync.syncNow();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http') && location.hostname !== 'localhost') {
