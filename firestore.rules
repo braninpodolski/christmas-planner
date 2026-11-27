@@ -66,6 +66,19 @@ service cloud.firestore {
         && existsAfter(/databases/$(database)/documents/households/$(request.resource.data.hid)/members/$(uid));
     }
 
+    // Error reports from the app. Anyone signed in can add one (as themselves, small, fixed fields);
+    // nobody can read, change or delete them except the project owner in the Firebase console.
+    match /errors/{id} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'message', 'stack', 'where', 'version', 'ua', 'page', 'at'])
+        && request.resource.data.message is string && request.resource.data.message.size() <= 500
+        && request.resource.data.stack is string && request.resource.data.stack.size() <= 3000
+        && request.resource.data.where is string && request.resource.data.where.size() <= 200
+        && request.resource.data.ua is string && request.resource.data.ua.size() <= 300
+        && request.resource.data.page is string && request.resource.data.page.size() <= 100;
+      allow read, update, delete: if false;
+    }
+
     // Phase 0 sign-in test page: each person's own test area only.
     match /spike/{uid}/{document=**} {
       allow read, write: if signedIn() && request.auth.uid == uid;

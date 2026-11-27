@@ -14,6 +14,7 @@ export const GIST_DESC = 'Christmas Planner data (synced by app)';
 export const GIST_MOVED_FILE = 'gift-tags-moved-to-household.json'; // left by the device that moved the list into Firebase
 export const GIST_ACCOUNTS_BACKUP_FILE = 'christmas-planner-backup-before-accounts.json';
 import { Cloud } from './cloud.js';
+import { report } from './errors.js';
 
 // Gist sync. A device that belongs to a Firebase household hands every call to Cloud instead.
 export const Sync = {
@@ -126,6 +127,7 @@ export const Sync = {
       if (manual) toast('Synced');
     } catch (err) {
       this.dirty = true;
+      if (navigator.onLine !== false) report(err, 'gist sync');
       const msg = navigator.onLine === false ? 'Offline. Changes will sync when you’re back online.' : (err.message || 'Sync failed. Try again.');
       this.setState('error', msg);
       if (manual) toast(navigator.onLine === false ? 'You’re offline' : 'Sync failed', 'warn');

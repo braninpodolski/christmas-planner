@@ -112,6 +112,12 @@ export const Actions = {
   'add-person': () => personSheet(),
   'edit-person': el => personSheet(person(el.dataset.id)),
   'delete-person': el => deletePerson(el.dataset.id),
+  'toggle-pin': el => {
+    const id = el.dataset.id, p = person(id); if (!p) return;
+    Swipe.closeAll();
+    commit(s => { const x = s.people.find(q => q.id === id); if (x.pinned) delete x.pinned; else x.pinned = true; });
+    toast(p.pinned ? `${p.name} is pinned to the top` : `${p.name} is unpinned`);
+  },
   'add-gift': el => giftSheet(null, el.dataset.person, el.dataset.occ), // data-occ="" means save as idea
   'edit-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) giftSheet(g); },
   'delete-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) undoable(`Deleted “${g.title}”`, s => s.gifts = s.gifts.filter(x => x.id !== g.id)); },

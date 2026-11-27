@@ -34,6 +34,7 @@
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <input type="file" id="icsFile" accept=".ics,text/calendar" multiple hidden>
 
+<script>window.__earlyErrors = []; addEventListener('error', e => window.__earlyErrors && window.__earlyErrors.push({ message: e.message, error: e.error }));</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -33,6 +33,7 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 | ↩ | Open the selected row |
 | Space | Next status for the selected gift |
 | M | Move the selected gift to another event |
+| F | Pin the selected person to the top of People |
 | ⌫ | Delete the selected row |
 | ⌘Z | Undo a delete |
 | ⌘↩ / Esc | Save / close a form |
@@ -71,7 +72,7 @@ Run the tests (Node 20 or newer, nothing to install):
 npm test
 ```
 
-**Releasing:** bump `CACHE` in `sw.js`. If you add a file to `js/` or `css/`, also add it to `ASSETS` there; a test fails if you forget. The service worker caches every file as one version, so an update can't mix old and new modules.
+**Releasing:** bump `CACHE` in `sw.js` and `APP_VERSION` in `js/version.js` to the same value (a test checks). If you add a file to `js/` or `css/`, also add it to `ASSETS` there; a test fails if you forget. The service worker caches every file as one version, so an update can't mix old and new modules.
 
 ### Code layout
 | File | What it holds |
@@ -92,6 +93,7 @@ npm test
 | `js/actions.js` | button actions (`data-action`) and app-wide listeners |
 | `js/sync.js`, `js/passjoin.js` | Gist sync and the passphrase join |
 | `js/identity.js`, `js/desktop.js` | "who's using this device", desktop sidebar and shortcuts |
+| `js/errors.js` | error reports to Firebase (readable only in the Firebase console) |
 | `js/main.js` | starts the app |
 | `css/*.css` | base tokens, layout, lists, sheets, desktop |
 

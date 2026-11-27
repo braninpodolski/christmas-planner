@@ -4,6 +4,7 @@ import { Nav } from './nav.js';
 import { refreshIfNewDay, renderAllPreserve } from './actions.js';
 import { Sync } from './sync.js';
 import { Cloud } from './cloud.js';
+import './errors.js';
 import { Identity } from './identity.js';
 import { Desk } from './desktop.js';
 import './util.js';

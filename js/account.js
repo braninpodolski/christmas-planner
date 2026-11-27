@@ -29,7 +29,7 @@ const errLine = '<p class="fnote" data-err role="alert" style="color:var(--cranb
 export function signInSheet(then) {
   let sheet, done;
   const finish = async () => {
-    done(null);
+    done(null); Cloud.afterSignIn();
     if (await Cloud.restore()) { toast('Welcome back. Your household’s list is loading.'); renderAllPreserve(); return; }
     renderAllPreserve(); then?.();
   };

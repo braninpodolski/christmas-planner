@@ -5,6 +5,7 @@ import { firebaseConfig, FIREBASE_SDK } from './firebase-config.js';
 import { createCloud } from './cloud-core.js';
 import { state, setState, saveLocal, setMe } from './store.js';
 import { renderAllPreserve } from './actions.js';
+import { report, flush } from './errors.js';
 
 const KEY = 'xmas-cloud';
 const randomCode = (n = 24) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
@@ -51,6 +52,7 @@ export const Cloud = {
     this.core?.stop();
     const { F, db } = this, uid = this.user.uid;
     F.setDoc(F.doc(db, `users/${uid}`), { hid: this.cfg.hid }).catch(() => {}); // remember it on the account (also fills in older households)
+    flush(); // send any error reports saved while signed out
     this.core = createCloud({
       F: this.F, db: this.db, hid: this.cfg.hid, uid: this.user.uid,
       getLocal: () => state,
@@ -61,6 +63,7 @@ export const Cloud = {
   },
   setStatus(st, err = '') {
     this.status = st; this.error = err;
+    if (st === 'error' && err) report(err, 'cloud sync');
     const el = document.getElementById('syncStatus'); if (el) el.textContent = this.statusText();
   },
   schedule() { clearTimeout(this.timer); this.timer = setTimeout(() => this.core?.sync(), 400); },
@@ -72,6 +75,7 @@ export const Cloud = {
     await this.load();
     this.user = (await (create ? this.A.createUserWithEmailAndPassword : this.A.signInWithEmailAndPassword)(this.auth, email, password)).user;
   },
+  async afterSignIn() { flush(); },
   async signOut() { this.core?.stop(); this.core = null; await this.A?.signOut(this.auth); this.user = null; this.setStatus('signed-out'); },
 
   // ---------- households ----------

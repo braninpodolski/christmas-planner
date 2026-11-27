@@ -200,7 +200,7 @@ export function renderAll() {
 /* Swipe-to-delete rows */
 export const Swipe = (() => {
   let s = null, open = null, suppressClick = false;
-  const W = 88;
+  const width = c => c.parentElement.querySelector('.swipe-actions')?.scrollWidth || 88; // one or more buttons
   const close = (c = open) => {
     if (!c) return; c.classList.add('snap'); c.style.transform = ''; if (c === open) open = null;
     // hide the delete button again once the row has slid shut
@@ -210,7 +210,8 @@ export const Swipe = (() => {
     const c = e.target.closest('.swipe-content');
     if (open && c !== open && !e.target.closest('.swipe-actions')) { close(); suppressClick = true; }
     if (!c || e.clientX < 24 || (e.pointerType === 'mouse' && Desk.on())) return; // desktop layout has a hover delete button
-    s = { c, x: e.clientX, y: e.clientY, base: c === open ? -W : 0, active: false };
+    const W = width(c);
+    s = { c, W, x: e.clientX, y: e.clientY, base: c === open ? -W : 0, active: false };
   });
   document.addEventListener('pointermove', e => {
     if (!s) return;
@@ -222,7 +223,7 @@ export const Swipe = (() => {
       s.active = true; s.c.classList.remove('snap'); s.c.parentElement.classList.add('swiping');
     }
     let x = Math.min(0, s.base + dx);
-    if (x < -W) x = -W - (Math.abs(x) - W) * .3;
+    if (x < -s.W) x = -s.W - (Math.abs(x) - s.W) * .3;
     s.c.style.transform = `translateX(${x}px)`;
     s.x2 = x;
   });
@@ -232,7 +233,7 @@ export const Swipe = (() => {
     if (!st.active) return;
     suppressClick = true;
     st.c.classList.add('snap');
-    if (st.x2 < -W / 2) { st.c.style.transform = `translateX(${-W}px)`; open = st.c; }
+    if (st.x2 < -st.W / 2) { st.c.style.transform = `translateX(${-st.W}px)`; open = st.c; }
     else close(st.c);
   };
   document.addEventListener('pointerup', end);

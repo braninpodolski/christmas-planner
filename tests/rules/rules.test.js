@@ -164,3 +164,14 @@ test('your account remembers your household, privately, and only one you belong 
   await assertFails(setDoc(doc(db('stranger'), 'users/stranger'), { hid: H }), 'not a household you are not in');
   await assertSucceeds(deleteDoc(doc(db('branin'), 'users/branin')));
 });
+
+test('anyone signed in can file an error report, but nobody can read one back', async () => {
+  const ok = { uid: 'wife', message: 'boom', stack: 'at x', where: 'cloud sync', version: 'xmas-v24', ua: 'Safari', page: '/', at: 1 };
+  await assertSucceeds(setDoc(doc(db('wife'), 'errors/e1'), ok));
+  await assertFails(setDoc(doc(db('wife'), 'errors/e2'), { ...ok, uid: 'branin' }), 'not as someone else');
+  await assertFails(setDoc(doc(db('wife'), 'errors/e3'), { ...ok, list: 'everything' }), 'no extra fields');
+  await assertFails(setDoc(doc(db('wife'), 'errors/e4'), { ...ok, message: 'x'.repeat(501) }), 'not too big');
+  await assertFails(setDoc(doc(anon(), 'errors/e5'), ok), 'not signed out');
+  await assertFails(getDoc(doc(db('wife'), 'errors/e1')));
+  await assertFails(getDocs(collection(db('branin'), 'errors')));
+});

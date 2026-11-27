@@ -11,3 +11,9 @@ test('the service worker caches every app file', () => {
     }
   }
 });
+
+test('the version sent with error reports matches the service worker cache', async () => {
+  const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  const { APP_VERSION } = await import('../js/version.js');
+  assert.ok(sw.includes(`const CACHE = '${APP_VERSION}';`), `bump APP_VERSION in js/version.js to match CACHE in sw.js`);
+});

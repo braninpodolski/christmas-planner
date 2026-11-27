@@ -261,3 +261,9 @@ html:not(.desk) .swipe:not(.swiping) .swipe-actions { visibility: hidden; }
 /* ---------- Enter animation for new rows ---------- */
 .enter { animation: enter .55s var(--ease) both; }
 @keyframes enter { from { opacity: 0; transform: translateY(-10px); } }
+
+/* Pinned people */
+.row-title .pinned { display: inline-flex; vertical-align: -2px; margin-left: 6px; color: var(--brass); }
+.row-title .pinned svg { width: 14px; height: 14px; }
+.swipe-actions button.pin-act { background: var(--brass); }
+.nav-btn.pin-btn.on { color: var(--brass); }

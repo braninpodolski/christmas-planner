@@ -96,7 +96,7 @@ export const Desk = {
       </div></div>
       <div class="fgroup"><div class="keys">
         ${row('Move between rows', '↑', '↓')}${row('Open the selected row', '↩')}
-        ${row('Next status for the selected gift', 'Space')}${row('Move the selected gift to another event', 'M')}${row('Delete the selected row', '⌫')}
+        ${row('Next status for the selected gift', 'Space')}${row('Move the selected gift to another event', 'M')}${row('Pin the selected person to the top', 'F')}${row('Delete the selected row', '⌫')}
         ${row('Undo delete', MOD, 'Z')}${row('Go back', 'Esc')}
       </div></div>
       <div class="fgroup"><div class="keys">${row('Save a form', MOD, '↩')}${row('Close a form', 'Esc')}</div></div>`,
@@ -157,6 +157,7 @@ document.addEventListener('keydown', e => {
     case 'ArrowUp': case 'k': e.preventDefault(); Desk.move(-1); break;
     case 'Backspace': case 'Delete': if (row) { e.preventDefault(); Desk.rowAction(row, 'delete'); } break;
     case ' ': if (row) { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
+    case 'f': if (row?.dataset.row === 'person') { e.preventDefault(); Actions['toggle-pin']({ dataset: { id: row.dataset.id } }); } break;
     case 'm': if (row?.dataset.row === 'gift') { e.preventDefault(); moveGiftPicker(row.dataset.id); } break;
     case 'x': if (row?.dataset.row === 'task') { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
     case 'Enter': if (row && row.tagName !== 'BUTTON') { e.preventDefault(); row.click(); } break;

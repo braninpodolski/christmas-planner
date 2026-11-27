@@ -24,6 +24,7 @@ export function words(n) {
 export const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const Icon = {
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l-1 6 4 4H6l4-4z"/><path d="M12 13v8"/></svg>',
   star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.2l2.5 5.6 6.1.6-4.6 4.1 1.3 6-5.3-3.1-5.3 3.1 1.3-6L3.4 9.4l6.1-.6Z"/></svg>',
   tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8.2 5h11.3c.8 0 1.5.7 1.5 1.5v11c0 .8-.7 1.5-1.5 1.5H8.2c-.4 0-.8-.2-1.1-.5L3.4 12.9a1.4 1.4 0 0 1 0-1.8l3.7-5.6c.3-.3.7-.5 1.1-.5Z"/><circle cx="8.6" cy="12" r="1.3"/></svg>',
   gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v7.5c0 .6.4 1 1 1h12c.6 0 1-.4 1-1V12M12 8v12.5"/><path d="M12 8C11 5 9.4 3.6 8 3.6c-1.2 0-2 .8-2 1.9C6 7.2 8 8 12 8Zm0 0c1-3 2.6-4.4 4-4.4 1.2 0 2 .8 2 1.9C18 7.2 16 8 12 8Z"/></svg>',
