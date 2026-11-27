@@ -33,7 +33,7 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 | ↩ | Open the selected row |
 | Space | Next status for the selected gift |
 | M | Move the selected gift to another event |
-| F | Pin the selected person to the top of People |
+| F | Pin the selected person to the top of People (pins are yours, not shared with the household) |
 | ⌫ | Delete the selected row |
 | ⌘Z | Undo a delete |
 | ⌘↩ / Esc | Save / close a form |

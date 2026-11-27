@@ -20,7 +20,6 @@ export function sanitize(raw) {
     color: COLORS.includes(p.color) ? p.color : COLORS[0],
     emoji: EMOJIS.includes(p.emoji) ? p.emoji : '',
     notes: str(p.notes), sizes: str(p.sizes),
-    ...(p.pinned === true ? { pinned: true } : {}),
   }));
   const ids = new Set(s.people.map(p => p.id));
   s.occasions = arr(raw.occasions).map(o => {

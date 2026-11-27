@@ -143,3 +143,5 @@ html.desk .swipe-actions button.pin-act { background: transparent; }
 html.desk .swipe-actions button.pin-act::before { -webkit-mask-image: var(--pin-icon); mask-image: var(--pin-icon); }
 html.desk .swipe-actions button.pin-act:hover { background: color-mix(in srgb, var(--brass) 18%, transparent); color: var(--brass); }
 :root { --pin-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3h6l-1 6 4 4H6l4-4z'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E"); }
+/* two hover buttons (pin + delete) need room so they don't sit on the row's chevron */
+html.desk .swipe:has(.pin-act) .row { padding-right: 88px; }

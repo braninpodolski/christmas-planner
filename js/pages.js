@@ -9,6 +9,7 @@ import { byGiftOrder, byPersonThenOrder } from './gift-drag.js';
 import { Sync } from './sync.js';
 import { Desk } from './desktop.js';
 import { Cloud } from './cloud.js';
+import { Pins } from './pins.js';
 
 /* =========================================================
    Pages
@@ -184,26 +185,26 @@ export const Pages = {
       return `
         <div class="block">
           <div class="list" style="--inset:80px">
-            ${[...sortedPeople().filter(p => p.pinned), ...sortedPeople().filter(p => !p.pinned)].map(p => {
+            ${[...sortedPeople().filter(p => Pins.has(p.id)), ...sortedPeople().filter(p => !Pins.has(p.id))].map(p => {
               const nx = nextFor(p.id);
               const nxLabel = nx ? `${nx.type === 'birthday' && nx.people[0] === p.id ? 'Birthday' : occTitle(nx)} ${relDays(daysUntil(nx.date))}` : (p.relation || 'Nothing coming up');
               if (isMe(p.id)) return `
               <div class="swipe"><div class="swipe-content">
                 <button class="row" data-action="open-person" data-id="${esc(p.id)}" data-row="person">
                   ${tag(p)}
-                  <div class="row-main"><div class="row-title">${esc(p.name)} <span class="you">You</span>${p.pinned ? `<span class="pinned" title="Pinned">${Icon.pin}</span>` : ''}</div><div class="row-sub">${esc(nxLabel)}</div></div>
+                  <div class="row-main"><div class="row-title">${esc(p.name)} <span class="you">You</span>${Pins.has(p.id) ? `<span class="pinned" title="Pinned">${Icon.pin}</span>` : ''}</div><div class="row-sub">${esc(nxLabel)}</div></div>
                   ${Icon.chev}
                 </button>
               </div></div>`;
               const saved = ideasFor(p.id).length;
               return `
               <div class="swipe ${ui.justAdded === p.id ? 'enter' : ''}">
-                <div class="swipe-actions"><button class="pin-act" data-action="toggle-pin" data-id="${esc(p.id)}" aria-label="${p.pinned ? 'Unpin' : 'Pin to top'}" title="${p.pinned ? 'Unpin (F)' : 'Pin to top (F)'}">${p.pinned ? 'Unpin' : 'Pin'}</button><button data-action="delete-person" data-id="${esc(p.id)}">Delete</button></div>
+                <div class="swipe-actions"><button class="pin-act" data-action="toggle-pin" data-id="${esc(p.id)}" aria-label="${Pins.has(p.id) ? 'Unpin' : 'Pin to top'}" title="${Pins.has(p.id) ? 'Unpin (F)' : 'Pin to top (F)'}">${Pins.has(p.id) ? 'Unpin' : 'Pin'}</button><button data-action="delete-person" data-id="${esc(p.id)}">Delete</button></div>
                 <div class="swipe-content">
                   <button class="row" data-action="open-person" data-id="${esc(p.id)}" data-row="person">
                     ${tag(p)}
                     <div class="row-main">
-                      <div class="row-title">${esc(p.name)}${p.pinned ? `<span class="pinned" title="Pinned">${Icon.pin}</span>` : ''}</div>
+                      <div class="row-title">${esc(p.name)}${Pins.has(p.id) ? `<span class="pinned" title="Pinned">${Icon.pin}</span>` : ''}</div>
                       <div class="row-sub">${esc(nxLabel)}</div>
                     </div>
                     ${saved ? `<span class="row-count">${plural(saved, 'idea')}</span>` : ''}
@@ -222,7 +223,7 @@ export const Pages = {
     title: r => person(r.id)?.name || '',
     largeTitle: false,
     collapseAt: 150,
-    actions: r => `<button class="nav-btn glass pin-btn ${person(r.id)?.pinned ? 'on' : ''}" data-action="toggle-pin" data-id="${esc(r.id)}" aria-pressed="${!!person(r.id)?.pinned}" aria-label="${person(r.id)?.pinned ? 'Unpin from the top of People' : 'Pin to the top of People'}" title="Pin to top (F)">${Icon.pin}</button><button class="nav-btn text glass" data-action="edit-person" data-id="${esc(r.id)}">Edit</button>`,
+    actions: r => `<button class="nav-btn glass pin-btn ${Pins.has(r.id) ? 'on' : ''}" data-action="toggle-pin" data-id="${esc(r.id)}" aria-pressed="${!!Pins.has(r.id)}" aria-label="${Pins.has(r.id) ? 'Unpin from the top of People' : 'Pin to the top of People'}" title="Pin to top (F)">${Icon.pin}</button><button class="nav-btn text glass" data-action="edit-person" data-id="${esc(r.id)}">Edit</button>`,
     render(r) {
       const p = person(r.id);
       if (!p) { setTimeout(() => Nav.pop(), 0); return ''; }

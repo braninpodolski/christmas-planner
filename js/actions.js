@@ -15,6 +15,7 @@ import { Sync } from './sync.js';
 import { joinSheet, passphraseSheet } from './passjoin.js';
 import { Identity, shareSheet } from './identity.js';
 import { Desk } from './desktop.js';
+import { Pins } from './pins.js';
 
 export async function deletePerson(id) {
   const p = person(id); if (!p) return false;
@@ -115,8 +116,8 @@ export const Actions = {
   'toggle-pin': el => {
     const id = el.dataset.id, p = person(id); if (!p) return;
     Swipe.closeAll();
-    commit(s => { const x = s.people.find(q => q.id === id); if (x.pinned) delete x.pinned; else x.pinned = true; });
-    toast(p.pinned ? `${p.name} is pinned to the top` : `${p.name} is unpinned`);
+    const on = Pins.toggle(id); Cloud.savePins(); renderAllPreserve();
+    toast(on ? `${p.name} is pinned to the top` : `${p.name} is unpinned`);
   },
   'add-gift': el => giftSheet(null, el.dataset.person, el.dataset.occ), // data-occ="" means save as idea
   'edit-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) giftSheet(g); },
