@@ -94,8 +94,15 @@ export const Cloud = {
     const word = (this.user?.email || 'Me').split('@')[0].split(/[^\p{L}]+/u).find(Boolean) || 'Me';
     return word[0].toUpperCase() + word.slice(1);
   },
-  isSolo() { return this.wanted() && Object.keys(this.members).length <= 1; },
-  isOnlyMember() { const ids = Object.keys(this.members); return !!this.user && ids.every(u => u === this.user.uid); },
+  // Unknown (false) until the members have loaded, so nothing treats a shared household as yours alone
+  isSolo() { return this.wanted() && !!this.user && !!this.members[this.user.uid] && Object.keys(this.members).length <= 1; },
+  isOnlyMember() { return this.isSolo(); },
+  // Asks the server, right before deleting a household's lists: is this account its only member?
+  async onlyMemberOnServer(hid) {
+    const { F, db } = this, uid = this.user.uid;
+    const ids = (await F.getDocsFromServer(F.collection(db, `households/${hid}/members`))).docs.map(d => d.id);
+    return ids.length === 1 && ids[0] === uid;
+  },
   start() {
     this.core?.stop();
     const { F, db } = this, uid = this.user.uid;
@@ -173,7 +180,9 @@ export const Cloud = {
     const { F, db } = this, uid = this.user.uid;
     const inv = await this.peekInvite(code);
     if (inv.createdBy === uid) throw new Error('That’s your own invite. Send it to the person it’s for.');
-    const soloHid = this.wanted() && this.isSolo() ? this.cfg.hid : '';
+    if (this.wanted() && !this.isSolo()) throw new Error('You’re already in a household with others. Leave it in Settings first.');
+    const soloHid = this.wanted() && await this.onlyMemberOnServer(this.cfg.hid) ? this.cfg.hid : '';
+    if (this.wanted() && !soloHid) throw new Error('Someone else is in your household now. Leave it in Settings first.');
     const soloPaths = soloHid ? (this.core?.paths() || []) : [];
     const from = { people: state.people, occasions: state.occasions, gifts: state.gifts }, fromMe = me;
     const myList = Wishes.myListId;
@@ -255,7 +264,7 @@ export const Cloud = {
     if (this.wanted()) {
       const base = `households/${this.cfg.hid}`;
       await Wishes.deleteMine();
-      if (this.isOnlyMember()) {
+      if (await this.onlyMemberOnServer(this.cfg.hid)) {
         const linked = (await F.getDocs(F.collection(db, `${base}/linked`))).docs.map(d => `linked/${d.id}`);
         await this.batched([...(this.core?.paths() || []), ...linked].map(p => b => b.delete(F.doc(db, `${base}/${p}`))));
       }

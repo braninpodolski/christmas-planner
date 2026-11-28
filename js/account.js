@@ -130,7 +130,12 @@ export async function joinSheet(code) {
   if (!Cloud.user) return signInSheet(() => joinSheet(code));
   let inv;
   try { inv = await Cloud.peekInvite(code); } catch (e) { toast(errorText(e), 'warn'); return; }
-  if (Cloud.wanted() && !Cloud.isSolo()) { toast('You’re already in a household with others. Leave it in Settings first.', 'warn'); return; }
+  if (Cloud.wanted()) {
+    // the household's members decide what joining does, so wait for them (a join link can open before they load)
+    for (let i = 0; i < 40 && !Cloud.members[Cloud.user.uid]; i++) await new Promise(r => setTimeout(r, 250));
+    if (!Cloud.members[Cloud.user.uid]) { toast('Your household is still loading. Try the invite again in a moment.', 'warn'); return; }
+    if (!Cloud.isSolo()) { toast('You’re already in a household with others. Leave it in Settings first.', 'warn'); return; }
+  }
   // From a household of one (or a list on this device): ask what to do with the plans already here
   const ask = hasPlans(state, me);
   let sheet, done;
