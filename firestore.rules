@@ -24,6 +24,15 @@ service cloud.firestore {
         allow read, write: if member(hid) && myPerson(hid) != pid;
       }
 
+      // Each member's own wish list: which list is theirs (the list itself lives in /wishlists, so a link
+      // can reach it without membership). Only you can point your person at a list you own.
+      match /wishlists/{pid} {
+        allow read: if member(hid);
+        allow create, update: if member(hid) && myPerson(hid) == pid
+          && request.resource.data.owner == request.auth.uid && request.resource.data.listId is string;
+        allow delete: if member(hid) && myPerson(hid) == pid;
+      }
+
       match /members/{uid} {
         allow read: if member(hid);
         // You may add only yourself: as the household's creator (in the same batch that creates it),
@@ -56,6 +65,38 @@ service cloud.firestore {
       // members can cancel invites; the person joining deletes it as part of joining
       allow delete: if signedIn() && existsAfter(/databases/$(database)/documents/households/$(resource.data.hid)/members/$(request.auth.uid));
       allow update: if false;
+    }
+
+    // Wish lists. The id is the share link's secret (20+ characters): a list is fetched by id, never listed.
+    // Anyone signed in (the share page signs in anonymously) can read one; only its owner changes it.
+    match /wishlists/{lid} {
+      function wl() { return get(/databases/$(database)/documents/wishlists/$(lid)).data; }
+      function wellFormed(d) {
+        return d.keys().hasOnly(['owner', 'hid', 'personId', 'name', 'items', 'updated'])
+          && d.items is list && d.items.size() <= 200 && d.name is string && d.name.size() <= 100;
+      }
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && lid.size() >= 20 && wellFormed(request.resource.data)
+        && request.resource.data.owner == request.auth.uid
+        && myPerson(request.resource.data.hid) == request.resource.data.personId;
+      allow update: if signedIn() && resource.data.owner == request.auth.uid && wellFormed(request.resource.data)
+        && request.resource.data.owner == resource.data.owner && request.resource.data.hid == resource.data.hid
+        && request.resource.data.personId == resource.data.personId;
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+
+      // Who's getting which wish (doc id = the wish's id). Hidden from the list's owner, always.
+      // A claim is made as yourself and only you can take it back; the owner can clear claims (when deleting
+      // a wish or the list) without being able to read them.
+      match /claims/{item} {
+        allow read: if signedIn() && wl().owner != request.auth.uid;
+        allow create: if signedIn() && wl().owner != request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['uid', 'at', 'person', 'name', 'gift'])
+          && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 60));
+        allow delete: if signedIn() && (wl().owner == request.auth.uid || resource == null || resource.data.uid == request.auth.uid);
+        allow update: if false;
+      }
     }
 
     // Which household an account belongs to, so signing in on a new device finds it.
