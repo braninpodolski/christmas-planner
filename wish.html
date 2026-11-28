@@ -42,6 +42,9 @@
   .ask .go { border: 0; border-radius: 10px; padding: 0 16px; background: var(--cranberry); color: #fff; font-weight: 600; }
   .note { color: var(--text2); font-size: 14px; margin: 14px 4px 0; }
   .msg { color: var(--text2); text-align: center; padding: 48px 8px; }
+  .app { text-align: center; margin-top: 22px; }
+  .add { display: inline-block; text-decoration: none; border-radius: 999px; padding: 10px 18px; font-weight: 600; font-size: 15px;
+         background: color-mix(in srgb, var(--pine) 14%, transparent); color: var(--pine); }
   .err { color: var(--cranberry); font-size: 14px; margin: 12px 4px 0; min-height: 1em; }
   @media (prefers-color-scheme: dark) { .card { background: var(--sunken); } .ask { background: var(--bg); } }
 </style>
@@ -53,7 +56,11 @@
   <p class="lede" id="lede">Loading…</p>
   <div id="list"></div>
   <p class="err" id="err" role="status" aria-live="polite"></p>
-  <p class="note" id="note" hidden>Tap “I’ll get it” on anything you’re getting, so nobody doubles up. Others see only that it’s taken, never who, and the person whose list this is never sees either.</p>
+  <p class="note" id="note" hidden>Tap “I’ll get it” on anything you’re getting, so nobody doubles up. Others see only that it’s taken, not who, and the person whose list this is isn’t shown what’s taken.</p>
+  <div class="app" id="app" hidden>
+    <a class="add" id="add" href="#">Add to Gift Tags</a>
+    <p class="note">Have the Gift Tags app? Keep this list in it, live, on their page in your household.</p>
+  </div>
 </main>
 <script type="module" src="js/wish.js"></script>
 </body>

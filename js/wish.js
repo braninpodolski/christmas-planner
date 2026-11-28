@@ -1,6 +1,8 @@
 // The shared wish list page (wish.html?l=<listId>): anyone with the link sees the list and can claim a wish.
 // Visitors sign in anonymously; someone already signed in to Gift Tags on this browser stays themselves.
-// Taken wishes show only "Taken", never who. The list's owner never sees claims (the rules refuse them).
+// Taken wishes show only "Taken", never who: a claim holds just an account id, and the name typed here is
+// kept apart where only the list owner's household can read it (never the owner). The rules also refuse
+// the owner the claims, though an owner opening their own link signed out would get a fresh account.
 import { firebaseConfig, FIREBASE_SDK } from './firebase-config.js';
 
 const $ = id => document.getElementById(id);
@@ -23,6 +25,7 @@ function stop(text) {
   $('lede').textContent = text;
   $('list').replaceChildren();
   $('note').hidden = true;
+  $('app').hidden = true;
 }
 
 async function boot() {
@@ -35,13 +38,18 @@ async function boot() {
     db = F.getFirestore(app);
     if (useEmulator) { A.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true }); F.connectFirestoreEmulator(db, '127.0.0.1', 8181); }
     await new Promise(r => { const un = A.onAuthStateChanged(auth, u => { un(); r(u); }); });
+    // A remembered sign-in can go stale (revoked, or a reset test server): drop it and start fresh
+    if (auth.currentUser) { try { await auth.currentUser.getIdToken(true); } catch { await A.signOut(auth); } }
     if (!auth.currentUser) await A.signInAnonymously(auth);
     uid = auth.currentUser.uid;
   } catch (e) {
     return stop('Couldn’t reach Gift Tags. Check your connection and reload.');
   }
   F.onSnapshot(F.doc(db, `wishlists/${listId}`), snap => {
-    if (!snap.exists()) { list = null; return stop('This wish list isn’t available any more.'); }
+    if (!snap.exists()) {
+      if (snap.metadata.fromCache) return; // offline: wait for the server rather than call it gone
+      list = null; return stop('This wish list isn’t available any more.');
+    }
     list = snap.data();
     render();
     if (list.owner !== uid) watchClaims();
@@ -70,6 +78,9 @@ function render() {
     ? 'This is your list. Who’s getting what stays hidden from you.'
     : items.length ? `${items.length === 1 ? '1 wish' : `${items.length} wishes`}` : `${first || 'They'} hasn’t added anything yet.`;
   $('note').hidden = mine || !items.length;
+  // The app is iPhone and iPad only; "Add to Gift Tags" would do nothing in a computer's browser
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  $('app').hidden = mine || !ios;
   const card = el('div', 'card');
   for (const w of items) card.append(...row(w, mine));
   $('list').replaceChildren(...(items.length ? [card] : []));
@@ -134,7 +145,10 @@ function askName(wishId) {
 async function claim(wishId, name) {
   busy = wishId; showError(''); render();
   try {
-    await F.setDoc(F.doc(db, `wishlists/${listId}/claims/${wishId}`), { uid, name: name.slice(0, 60), at: Date.now() });
+    const at = Date.now(), b = F.writeBatch(db);
+    b.set(F.doc(db, `wishlists/${listId}/claims/${wishId}`), { uid, at });
+    b.set(F.doc(db, `wishlists/${listId}/names/${wishId}`), { uid, name: name.slice(0, 60), at });
+    await b.commit();
   } catch {
     showError('Someone just claimed that one.');
   } finally { busy = ''; render(); }
@@ -142,8 +156,14 @@ async function claim(wishId, name) {
 
 async function unclaim(wishId) {
   showError('');
-  try { await F.deleteDoc(F.doc(db, `wishlists/${listId}/claims/${wishId}`)); }
+  try {
+    const b = F.writeBatch(db);
+    b.delete(F.doc(db, `wishlists/${listId}/claims/${wishId}`));
+    b.delete(F.doc(db, `wishlists/${listId}/names/${wishId}`));
+    await b.commit();
+  }
   catch { showError('Couldn’t undo that. Check your connection and try again.'); }
 }
 
+$('add').href = `gifttags://wish?l=${listId}`;
 boot();

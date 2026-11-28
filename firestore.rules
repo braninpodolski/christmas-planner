@@ -33,6 +33,15 @@ service cloud.firestore {
         allow delete: if member(hid) && myPerson(hid) == pid;
       }
 
+      // Someone else's wish list kept on a person here (their list, from another household or none):
+      // any member links or unlinks it for the whole household.
+      match /linked/{pid} {
+        allow read, delete: if member(hid);
+        allow create, update: if member(hid) && request.resource.data.keys().hasOnly(['listId', 'by', 'at'])
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.listId is string && request.resource.data.listId.size() >= 20;
+      }
+
       match /members/{uid} {
         allow read: if member(hid);
         // You may add only yourself: as the household's creator (in the same batch that creates it),
@@ -80,20 +89,36 @@ service cloud.firestore {
       allow create: if signedIn() && lid.size() >= 20 && wellFormed(request.resource.data)
         && request.resource.data.owner == request.auth.uid
         && myPerson(request.resource.data.hid) == request.resource.data.personId;
+      // The owner edits it, and can move it with them to another household they're in (joining, leaving)
       allow update: if signedIn() && resource.data.owner == request.auth.uid && wellFormed(request.resource.data)
-        && request.resource.data.owner == resource.data.owner && request.resource.data.hid == resource.data.hid
-        && request.resource.data.personId == resource.data.personId;
+        && request.resource.data.owner == resource.data.owner && (
+          (request.resource.data.hid == resource.data.hid && request.resource.data.personId == resource.data.personId)
+          || myPerson(request.resource.data.hid) == request.resource.data.personId);
       allow delete: if signedIn() && resource.data.owner == request.auth.uid;
 
-      // Who's getting which wish (doc id = the wish's id). Hidden from the list's owner, always.
-      // A claim is made as yourself and only you can take it back; the owner can clear claims (when deleting
-      // a wish or the list) without being able to read them.
+      // A wish is taken (doc id = the wish's id). Only an opaque account id, never a name, so any viewer
+      // may see it, except the list's owner. Made as yourself, and only you can take it back; the owner
+      // can clear claims (deleting a wish or the list) without being able to read them.
       match /claims/{item} {
         allow read: if signedIn() && wl().owner != request.auth.uid;
         allow create: if signedIn() && wl().owner != request.auth.uid
           && request.resource.data.uid == request.auth.uid
-          && request.resource.data.keys().hasOnly(['uid', 'at', 'person', 'name', 'gift'])
-          && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 60));
+          && request.resource.data.keys().hasOnly(['uid', 'at', 'gift'])
+          && (!('gift' in request.resource.data) || request.resource.data.gift is string);
+        allow delete: if signedIn() && (wl().owner == request.auth.uid || resource == null || resource.data.uid == request.auth.uid);
+        allow update: if false;
+      }
+
+      // The name someone typed when claiming on the share page. Only the owner's household reads it
+      // (never the owner, never other link holders); it's written together with its claim.
+      match /names/{item} {
+        allow read: if signedIn() && (resource.data.uid == request.auth.uid
+          || (wl().owner != request.auth.uid && member(wl().hid) && myPerson(wl().hid) != wl().personId));
+        allow create: if signedIn() && wl().owner != request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'at'])
+          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+          && getAfter(/databases/$(database)/documents/wishlists/$(lid)/claims/$(item)).data.uid == request.auth.uid;
         allow delete: if signedIn() && (wl().owner == request.auth.uid || resource == null || resource.data.uid == request.auth.uid);
         allow update: if false;
       }
