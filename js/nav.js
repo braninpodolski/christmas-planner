@@ -94,7 +94,7 @@ export const Nav = {
 
 export function updateFab() {
   const r = Nav.top()?._route;
-  $('#fab').classList.toggle('hidden', !r || r.name === 'settings' || (r.name === 'person' && isMe(r.id)));
+  $('#fab').classList.toggle('hidden', !r || r.name === 'settings' || r.name === 'wishlist' || (r.name === 'person' && isMe(r.id)));
   if (typeof Desk !== 'undefined') Desk.render();
 }
 

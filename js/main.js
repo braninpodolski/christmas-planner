@@ -19,6 +19,7 @@ import './event-sheet.js';
 import './calendar.js';
 import './gift-drag.js';
 import './passjoin.js';
+import './wish-ui.js';
 
 setInterval(refreshIfNewDay, 60000);
 addEventListener('storage', e => { if (e.key === KEY) { setState(load()); renderAllPreserve(); } });

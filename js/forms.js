@@ -1,3 +1,4 @@
+import { deleteGift } from './wish-ui.js';
 import { $, $$, Icon, esc, num, uid } from './util.js';
 import { CATEGORIES, COLORS, EMOJIS, KIND_STEPS, STATUSES, STATUS_IDS } from './constants.js';
 import { daysUntil, fmtDate, today0, ymd } from './dates.js';
@@ -170,7 +171,7 @@ export function giftSheet(g, presetPerson, presetOcc) {
       });
       check();
       $('[data-sheet-delete]', sh)?.addEventListener('click', async () => {
-        close(null); undoable(`Deleted “${g.title}”`, s => s.gifts = s.gifts.filter(x => x.id !== g.id));
+        close(null); deleteGift(g);
       });
     },
     onSave(d) {

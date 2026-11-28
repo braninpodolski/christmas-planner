@@ -1,6 +1,7 @@
 /* Account and household screens: sign in, create a household, invite someone, join with an invite. */
 import { esc, Icon } from './util.js';
 import { state, sortedPeople, person, me, KEY_BACKUP_ACCOUNTS, firstName, possessive } from './store.js';
+import { hasPlans, plansSummary } from './merge.js';
 import { openSheet, toast, confirmDestructive } from './sheets.js';
 import { renderAllPreserve } from './actions.js';
 import { Cloud } from './cloud.js';
@@ -30,13 +31,15 @@ export function signInSheet(then) {
   let sheet, done;
   const finish = async () => {
     done(null); Cloud.afterSignIn();
-    if (await Cloud.restore()) { toast('Welcome back. Your household’s list is loading.'); renderAllPreserve(); return; }
+    const r = await Cloud.restore();
+    if (r === 'rejoined') { toast('Welcome back. Your household’s list is loading.'); renderAllPreserve(); if (!then) return; }
+    else if (r === 'solo') toast('Signed in. Your list syncs now.');
     renderAllPreserve(); then?.();
   };
   openSheet({
     title: 'Sign in', saveLabel: 'Sign in', required: [],
     body: `
-      <p class="fnote" style="margin:0 0 14px;font-size:15px;color:var(--text)">Sign in to keep your list in your own household, shared with the people you invite.</p>
+      <p class="fnote" style="margin:0 0 14px;font-size:15px;color:var(--text)">Sign in to sync your list and your wish list, and share them with the people you invite.</p>
       <div class="fgroup"><button type="button" class="row" data-google style="width:100%;font-weight:600">${Icon.google || ''}<span class="row-main">Continue with Google</span></button></div>
       <div class="flabel">Or with email</div>
       <div class="fgroup">
@@ -125,22 +128,26 @@ export function inviteSheet() {
 
 export async function joinSheet(code) {
   if (!Cloud.user) return signInSheet(() => joinSheet(code));
-  try { await Cloud.peekInvite(code); } catch (e) { toast(errorText(e), 'warn'); return; }
+  let inv;
+  try { inv = await Cloud.peekInvite(code); } catch (e) { toast(errorText(e), 'warn'); return; }
+  if (Cloud.wanted() && !Cloud.isSolo()) { toast('You’re already in a household with others. Leave it in Settings first.', 'warn'); return; }
+  // From a household of one (or a list on this device): ask what to do with the plans already here
+  const ask = hasPlans(state, me);
   let sheet, done;
+  const go = bring => busy(sheet, () => Cloud.join(code, bring)).then(ok => { if (ok) { done(null); toast('You’re in'); renderAllPreserve(); } });
   openSheet({
-    title: 'Join a household', saveLabel: 'Join', required: [],
+    title: 'Join a household', saveLabel: ask ? 'Bring them' : 'Join', required: [],
     body: `
       <p class="fnote" style="margin:0 0 14px;font-size:15px;color:var(--text)">You’ve been invited to join a Gift Tags household.</p>
-      <p class="fnote">${state.people.length || state.gifts.length ? 'Anything already on this device is combined with the household’s list. A copy is kept on this device first.' : 'The household’s list will appear on this device.'}</p>
+      ${ask ? `<p class="fnote">You have ${esc(plansSummary(state, me))} here. Bring them along (people with the same name are merged), or leave them behind. Your wish list comes with you either way.</p>
+        <div class="fgroup"><button type="button" class="row" data-leave style="width:100%;font-weight:500">Join, leave them behind</button></div>`
+      : '<p class="fnote">The household’s list will appear on this device. Your wish list comes with you.</p>'}
       ${errLine}`,
-    onOpen(sh, close) { sheet = sh; done = close; },
-    onSave() {
-      busy(sheet, async () => {
-        try { localStorage.setItem(KEY_BACKUP_ACCOUNTS, JSON.stringify(state)); } catch {}
-        await Cloud.join(code);
-      }).then(ok => { if (ok) { done(null); toast('You’re in'); renderAllPreserve(); } });
-      return false;
+    onOpen(sh, close) {
+      sheet = sh; done = close;
+      sh.querySelector('[data-leave]')?.addEventListener('click', () => go(false));
     },
+    onSave() { go(ask); return false; },
   });
 }
 
@@ -158,7 +165,7 @@ export function joinCodeSheet() {
 }
 
 export async function leaveHousehold() {
-  if (!await confirmDestructive('Leave this household? Its list stays with everyone else, and this device keeps a copy as it is now.', 'Leave')) return;
+  if (!await confirmDestructive('Leave this household? Its list stays with everyone else. You go on in a household of your own, and your wish list comes with you.', 'Leave')) return;
   try { await Cloud.leave(); renderAllPreserve(); toast('You left the household'); } catch (e) { toast(errorText(e), 'warn'); }
 }
 
@@ -168,4 +175,23 @@ export function handleJoinLink() {
   if (!code || !/^[a-z0-9]{20,64}$/.test(code)) return;
   history.replaceState(null, '', location.pathname);
   Cloud.load().then(() => joinSheet(code)).catch(() => toast('Couldn’t reach Firebase', 'warn'));
+}
+
+export function deleteAccountSheet() {
+  const pw = Cloud.usesPassword(), alone = !Cloud.wanted() || Cloud.isOnlyMember();
+  let sheet, done;
+  openSheet({
+    title: 'Delete account', saveLabel: 'Delete account', required: pw ? ['password'] : [],
+    body: `
+      <p class="fnote" style="margin:0 0 12px;font-size:15px;color:var(--text)">This deletes ${esc(Cloud.user?.email || 'your account')} and your wish list. It can’t be undone.</p>
+      <p class="fnote">${alone ? 'Nobody else is in your household, so its list is deleted too, along with the copy on this device.' : 'Your household’s list stays with everyone else in it. The copy on this device is deleted.'}</p>
+      ${pw ? `<div class="fgroup"><div class="row"><input class="field" name="password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password"></div></div>
+        <p class="fnote">Enter your password to confirm it’s you.</p>` : '<p class="fnote">Google asks you to sign in again to confirm it’s you.</p>'}
+      ${errLine}`,
+    onOpen(sh, close) { sheet = sh; done = close; },
+    onSave(d) {
+      busy(sheet, () => Cloud.deleteAccount(d.password || '')).then(ok => { if (ok) { done(null); toast('Your account was deleted'); renderAllPreserve(); } });
+      return false;
+    },
+  });
 }

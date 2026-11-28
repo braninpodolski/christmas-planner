@@ -1,6 +1,6 @@
 // Offline support. Every app file is cached together as one version, so an update can never
 // mix old and new modules. Bump CACHE whenever app files change so installed copies update.
-const CACHE = 'xmas-v25';
+const CACHE = 'xmas-v26';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   './css/base.css', './css/desktop.css', './css/layout.css', './css/lists.css', './css/sheets.css',
@@ -8,7 +8,7 @@ const ASSETS = [
   './js/datefields.js', './js/dates.js', './js/desktop.js', './js/errors.js', './js/event-sheet.js', './js/firebase-config.js', './js/forms.js',
   './js/gift-drag.js', './js/ics.js', './js/identity.js', './js/main.js', './js/nav.js',
   './js/pages.js', './js/passjoin.js', './js/sheets.js', './js/similar.js', './js/pins.js', './js/store.js', './js/sync.js',
-  './js/util.js', './js/version.js',
+  './js/util.js', './js/version.js', './js/merge.js', './js/wish-core.js', './js/wishes.js', './js/wish-ui.js',
 ];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 const APP_PATHS = new Set(ASSETS.map(u => new URL(u, self.registration.scope).pathname));

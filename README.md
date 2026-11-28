@@ -16,6 +16,8 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 - **Calendar export**: download birthdays and yearly events as a calendar file, with a reminder a week before each.
 - **Move and reorder gifts**: drag a gift to any spot in its list, onto another event, or onto Saved ideas (long-press on a phone). The others slide aside to show where it will land. On a computer, you can also press M.
 - **Sharing**: one list for your household. Gifts someone else is buying for you stay hidden on your device, for every event.
+- **Accounts**: sign in with Google or email and your list syncs right away, in a household of your own. Invite people to share it, or join someone else's household (it asks whether to bring your plans along, merging people with the same name). Settings → Delete account removes your account.
+- **Wish lists**: your own page is your wish list. Type a wish and press Return to add the next; share it with a link anyone can open (`wish.html`), no app or account needed. On someone else's page, the Wish list row opens their list: "I'll get it" adds it as a gift idea from you in their next event (or saved ideas, in Settings). They never see who's getting what. Paste a wish list link on a person (or anywhere, with ⌘V) to keep a list from another household, live.
 - **Undo** after any delete. Works offline, installs to your home screen, and has light and dark mode.
 - **Desktop layout** on computers: a sidebar, hover actions, centered dialogs and keyboard shortcuts.
 
@@ -34,6 +36,8 @@ A personal gift planner for birthdays, Christmas, anniversaries and every other 
 | Space | Next status for the selected gift |
 | M | Move the selected gift to another event |
 | F | Pin the selected person to the top of People (pins are yours, not shared with the household) |
+| W | Open the wish list of the person on screen |
+| ⌘V | Link a copied wish list link (when no text box is selected) |
 | ⌫ | Delete the selected row |
 | ⌘Z | Undo a delete |
 | ⌘↩ / Esc | Save / close a form |

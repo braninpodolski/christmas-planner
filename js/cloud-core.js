@@ -117,6 +117,7 @@ export function createCloud({ F, db, hid, uid, getLocal, setLocal, onMembers = (
 
   return {
     sync, members: () => members, ready: allReady,
+    paths: () => [...remote.keys()], // what this device can see of the household, relative to it
     flush: () => writing,
     stop() { stopped = true; for (const k of [...subs.keys()]) subs.get(k)(); subs.clear(); },
   };

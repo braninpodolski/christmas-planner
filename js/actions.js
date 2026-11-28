@@ -1,3 +1,4 @@
+import { WishActions, deleteGift } from './wish-ui.js';
 import { $, $$, plural, uid } from './util.js';
 import { Cloud } from './cloud.js';
 import { signInSheet, createHouseholdSheet, inviteSheet, joinCodeSheet, leaveHousehold } from './account.js';
@@ -68,8 +69,14 @@ export function sparkle(btn) {
    Actions (event delegation)
    ========================================================= */
 export const Actions = {
-  'account-signin': async () => { try { await Cloud.load(); } catch { toast('Couldn’t reach Firebase', 'warn'); return; } if (Cloud.user) { if (Cloud.wanted()) Cloud.start(); else if (await Cloud.restore()) toast('Welcome back. Your household’s list is loading.'); renderAll(); } else signInSheet(); },
-  'account-signout': async () => { await Cloud.signOut(); renderAll(); },
+  'account-signin': async () => {
+    try { await Cloud.load(); } catch { toast('Couldn’t reach Firebase', 'warn'); return; }
+    if (!Cloud.user) return signInSheet();
+    if (Cloud.wanted()) Cloud.start();
+    else { const r = await Cloud.restore(); if (r === 'rejoined') toast('Welcome back. Your household’s list is loading.'); else if (r === 'solo') toast('Signed in. Your list syncs now.'); }
+    renderAll();
+  },
+  'account-signout': async () => { const had = Cloud.wanted(); await Cloud.signOut(); renderAll(); toast(had ? 'Signed out. Your list stays in your account.' : 'Signed out'); },
   'household-create': () => createHouseholdSheet(),
   'household-join': () => joinCodeSheet(),
   'household-invite': () => inviteSheet(),
@@ -121,7 +128,7 @@ export const Actions = {
   },
   'add-gift': el => giftSheet(null, el.dataset.person, el.dataset.occ), // data-occ="" means save as idea
   'edit-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) giftSheet(g); },
-  'delete-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) undoable(`Deleted “${g.title}”`, s => s.gifts = s.gifts.filter(x => x.id !== g.id)); },
+  'delete-gift': el => { const g = state.gifts.find(x => x.id === el.dataset.id); if (g) deleteGift(g); },
   'cycle': (el, e) => {
     e.stopPropagation();
     const g = state.gifts.find(x => x.id === el.dataset.id); if (!g) return;
@@ -189,6 +196,15 @@ export const Actions = {
 };
 
 export function renderAllPreserve() {
+  // typing a wish: re-render around the box without losing what's typed or the cursor
+  const a = document.activeElement;
+  if (a?.id === 'wishAdd') {
+    const v = a.value, st = a.selectionStart, en = a.selectionEnd;
+    renderAll();
+    const b = document.getElementById('wishAdd');
+    if (b) { b.value = v; b.focus({ preventScroll: true }); try { b.setSelectionRange(st, en); } catch {} }
+    return;
+  }
   if (document.activeElement?.id === 'giftSearch' && !needsIdentity()) {
     Object.values(Nav.stacks).flat().filter(p => p._route.name !== 'gifts').forEach(p => { p._dirty = true; });
     const res = $('#giftResults'); if (res) res.innerHTML = giftResults();
@@ -201,7 +217,7 @@ export function renderAllPreserve() {
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
   if (!el) return;
-  const fn = Actions[el.dataset.action];
+  const fn = Actions[el.dataset.action] || WishActions[el.dataset.action];
   if (fn) { e.preventDefault(); fn(el, e); }
 });
 document.addEventListener('input', e => {

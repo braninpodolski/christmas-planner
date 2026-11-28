@@ -1,3 +1,4 @@
+import { WishActions, wishKey } from './wish-ui.js';
 import { $, $$, Icon, cap, esc, sleep, words } from './util.js';
 import { daysUntil, fmtDate } from './dates.js';
 import { firstName, ideasFor, isMe, occTitle, person, sortedPeople, state, upcomingOccasions, visibleGifts } from './store.js';
@@ -69,13 +70,14 @@ export const Desk = {
   rowAction(el, kind) {
     const type = el.dataset.row;
     if (kind === 'delete') {
-      const map = { gift: 'delete-gift', task: 'delete-task', person: 'delete-person', event: 'delete-event' };
+      const map = { gift: 'delete-gift', task: 'delete-task', person: 'delete-person', event: 'delete-event', wish: 'delete-wish' };
       const rows = this.rows(), i = rows.indexOf(el);
-      Actions[map[type]]?.(el);
+      (Actions[map[type]] || WishActions[map[type]])?.(el);
       // keep keyboard focus in the list after the row disappears
       setTimeout(() => { const rs = this.rows(); rs[Math.min(i, rs.length - 1)]?.focus({ preventScroll: true }); }, 30);
     } else if (kind === 'space') {
-      if (type === 'gift') $('[data-action=cycle]', el)?.click();
+      if (type === 'claim') $('[data-action=claim-wish], [data-action=unclaim-wish]', el)?.click();
+      else if (type === 'gift') $('[data-action=cycle]', el)?.click();
       else if (type === 'task') $('[data-action=toggle-task]', el)?.click();
       else el.click();
     }
@@ -96,9 +98,10 @@ export const Desk = {
       </div></div>
       <div class="fgroup"><div class="keys">
         ${row('Move between rows', '↑', '↓')}${row('Open the selected row', '↩')}
-        ${row('Next status for the selected gift', 'Space')}${row('Move the selected gift to another event', 'M')}${row('Pin the selected person to the top', 'F')}${row('Delete the selected row', '⌫')}
+        ${row('Next status for the selected gift', 'Space')}${row('Move the selected gift to another event', 'M')}${row('Pin the selected person to the top', 'F')}${row('Open their wish list (on a person)', 'W')}${row('Claim or unclaim the selected wish', 'Space')}${row('Delete the selected row', '⌫')}
         ${row('Undo delete', MOD, 'Z')}${row('Go back', 'Esc')}
       </div></div>
+      <div class="fgroup"><div class="keys">${row('Link a copied wish list link', MOD, 'V')}</div></div>
       <div class="fgroup"><div class="keys">${row('Save a form', MOD, '↩')}${row('Close a form', 'Esc')}</div></div>`,
       onSave() {},
     });
@@ -157,6 +160,7 @@ document.addEventListener('keydown', e => {
     case 'ArrowUp': case 'k': e.preventDefault(); Desk.move(-1); break;
     case 'Backspace': case 'Delete': if (row) { e.preventDefault(); Desk.rowAction(row, 'delete'); } break;
     case ' ': if (row) { e.preventDefault(); Desk.rowAction(row, 'space'); } break;
+    case 'w': if (wishKey()) e.preventDefault(); break;
     case 'f': if (row?.dataset.row === 'person') { e.preventDefault(); Actions['toggle-pin']({ dataset: { id: row.dataset.id } }); } break;
     case 'm': if (row?.dataset.row === 'gift') { e.preventDefault(); moveGiftPicker(row.dataset.id); } break;
     case 'x': if (row?.dataset.row === 'task') { e.preventDefault(); Desk.rowAction(row, 'space'); } break;

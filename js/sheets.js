@@ -117,24 +117,26 @@ export function actionSheet({ message, actions }) {
 export const confirmDestructive = async (message, label) => (await actionSheet({ message, actions: [{ label, destructive: true }] })) === 0;
 
 export let toastTimer;
-export function toast(text, kind = 'ok', action) {
+export function toast(text, kind = 'ok', action, secondary) {
   const t = $('#toast');
-  t.innerHTML = `${kind === 'warn' ? Icon.warn : kind === 'undo' ? Icon.trash : Icon.ok}<span>${esc(text)}</span>${action ? `<button class="toast-act">${esc(action.label)}</button>` : ''}`;
-  if (action) $('.toast-act', t).onclick = () => { t.classList.remove('show'); action.run(); };
+  t.innerHTML = `${kind === 'warn' ? Icon.warn : kind === 'undo' ? Icon.trash : Icon.ok}<span>${esc(text)}</span>${secondary ? `<button class="toast-act quiet" data-second>${esc(secondary.label)}</button>` : ''}${action ? `<button class="toast-act" data-first>${esc(action.label)}</button>` : ''}`;
+  if (action) $('[data-first]', t).onclick = () => { t.classList.remove('show'); action.run(); };
+  if (secondary) $('[data-second]', t).onclick = () => { t.classList.remove('show'); secondary.run(); };
   t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), action ? 5000 : 2400);
+  toastTimer = setTimeout(() => t.classList.remove('show'), secondary ? 7000 : action ? 5000 : 2400);
 }
 /* Run a destructive change with an Undo toast that restores the previous data. */
-export function undoable(message, fn) {
+export function undoable(message, fn, { onUndo, secondary } = {}) {
   const snap = sanitize(JSON.parse(JSON.stringify(state)));
   commit(fn);
   const restore = () => {
     lastUndo = null;
     commit(s => KINDS.forEach(k => { s[k] = snap[k].map(r => ({ ...r })); }));
+    onUndo?.();
     toast('Restored');
   };
   lastUndo = { run: restore, until: Date.now() + 60000 }; // also reachable with ⌘Z / Ctrl+Z
-  toast(message, 'undo', { label: 'Undo', run: restore });
+  toast(message, 'undo', { label: 'Undo', run: restore }, secondary && { label: secondary.label, run: () => { lastUndo = null; secondary.run(); } });
 }
 export let lastUndo = null;

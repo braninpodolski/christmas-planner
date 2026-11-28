@@ -10,6 +10,8 @@ import { Sync } from './sync.js';
 import { Desk } from './desktop.js';
 import { Cloud } from './cloud.js';
 import { Pins } from './pins.js';
+import { ownWishBlock, wishEntryRow, wishListPage } from './wish-ui.js';
+import { Wishes } from './wishes.js';
 
 /* =========================================================
    Pages
@@ -235,17 +237,15 @@ export const Pages = {
           <div class="rel">${[isMe(p.id) ? 'You' : esc(p.relation), bday].filter(Boolean).join('<br>')}</div>
         </div>`;
       if (isMe(p.id)) return `${head}
-        <div class="surprise">
-          <span class="tag xl" style="--c:var(--cranberry)">${BOW_SMALL}</span>
-          <h3>Your gifts are a surprise</h3>
-          <p>Anything someone else adds for you stays hidden on this device, along with its price and status.</p>
-        </div>
+        ${ownWishBlock(p)}
+        <p class="note" style="text-align:center">Gifts others plan for you stay hidden, along with their price and status.</p>
         ${p.sizes ? `<div class="block"><div class="block-head"><h2>Sizes and favorites</h2></div><div class="prose">${esc(p.sizes)}</div><p class="note">Everyone sharing this list can see this, so it’s a good place for hints.</p></div>` : `<p class="note" style="text-align:center">Add your sizes and favorites with Edit. Everyone sharing the list can see them.</p>`}`;
       const sortGifts = gs => gs.sort(byGiftOrder);
       const upcoming = upcomingOccasions().filter(o => o.people.includes(p.id));
       const ideas = sortGifts(ideasFor(p.id));
       const history = pastOccasions().map(o => [o, sortGifts(occGifts(o).filter(g => g.personId === p.id))]).filter(([, gs]) => gs.length);
       return `${head}
+        ${wishEntryRow(p.id)}
         ${upcoming.map(o => {
           const gs = sortGifts(occGifts(o).filter(g => g.personId === p.id));
           const b = num(o.budgets[p.id]);
@@ -284,6 +284,8 @@ export const Pages = {
         ${p.notes ? `<div class="block"><div class="block-head"><h2>Notes</h2></div><div class="prose">${esc(p.notes)}</div></div>` : ''}`;
     },
   },
+
+  wishlist: wishListPage,
 
   gifts: {
     title: () => 'Gifts',
@@ -344,7 +346,12 @@ export const Pages = {
         <div class="block">
           <div class="block-head"><h2>Household</h2><span class="meta">Beta</span></div>
           <div class="list" style="--inset:64px">
-            ${inHH ? `
+            ${inHH && u && Cloud.isSolo() ? `
+              <div class="row"><div class="row-icon" style="background:${Cloud.status === 'error' ? 'var(--cranberry)' : 'var(--pine)'}">${Icon.cloud}</div>
+                <div class="row-main"><div class="row-title">Just you</div><div class="row-sub"><span id="syncStatus">${Cloud.statusText()}</span> · ${esc(u.email || '')}</div></div></div>
+              <button class="row" data-action="household-invite"><div class="row-icon" style="background:var(--fir)">${Icon.gift}</div><div class="row-main">Invite someone</div>${Icon.chev}</button>
+              <button class="row" data-action="household-join"><div class="row-icon" style="background:var(--brass)">${Icon.tag}</div><div class="row-main">Join a household</div>${Icon.chev}</button>
+            ` : inHH ? `
               <div class="row"><div class="row-icon" style="background:${Cloud.status === 'error' ? 'var(--cranberry)' : 'var(--pine)'}">${Icon.cloud}</div>
                 <div class="row-main"><div class="row-title">${esc(u?.email || 'Signed out')}</div><div class="row-sub" id="syncStatus">${Cloud.statusText()}</div></div></div>
               ${members.map(m => `<div class="row">${tag(m.p)}<div class="row-main">${esc(m.p.name)}</div>${m.uid === u?.uid ? '<span class="you">You</span>' : ''}</div>`).join('')}
@@ -355,14 +362,28 @@ export const Pages = {
               <button class="row" data-action="household-create"><div class="row-icon" style="background:var(--pine)">${Icon.cloud}</div><div class="row-main"><div class="row-title">Create a household</div><div class="row-sub">Move this list into your account</div></div>${Icon.chev}</button>
               <button class="row" data-action="household-join"><div class="row-icon" style="background:var(--fir)">${Icon.gift}</div><div class="row-main">Join with an invite</div>${Icon.chev}</button>
             ` : `
-              <button class="row" data-action="account-signin"><div class="row-icon" style="background:var(--pine)">${Icon.cloud}</div><div class="row-main"><div class="row-title">Sign in</div><div class="row-sub">Share a list with your own household</div></div>${Icon.chev}</button>
+              <button class="row" data-action="account-signin"><div class="row-icon" style="background:var(--pine)">${Icon.cloud}</div><div class="row-main"><div class="row-title">Sign in</div><div class="row-sub">Sync your list and keep a wish list</div></div>${Icon.chev}</button>
             `}
-            ${u ? `<button class="row" data-action="account-signout"><div class="row-icon" style="background:var(--s-idea)">${Icon.key}</div><div class="row-main"><div class="row-title">Sign out</div><div class="row-sub">${esc(u.email || '')}</div></div></button>` : ''}
           </div>
-          <p class="note">${inHH ? 'Everyone in the household shares one list. Gifts someone else is buying for you never reach your devices.' : 'Each household has its own list. Gifts for each other stay hidden, enforced by the database rather than just on screen.'}</p>
-        </div>`;
+          <p class="note">${inHH && Cloud.isSolo() ? 'Everything syncs to your account. Invite someone to share the list; gifts for each other stay hidden.' : inHH ? 'Everyone in the household shares one list. Gifts someone else is buying for you never reach your devices.' : 'Each household has its own list. Gifts for each other stay hidden, enforced by the database rather than just on screen.'}</p>
+        </div>
+        ${inHH && u ? `
+        <div class="block">
+          <div class="block-head"><h2>Wish lists</h2></div>
+          <div class="list"><div class="row"><div class="row-main"><label for="claimDest">Claimed wishes go to</label></div>
+            <select class="field right" id="claimDest" style="flex:none;width:auto"><option value="next" ${Wishes.destination === 'next' ? 'selected' : ''}>Their next event</option><option value="saved" ${Wishes.destination === 'saved' ? 'selected' : ''}>Saved ideas</option></select></div></div>
+          <p class="note">When you tap “I’ll get it” on someone’s wish list, it becomes a gift idea from you here. This choice is for this device.</p>
+        </div>` : ''}
+        ${u ? `
+        <div class="block">
+          <div class="block-head"><h2>Account</h2></div>
+          <div class="list" style="--inset:64px">
+            <button class="row" data-action="account-signout"><div class="row-icon" style="background:var(--s-idea)">${Icon.key}</div><div class="row-main"><div class="row-title">Sign out</div><div class="row-sub">${esc(u.email || '')}</div></div></button>
+            <button class="row danger" data-action="delete-account">Delete account…</button>
+          </div>
+        </div>` : ''}`;
       })()}
-        ${Cloud.wanted() ? '' : `<div class="block">
+        ${Cloud.wanted() || !(Sync.gist() || sharing()) ? '' : `<div class="block">
           <div class="block-head"><h2>Sync</h2></div>
           <div class="list" style="--inset:64px">
             <div class="row">

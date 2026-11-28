@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website parity mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FCFDFC;--sunken:#EFF3F0;--field:#FFFFFF;--ink:#15281F;--text:#1A2721;--text2:rgba(26,39,33,.58);--text3:rgba(26,39,33,.36);--hair:rgba(21,40,31,.12);--sel:rgba(23,59,47,.09);--cran:#C8243F;--pine:#2F7D5B;--fir:#173B2F;--onfir:#F1F6F2;--serif:"Gloock",Georgia,serif;--page:#E6ECE8}
+@media (prefers-color-scheme:dark){:root{--bg:#0C1713;--sunken:#13221C;--field:#172A22;--ink:#EEF4F0;--text:#E4ECE7;--text2:rgba(228,236,231,.6);--text3:rgba(228,236,231,.36);--hair:rgba(228,236,231,.14);--sel:rgba(228,236,231,.1);--cran:#E0435C;--pine:#4FAE84;--fir:#2F7D5B;--page:#060D0A}}
+body{margin:0;background:var(--page);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:28px 16px 60px}
+h1{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--ink);margin:0 0 4px}
+.intro{color:var(--text2);margin:0 0 24px}
+.cap{font-weight:600;color:var(--ink);margin:30px 0 4px}
+.capsub{color:var(--text2);font-size:14px;margin:0 0 10px}
+.win{border:.5px solid var(--hair);border-radius:12px;overflow:hidden;background:var(--bg);display:grid;grid-template-columns:200px minmax(0,1fr);box-shadow:0 10px 30px -14px rgba(0,0,0,.35)}
+.bar{grid-column:1/-1;height:28px;background:var(--sunken);border-bottom:.5px solid var(--hair);display:flex;gap:6px;align-items:center;padding:0 12px}
+.bar i{width:11px;height:11px;border-radius:50%;background:var(--text3)}
+.sb{background:var(--sunken);padding:12px 10px;border-right:.5px solid var(--hair);font-size:14px}
+.sb .it{padding:5px 8px;border-radius:7px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.sb .on{background:var(--sel);color:var(--ink);font-weight:500}
+.sb .lbl{font-size:12px;color:var(--text3);padding:14px 8px 4px}
+.sb .new{background:var(--cran);color:#fff;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-weight:600}
+.dot{width:20px;height:14px;border-radius:3px;background:var(--c,var(--pine));display:inline-block}
+.main{padding:22px 28px 28px;min-width:0}
+.h{font-family:var(--serif);font-weight:400;font-size:30px;color:var(--ink);margin:0}
+.sub{color:var(--text2);font-size:13px}
+.list{background:var(--field);border:.5px solid var(--hair);border-radius:12px;margin-top:12px;overflow:hidden}
+.r{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:.5px solid var(--hair)}
+.r:first-child{border-top:0}
+.r .m{flex:1;min-width:0}
+.r.hover{background:var(--sel)}
+.grip{color:var(--text3);letter-spacing:-2px}
+.pill{border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--cran) 13%,transparent);color:var(--cran)}
+.btn{border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;border:.5px solid var(--hair);background:var(--field);color:var(--ink);white-space:nowrap}
+.primary{background:var(--fir);color:var(--onfir);border-color:transparent}
+.ok{color:var(--pine)}.red{color:var(--cran)}
+.ghost{font-size:12px;color:var(--text2)}
+kbd{font:11px ui-monospace,monospace;border:.5px solid var(--hair);border-radius:4px;padding:1px 5px;color:var(--text2);background:var(--bg)}
+.sec{font-weight:600;color:var(--ink);margin-top:18px;font-size:14px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.overlay{background:rgba(10,20,16,.42);display:flex;justify-content:center;align-items:center;padding:40px 16px;border-radius:12px}
+.dlg{background:var(--bg);border-radius:14px;width:min(420px,100%);padding:18px 20px;box-shadow:0 20px 50px -10px rgba(0,0,0,.45)}
+.dlg .t{font-weight:600;color:var(--ink);font-size:16px;margin-bottom:10px}
+.inp{border:.5px solid var(--hair);border-radius:9px;background:var(--field);padding:8px 11px;color:var(--text)}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.toast{display:inline-flex;gap:14px;align-items:center;background:var(--fir);color:var(--onfir);border-radius:999px;padding:8px 16px;font-size:13px;margin-top:14px}
+.toast b{color:#fff}
+select{font:inherit;font-size:13px;border:.5px solid var(--hair);border-radius:7px;background:var(--bg);color:var(--text);padding:3px 6px}
+@media (max-width:640px){.win{grid-template-columns:1fr}.sb{display:none}.main{padding:18px 16px}}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Website on desktop: catching up to the app</h1>
+<p class="intro">Mockups for review. Made-up people and gifts only. The gift board, events and the rest of the website stay as they are.</p>
+
+<div class="cap">1 · Your own page: only your wish list</div>
+<p class="capsub">Type and press Return to add the next one. Hover a wish for Edit and Delete, drag to reorder. Nothing here says what’s taken.</p>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div>
+ <div class="sb"><div class="new">+ New gift <kbd style="float:right">N</kbd></div><div class="it">Home</div><div class="it">Events</div><div class="it on">People</div><div class="it">Gifts</div><div class="lbl">People</div><div class="it on"><span class="dot" style="--c:#2F7D5B"></span>Alex</div><div class="it"><span class="dot" style="--c:#6D3F8F"></span>Sam</div><div class="it"><span class="dot" style="--c:#1E6F86"></span>Riley</div></div>
+ <div class="main">
+  <div class="head"><div><p class="h">Alex</p><div class="sub">You · Birthday April 2</div></div><span class="btn">⇪ Share wish list</span></div>
+  <div class="sec">Your wish list</div>
+  <div class="list">
+   <div class="r hover"><span class="grip">⋮⋮</span><div class="m">Wool hiking socks<div class="sub">$24 · rei.com</div></div><span class="ghost">Edit · Delete</span></div>
+   <div class="r"><span class="grip">⋮⋮</span><div class="m">Pour-over kettle<div class="sub">Gooseneck, any color</div></div></div>
+   <div class="r"><span class="grip">⋮⋮</span><div class="m">Puzzle, 1000 pieces</div></div>
+   <div class="r"><span class="red" style="font-weight:700">+</span><div class="m" style="color:var(--text3)">Add a wish…</div><kbd>↩</kbd></div>
+  </div>
+  <p class="sub" style="margin-top:10px">You never see who’s getting what. Share wish list copies the link, so you can paste it into a message or email.</p>
+ </div>
+</div>
+
+<div class="cap">2 · Someone else’s page: the board stays, with one quiet row</div>
+<p class="capsub">Same as the iPhone app. The row opens their list on its own page (or press W).</p>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div>
+ <div class="sb"><div class="new">+ New gift</div><div class="it">Home</div><div class="it">Events</div><div class="it on">People</div><div class="it">Gifts</div><div class="lbl">People</div><div class="it"><span class="dot" style="--c:#2F7D5B"></span>Alex</div><div class="it on"><span class="dot" style="--c:#6D3F8F"></span>Sam</div><div class="it"><span class="dot" style="--c:#1E6F86"></span>Riley</div></div>
+ <div class="main">
+  <p class="h">Sam</p><div class="sub">Sister · Birthday June 9</div>
+  <div class="list"><div class="r"><span class="red">★</span><div class="m">Wish list<div class="sub">5 wishes · 2 taken</div></div><kbd>W</kbd><span class="ghost">›</span></div></div>
+  <div class="sec">Christmas <span class="sub">· in 27 days</span></div>
+  <div class="list"><div class="r"><div class="m">Board game<div class="sub">Idea · $45</div></div><span class="pill" style="background:var(--sel);color:var(--text2)">Idea</span></div><div class="r"><span class="red" style="font-weight:700">+</span><div class="m">Add gift</div></div></div>
+  <div class="sec">Saved ideas</div>
+  <div class="list"><div class="r"><span class="red" style="font-weight:700">+</span><div class="m">Save an idea for Sam</div></div></div>
+ </div>
+</div>
+
+<div class="cap">3 · Their wish list</div>
+<p class="capsub">One click claims a wish and adds it as a gift to their next event, with Undo. Your household sees who; other households see only “Taken”.</p>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div>
+ <div class="sb"><div class="new">+ New gift</div><div class="it">Home</div><div class="it">Events</div><div class="it on">People</div><div class="it">Gifts</div><div class="lbl">People</div><div class="it"><span class="dot" style="--c:#2F7D5B"></span>Alex</div><div class="it on"><span class="dot" style="--c:#6D3F8F"></span>Sam</div><div class="it"><span class="dot" style="--c:#1E6F86"></span>Riley</div></div>
+ <div class="main">
+  <div class="head"><div><div class="sub">‹ Sam</div><p class="h">Sam’s wish list</p><div class="sub">Their own list, kept here · stays live</div></div><span class="btn">··· Unlink</span></div>
+  <div class="list">
+   <div class="r"><div class="m">Board game<div class="sub">$45 · target.com</div><div class="sub ok">You’re getting this</div></div><span class="ghost">Not getting it</span></div>
+   <div class="r"><div class="m">Rain jacket<div class="sub">Size M</div><div class="sub">Jordan is getting this</div></div></div>
+   <div class="r"><div class="m">Cookbook</div><span class="sub">Taken</span></div>
+   <div class="r"><div class="m">Plant stand<div class="sub">$30</div></div><span class="pill">I’ll get it</span></div>
+   <div class="r"><div class="m">Watercolor set</div><span class="pill">I’ll get it</span></div>
+  </div>
+  <p class="sub" style="margin-top:10px">Sam never sees who’s getting what. A wish you claim goes to their next event (Christmas). <span class="red">Change in Settings</span></p>
+  <div class="toast">Added to Christmas <b>Undo</b></div>
+ </div>
+</div>
+
+<div class="cap">4 · Link a wish list</div>
+<p class="capsub">From “Link a wish list…” on a person with no list, or paste a wish list link anywhere with ⌘V.</p>
+<div class="overlay"><div class="dlg">
+ <div class="t">Link a wish list</div>
+ <div class="inp">…/wish.html?l=k3v9q…</div>
+ <p class="sub" style="margin:12px 0 4px">Riley’s wish list · 6 wishes. Keep it on:</p>
+ <div class="list" style="margin-top:4px"><div class="r"><span class="ok">●</span><div class="m">Riley</div><span class="sub">Matches</span></div><div class="r"><span class="ghost">○</span><div class="m">New person: Riley</div></div></div>
+ <p class="sub" style="margin-top:10px">It stays live: when they change it, it changes here. Nobody outside your household sees who claims what.</p>
+ <div class="acts"><span class="btn">Cancel</span><span class="btn primary">Link</span></div>
+</div></div>
+
+<div class="cap">5 · Settings</div>
+<p class="capsub">Signing in gives you a household of one right away. New Wish lists and Account sections.</p>
+<div class="win"><div class="bar"><i></i><i></i><i></i></div>
+ <div class="sb"><div class="new">+ New gift</div><div class="it">Home</div><div class="it">Events</div><div class="it">People</div><div class="it">Gifts</div><div class="lbl">&nbsp;</div><div class="it on">Settings</div></div>
+ <div class="main">
+  <div class="sec" style="margin-top:0">Household</div>
+  <div class="list"><div class="r"><span class="ok">☁</span><div class="m">Just you<div class="sub">Synced · alex@example.com</div></div></div><div class="r"><span>＋</span><div class="m">Invite someone</div><span class="ghost">›</span></div><div class="r"><span>⇥</span><div class="m">Join a household</div><span class="ghost">›</span></div></div>
+  <div class="sec">Wish lists</div>
+  <div class="list"><div class="r"><div class="m">Claimed wishes go to</div><select><option>Their next event</option><option>Saved ideas</option></select></div></div>
+  <div class="sec">Account</div>
+  <div class="list"><div class="r"><div class="m">Sign out</div></div><div class="r"><div class="m red">Delete account…</div></div></div>
+ </div>
+</div>
+
+<div class="cap">6 · Joining with plans already here</div>
+<p class="capsub">The same choice as the iPhone app.</p>
+<div class="overlay"><div class="dlg">
+ <div class="t">Join the Rivera household?</div>
+ <p class="sub" style="font-size:14px;margin:0">You have 4 people, 3 events and 12 gifts here. Bring them along (people with the same name are merged), or leave them behind. Your wish list comes with you either way.</p>
+ <div class="acts"><span class="btn">Cancel</span><span class="btn">Leave them behind</span><span class="btn primary">Bring them</span></div>
+</div></div>
+
+</div></body></html>
